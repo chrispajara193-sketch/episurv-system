@@ -1,0 +1,13 @@
+{
+  "name": "episurv-system",
+  "version": "1.0.0",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.6.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
