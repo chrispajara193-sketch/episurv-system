@@ -3,31 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Official Epidemiological Surveillance & Questionnaire System</title>
+  <title>Official Epidemiological Surveillance & Questionnaire Portal</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    /* Clean Print Layout matching the Official Government 3-Page Questionnaire */
+    /* 1:1 Official 3-Page Government Print & Template Layout */
     @media print {
       body {
         background-color: white !important;
         color: black !important;
-        font-size: 11px !important;
+        font-size: 10.5px !important;
+        line-height: 1.25 !important;
       }
       .no-print { display: none !important; }
-      #printableQuestionnaire { display: block !important; }
+      #printableArea { display: block !important; padding: 0 !important; margin: 0 !important; }
       .page-break { page-break-after: always; }
       table { border-collapse: collapse !important; width: 100% !important; }
-      th, td { border: 1px solid black !important; padding: 3px 5px !important; }
-      .print-border { border: 1px solid black !important; }
+      th, td { border: 1px solid #1e293b !important; padding: 2px 4px !important; font-size: 10px !important; }
+      .official-border { border: 1px solid #0f172a !important; }
+      input, select, textarea {
+        border: none !important;
+        background: transparent !important;
+        font-weight: 600 !important;
+        color: black !important;
+        padding: 0 !important;
+      }
     }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen">
 
-  <!-- TOP HEADER -->
+  <!-- TOP HEADER (Screen Only) -->
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40 border-b-2 border-teal-500 no-print">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center space-x-3">
@@ -36,22 +44,22 @@
         </div>
         <div>
           <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
-            EpiSurv 2026 <span class="text-xs bg-teal-500 text-slate-950 font-black px-2 py-0.5 rounded uppercase">DOH / CESU Questionnaire</span>
+            EpiSurv Master Portal <span class="text-xs bg-teal-500 text-slate-950 font-black px-2 py-0.5 rounded uppercase">QCHD / DOH 2026</span>
           </h1>
-          <p class="text-xs text-slate-300">Epidemiology & Surveillance Division (Official PDS / CIF Digital Entry)</p>
+          <p class="text-xs text-slate-300">City Epidemiology & Disease Surveillance Division (CESD)</p>
         </div>
       </div>
 
       <!-- Navigation Tabs -->
       <div class="flex flex-wrap gap-2">
         <button onclick="switchTab('questionnaireTab')" id="btn-questionnaireTab" class="px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-teal-600 text-white shadow flex items-center gap-2">
-          <i class="fa-solid fa-file-pen"></i> Official Questionnaire Form
+          <i class="fa-solid fa-file-signature"></i> Questionnaire Form
         </button>
         <button onclick="switchTab('registryTab')" id="btn-registryTab" class="px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2">
           <i class="fa-solid fa-table-list"></i> Surveillance Registry (<span id="recordCountBadge">0</span>)
         </button>
         <button onclick="switchTab('repoTab')" id="btn-repoTab" class="px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2">
-          <i class="fa-solid fa-folder-open text-teal-400"></i> Forms Repository (LINKS)
+          <i class="fa-solid fa-folder-tree text-teal-400"></i> Forms & Links
         </button>
       </div>
     </div>
@@ -59,10 +67,10 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-    <!-- KPI STATS BAR -->
+    <!-- KPI STATS BAR (Screen Only) -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 no-print">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-        <p class="text-xs font-bold text-slate-500 uppercase">Total Logged Cases</p>
+        <p class="text-xs font-bold text-slate-500 uppercase">Total Cases Logged</p>
         <h3 id="statTotalCases" class="text-2xl font-black text-slate-900 mt-1">0</h3>
       </div>
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
@@ -79,41 +87,52 @@
       </div>
     </div>
 
-    <!-- TAB 1: FULL OFFICIAL EPIDEMIOLOGICAL QUESTIONNAIRE -->
+    <!-- TAB 1: OFFICIAL QUESTIONNAIRE INTERFACE -->
     <section id="questionnaireTab" class="space-y-6">
-      <form id="officialEpiForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
+      <form id="masterEpiForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
 
-        <!-- DISEASE SELECTOR & ACTIONS HEADER -->
+        <!-- FORM SELECTOR CONTROL PANEL (Screen Only) -->
         <div class="bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 p-5 rounded-xl shadow-md text-white border border-teal-500 no-print">
           <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
             <div class="flex items-center gap-2">
-              <i class="fa-solid fa-virus-covid text-teal-400 text-xl"></i>
-              <h2 class="text-base font-bold uppercase tracking-wider">Select Notifiable Condition & Questionnaire Type</h2>
+              <i class="fa-solid fa-list-check text-teal-400 text-xl"></i>
+              <h2 class="text-base font-bold uppercase tracking-wider">Select Provided EpiForm / Notifiable Disease Form</h2>
             </div>
             <div class="flex gap-2">
-              <button type="button" onclick="printOfficialForm()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs rounded-lg border border-teal-500 flex items-center gap-1.5 transition">
+              <button type="button" onclick="exportToWordDoc()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition shadow">
+                <i class="fa-solid fa-file-word"></i> Export Filled Word (.doc)
+              </button>
+              <button type="button" onclick="window.print()" class="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition shadow">
                 <i class="fa-solid fa-print"></i> Print Official 3-Page PDF
               </button>
             </div>
           </div>
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2">
-              <label class="block text-xs font-bold text-teal-300 uppercase mb-1">Disease / EpiForm Category *</label>
-              <select id="disease" onchange="updateQuestionnaireTitle(); renderDynamicClinicalSections();" required class="w-full bg-slate-800 text-white font-bold border-2 border-teal-500 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-400 focus:outline-none">
-                <option value="Diphtheria">Diphtheria (EPIDEMIOLOGICAL QUESTIONNAIRE)</option>
-                <option value="Vectorborne - Dengue">Vectorborne: Dengue</option>
-                <option value="FWBD - Acute Bloody Diarrhea (ABD)">FWBD: Acute Bloody Diarrhea (ABD)</option>
-                <option value="Leptospirosis">Leptospirosis</option>
-                <option value="Rabies">Rabies Exposure / Human Rabies</option>
-                <option value="Mpox">Mpox (Monkeypox)</option>
-                <option value="Measles_Rubella">Measles / Rubella</option>
-                <option value="Pertussis">Pertussis (Whooping Cough)</option>
-                <option value="Panrespi">Pan-Respiratory (COVID-19 / ILI / SARI)</option>
-                <option value="HFMD">Hand, Foot, and Mouth Disease (HFMD)</option>
-                <option value="Meningococcemia">Meningococcemia</option>
-                <option value="Neonatal Tetanus">Neonatal Tetanus</option>
-                <option value="Non-Neonatal Tetanus">Non-Neonatal Tetanus</option>
-                <option value="Viral Hepatitis B/C (SACCL/Care)">Viral Hepatitis B / C (SACCL / Care Form)</option>
+              <label class="block text-xs font-bold text-teal-300 uppercase mb-1">Choose Disease Form Template *</label>
+              <select id="diseaseSelect" onchange="changeQuestionnaireForm()" required class="w-full bg-slate-800 text-white font-bold border-2 border-teal-500 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-400 focus:outline-none">
+                <optgroup label="2026 Standard EpiForms">
+                  <option value="Diphtheria">Diphtheria (Epidemiological Questionnaire)</option>
+                  <option value="Leptospirosis">Leptospirosis Case Investigation Form</option>
+                  <option value="Rabies">Rabies Exposure & Case Investigation Form</option>
+                  <option value="Mpox">Mpox (Monkeypox) Case Investigation Form</option>
+                  <option value="Vectorborne">Vectorborne: Dengue & Malaria Surveillance Form</option>
+                  <option value="FWBD">Food & Waterborne (FWBD) / Acute Bloody Diarrhea</option>
+                  <option value="Measles_Rubella">Measles / Rubella Case Investigation Form</option>
+                  <option value="Pertussis">Pertussis (Whooping Cough) EpiForm</option>
+                  <option value="Panrespi">Pan-Respiratory: COVID-19 / ILI / SARI Form</option>
+                  <option value="HFMD">Hand, Foot, and Mouth Disease (HFMD)</option>
+                  <option value="Meningococcemia">Meningococcemia (Bacterial Meningitis)</option>
+                  <option value="Neonatal">Neonatal Tetanus Case Investigation Form</option>
+                  <option value="Non Neonatal">Non-Neonatal Tetanus Case Form</option>
+                </optgroup>
+                <optgroup label="Specialized Laboratory & Care Forms">
+                  <option value="SACCL_046">F-SACCL-046 Molecular Diagnostic (San Lazaro)</option>
+                  <option value="Viral_Hepatitis_B">Viral Hepatitis B Case Report Form</option>
+                  <option value="HEPATI_1">HEPATI_1 Care & Treatment Form</option>
+                  <option value="PLE_Lab">Fillable Public Health Lab Request (PLE)</option>
+                </optgroup>
               </select>
             </div>
             <div>
@@ -123,69 +142,90 @@
           </div>
         </div>
 
-        <!-- ==================== OFFICIAL FORM CONTAINER ==================== -->
-        <div id="printableQuestionnaire" class="bg-white p-6 sm:p-8 rounded-xl shadow border border-slate-300 space-y-6">
+        <!-- ==================== PRINTABLE / EDITABLE OFFICIAL QUESTIONNAIRE ==================== -->
+        <div id="printableArea" class="bg-white p-6 sm:p-10 rounded-xl shadow-lg border border-slate-300 space-y-5 text-slate-900">
           
-          <!-- OFFICIAL GOVERNMENT HEADER -->
-          <div class="border-b-2 border-slate-900 pb-4 text-center space-y-1">
-            <p class="text-xs font-serif uppercase tracking-widest text-slate-600">Republic of the Philippines</p>
-            <h2 class="text-lg font-black uppercase text-slate-950 tracking-wide">QUEZON CITY HEALTH DEPARTMENT</h2>
-            <p class="text-xs font-medium text-slate-700">Quezon City, Metro Manila • City Epidemiology and Disease Surveillance Division (CESD)</p>
-            <p class="text-[11px] text-slate-500">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel: 8988-4242 loc 1607 | Email: cityhealth@quezoncity.gov.ph</p>
-            <div class="pt-3">
-              <h3 id="formMainTitle" class="text-base font-black uppercase bg-slate-100 py-1.5 px-4 border border-slate-900 inline-block tracking-wider">
+          <!-- OFFICIAL GOVERNMENT HEADER WITH LOGOS & METADATA -->
+          <div class="border-b-2 border-slate-900 pb-3">
+            <div class="flex items-center justify-between gap-4">
+              <!-- Left Seal (Quezon City Seal Graphic) -->
+              <div class="w-16 h-16 flex items-center justify-center border-2 border-slate-800 rounded-full bg-slate-50 text-slate-800 font-bold text-[10px] text-center p-1 uppercase shadow-sm">
+                <span>QC Seal</span>
+              </div>
+
+              <!-- Center Text Header -->
+              <div class="text-center flex-1 space-y-0.5">
+                <p class="text-[11px] font-serif uppercase tracking-widest text-slate-700">Republic of the Philippines</p>
+                <h2 class="text-base sm:text-lg font-black uppercase text-slate-950 tracking-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
+                <p class="text-xs font-bold text-slate-800">Quezon City, Metro Manila • City Epidemiology and Disease Surveillance Division (CESD)</p>
+                <p class="text-[10px] text-slate-600">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel: 8988-4242 loc 1607 | Email: cityhealth@quezoncity.gov.ph</p>
+              </div>
+
+              <!-- Right Seal (QCHD / DOH Division Graphic) -->
+              <div class="w-16 h-16 flex items-center justify-center border-2 border-teal-800 rounded-full bg-teal-50 text-teal-900 font-bold text-[10px] text-center p-1 uppercase shadow-sm">
+                <span>QCHD CESD</span>
+              </div>
+            </div>
+
+            <!-- Questionnaire Main Title Banner -->
+            <div class="text-center pt-3">
+              <h3 id="formTitleHeader" class="text-sm sm:text-base font-black uppercase bg-slate-100 py-1 px-4 border border-slate-900 inline-block tracking-wider">
                 EPIDEMIOLOGICAL QUESTIONNAIRE (DIPHTHERIA)
               </h3>
             </div>
           </div>
 
-          <!-- ADMINISTRATIVE & FACILITY METADATA BOX -->
-          <div class="border border-slate-900 rounded-sm overflow-hidden text-xs">
+          <!-- ADMINISTRATIVE & INVESTIGATION METADATA TABLE -->
+          <div class="border border-slate-900 text-xs">
             <div class="grid grid-cols-1 md:grid-cols-3 border-b border-slate-900">
-              <div class="p-2 border-r border-slate-900">
+              <div class="p-1.5 border-r border-slate-900">
                 <label class="font-bold block uppercase text-[10px] text-slate-600">Disease Reporting Unit (DRU) *</label>
-                <input type="text" id="druName" required placeholder="Hospital / Health Center Name" class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+                <input type="text" id="druName" required placeholder="Hospital / Health Center Name" class="w-full font-medium p-1 border border-slate-300 rounded focus:ring-1 focus:ring-teal-500 text-xs" />
               </div>
-              <div class="p-2 border-r border-slate-900">
+              <div class="p-1.5 border-r border-slate-900">
                 <label class="font-bold block uppercase text-[10px] text-slate-600">Barangay of DRU *</label>
-                <input type="text" id="druBarangay" required placeholder="e.g. Brgy. Central" class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+                <input type="text" id="druBarangay" required placeholder="e.g. Brgy. Central" class="w-full font-medium p-1 border border-slate-300 rounded focus:ring-1 focus:ring-teal-500 text-xs" />
               </div>
-              <div class="p-2">
+              <div class="p-1.5">
                 <label class="font-bold block uppercase text-[10px] text-slate-600">District *</label>
-                <input type="text" id="druDistrict" required placeholder="e.g. District IV" class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+                <input type="text" id="druDistrict" required placeholder="e.g. District IV" class="w-full font-medium p-1 border border-slate-300 rounded focus:ring-1 focus:ring-teal-500 text-xs" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 border-b border-slate-900">
-              <div class="p-2 border-r border-slate-900">
+              <div class="p-1.5 border-r border-slate-900">
                 <label class="font-bold block uppercase text-[10px] text-slate-600">Investigator Name *</label>
-                <input type="text" id="investigator" required placeholder="Full Name of Surveillance Officer" class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+                <input type="text" id="investigator" required placeholder="Investigator Full Name" class="w-full font-medium p-1 border border-slate-300 rounded focus:ring-1 focus:ring-teal-500 text-xs" />
               </div>
-              <div class="p-2 border-r border-slate-900">
+              <div class="p-1.5 border-r border-slate-900">
                 <label class="font-bold block uppercase text-[10px] text-slate-600">Designation / Position</label>
-                <input type="text" id="investigatorDesignation" placeholder="e.g. Nurse II / Surveillance Officer" class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+                <input type="text" id="investigatorDesignation" placeholder="e.g. Nurse II / Surveillance Officer" class="w-full font-medium p-1 border border-slate-300 rounded focus:ring-1 focus:ring-teal-500 text-xs" />
               </div>
-              <div class="p-2">
+              <div class="p-1.5">
                 <label class="font-bold block uppercase text-[10px] text-slate-600">Date Investigated (MM/DD/YYYY) *</label>
-                <input type="date" id="reportDate" required class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+                <input type="date" id="reportDate" required class="w-full font-medium p-1 border border-slate-300 rounded focus:ring-1 focus:ring-teal-500 text-xs" />
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 bg-slate-50">
-              <div class="p-2 border-r border-slate-900">
+            <div class="grid grid-cols-1 md:grid-cols-4 bg-slate-50">
+              <div class="p-1.5 border-r border-slate-900">
                 <label class="font-bold block uppercase text-[10px] text-slate-600">From Endorsement?</label>
-                <select id="fromEndorsement" class="w-full font-medium p-1 border rounded text-xs">
+                <select id="fromEndorsement" class="w-full p-1 border border-slate-300 rounded text-xs font-semibold">
                   <option value="No">No</option>
                   <option value="Yes">Yes</option>
                 </select>
               </div>
-              <div class="p-2 border-r border-slate-900">
-                <label class="font-bold block uppercase text-[10px] text-slate-600">Date Endorsed / Reported</label>
-                <input type="date" id="dateEndorsed" class="w-full font-medium p-1 border rounded text-xs" />
+              <div class="p-1.5 border-r border-slate-900">
+                <label class="font-bold block uppercase text-[10px] text-slate-600">Case ID / Endorsement No.</label>
+                <input type="text" id="caseRefId" placeholder="Ref No." class="w-full p-1 border border-slate-300 rounded text-xs" />
               </div>
-              <div class="p-2">
+              <div class="p-1.5 border-r border-slate-900">
+                <label class="font-bold block uppercase text-[10px] text-slate-600">Date Endorsed</label>
+                <input type="date" id="dateEndorsed" class="w-full p-1 border border-slate-300 rounded text-xs" />
+              </div>
+              <div class="p-1.5">
                 <label class="font-bold block uppercase text-[10px] text-slate-600">Disposition during Interview</label>
-                <select id="dispositionInterview" class="w-full font-medium p-1 border rounded text-xs">
+                <select id="dispositionInterview" class="w-full p-1 border border-slate-300 rounded text-xs font-semibold">
                   <option value="At Home">At Home</option>
                   <option value="Still Admitted">Still Admitted</option>
                   <option value="Died">Died</option>
@@ -194,209 +234,199 @@
             </div>
           </div>
 
-          <!-- SECTION 1: PERSONAL & DEMOGRAPHIC INFORMATION -->
+          <!-- PART 1: PERSONAL AND DEMOGRAPHIC INFORMATION -->
           <div class="space-y-3">
             <h4 class="bg-slate-900 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
               1. Personal and Demographic Information
             </h4>
 
             <!-- 1.1 Patient Profile -->
-            <div class="border border-slate-900 rounded-sm p-3 space-y-3 text-xs">
+            <div class="border border-slate-900 p-3 space-y-3 text-xs">
               <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">1.1. Patient Profile</p>
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Last Name *</label>
-                  <input type="text" id="patientLastName" required placeholder="Last Name" class="w-full p-1.5 border rounded focus:ring-1 focus:ring-teal-500 text-xs" />
+                  <input type="text" id="patientLastName" required placeholder="Last Name" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">First Name *</label>
-                  <input type="text" id="patientFirstName" required placeholder="First Name" class="w-full p-1.5 border rounded focus:ring-1 focus:ring-teal-500 text-xs" />
+                  <input type="text" id="patientFirstName" required placeholder="First Name" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Middle Name</label>
-                  <input type="text" id="patientMiddleName" placeholder="Middle Name" class="w-full p-1.5 border rounded focus:ring-1 focus:ring-teal-500 text-xs" />
+                  <input type="text" id="patientMiddleName" placeholder="Middle Name" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Suffix (Jr/Sr/III)</label>
-                  <input type="text" id="patientSuffix" placeholder="e.g. Jr." class="w-full p-1.5 border rounded focus:ring-1 focus:ring-teal-500 text-xs" />
+                  <input type="text" id="patientSuffix" placeholder="e.g. Jr." class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Date of Birth (MM/DD/YYYY)</label>
-                  <input type="date" id="dob" onchange="autoCalcDetailedAge()" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="date" id="dob" onchange="autoCalcAgeBreakdown()" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Age * (Years / Mos / Days)</label>
                   <div class="flex gap-1">
-                    <input type="number" id="age" min="0" placeholder="Yrs" required class="w-1/2 p-1.5 border rounded text-xs" />
-                    <input type="number" id="ageMonths" min="0" max="11" placeholder="Mos" class="w-1/2 p-1.5 border rounded text-xs" />
+                    <input type="number" id="age" min="0" placeholder="Yrs" required class="w-1/2 p-1.5 border border-slate-300 rounded text-xs font-bold" />
+                    <input type="number" id="ageMonths" min="0" max="11" placeholder="Mos" class="w-1/2 p-1.5 border border-slate-300 rounded text-xs" />
                   </div>
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Sex at Birth *</label>
-                  <select id="sex" required class="w-full p-1.5 border rounded text-xs">
+                  <select id="sex" required class="w-full p-1.5 border border-slate-300 rounded text-xs font-semibold">
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                   </select>
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Civil Status</label>
-                  <select id="civilStatus" class="w-full p-1.5 border rounded text-xs">
+                  <select id="civilStatus" class="w-full p-1.5 border border-slate-300 rounded text-xs">
                     <option value="Single">Single</option>
                     <option value="Married">Married</option>
                     <option value="Widowed">Widowed</option>
-                    <option value="Separated">Separated</option>
-                    <option value="Child/Minor">Child/Minor</option>
+                    <option value="Child/Minor">Child / Minor</option>
                   </select>
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Nationality</label>
-                  <input type="text" id="nationality" value="Filipino" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="text" id="nationality" value="Filipino" class="w-full p-1.5 border border-slate-300 rounded text-xs font-semibold" />
                 </div>
               </div>
             </div>
 
-            <!-- 1.2 Current Address -->
-            <div class="border border-slate-900 rounded-sm p-3 space-y-3 text-xs">
+            <!-- 1.2 Current Address & Contact Details -->
+            <div class="border border-slate-900 p-3 space-y-3 text-xs">
               <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">1.2. Current Address in the Philippines and Contact Information</p>
               
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-2 rounded border">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-2 rounded border border-slate-200">
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Lives in a closed setting / institution?</label>
-                  <select id="closedSetting" class="w-full p-1 border rounded text-xs">
-                    <option value="No">No (Private home address)</option>
-                    <option value="Yes - Nursing Home">Yes (Nursing home)</option>
-                    <option value="Yes - Jail / Prison">Yes (Jail / Correctional institution)</option>
+                  <select id="closedSetting" class="w-full p-1 border border-slate-300 rounded text-xs">
+                    <option value="No">No (Private home residence)</option>
+                    <option value="Yes - Nursing Home">Yes (Nursing home / Care home)</option>
+                    <option value="Yes - Jail / Detention">Yes (Jail / Correctional institution)</option>
                     <option value="Yes - Dormitory / Orphanage">Yes (Dormitory / Orphanage)</option>
                   </select>
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Name of Institution (if applicable)</label>
-                  <input type="text" id="institutionName" placeholder="Institution Name" class="w-full p-1 border rounded text-xs" />
+                  <input type="text" id="institutionName" placeholder="Institution Name" class="w-full p-1 border border-slate-300 rounded text-xs" />
                 </div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 <div class="sm:col-span-2">
                   <label class="font-semibold block text-[10px] text-slate-600">House No. / Lot / Street / Sitio / Purok *</label>
-                  <input type="text" id="streetAddress" required placeholder="e.g. #123 Mayaman St., Sitio Uno" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="text" id="streetAddress" required placeholder="e.g. #45 Mayaman St., Sitio Uno" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Barangay *</label>
-                  <input type="text" id="barangay" required placeholder="e.g. Brgy. Central" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="text" id="barangay" required placeholder="e.g. Brgy. Central" class="w-full p-1.5 border border-slate-300 rounded text-xs font-semibold" />
                 </div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">City / Municipality *</label>
-                  <input type="text" id="city" required value="Quezon City" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="text" id="city" required value="Quezon City" class="w-full p-1.5 border border-slate-300 rounded text-xs font-semibold" />
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Province</label>
-                  <input type="text" id="province" value="NCR" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="text" id="province" value="Metro Manila" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Region</label>
-                  <input type="text" id="region" value="NCR" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="text" id="region" value="NCR" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Length of Residence</label>
-                  <input type="text" id="lengthResidence" placeholder="e.g. 5 years" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="text" id="lengthResidence" placeholder="e.g. 5 years" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label class="font-semibold block text-[10px] text-slate-600">Contact Number (Cellphone / Tel) *</label>
-                  <input type="tel" id="contact" required placeholder="09XXXXXXXXX" class="w-full p-1.5 border rounded text-xs" />
+                  <label class="font-semibold block text-[10px] text-slate-600">Contact Number (Mobile / Tel) *</label>
+                  <input type="tel" id="contact" required placeholder="09XXXXXXXXX" class="w-full p-1.5 border border-slate-300 rounded text-xs font-bold" />
                 </div>
                 <div>
-                  <label class="font-semibold block text-[10px] text-slate-600">GPS Latitude (Optional)</label>
-                  <input type="text" id="gpsLatitude" placeholder="14.6488" class="w-full p-1.5 border rounded text-xs font-mono" />
+                  <label class="font-semibold block text-[10px] text-slate-600">GPS Latitude</label>
+                  <input type="text" id="gpsLatitude" placeholder="14.6488" class="w-full p-1.5 border border-slate-300 rounded text-xs font-mono" />
                 </div>
                 <div>
-                  <label class="font-semibold block text-[10px] text-slate-600">GPS Longitude (Optional)</label>
-                  <input type="text" id="gpsLongitude" placeholder="121.0509" class="w-full p-1.5 border rounded text-xs font-mono" />
+                  <label class="font-semibold block text-[10px] text-slate-600">GPS Longitude</label>
+                  <input type="text" id="gpsLongitude" placeholder="121.0509" class="w-full p-1.5 border border-slate-300 rounded text-xs font-mono" />
                 </div>
               </div>
             </div>
 
-            <!-- 1.4 Special Population -->
-            <div class="border border-slate-900 rounded-sm p-3 space-y-2 text-xs">
-              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">1.4. Special Population</p>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <!-- 1.4 Special Population & 1.5 Employment/Education -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="border border-slate-900 p-3 space-y-2 text-xs">
+                <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">1.4. Special Population</p>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Healthcare Worker?</label>
-                  <select id="isHCW" class="w-full p-1 border rounded text-xs">
+                  <select id="isHCW" class="w-full p-1 border border-slate-300 rounded text-xs">
                     <option value="No">No</option>
-                    <option value="Yes">Yes (Specify facility in notes)</option>
+                    <option value="Yes">Yes (Healthcare Facility Staff / Doctor / Nurse)</option>
                   </select>
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Returning Overseas Filipino (OFW/non-OFW)?</label>
-                  <select id="isOFW" class="w-full p-1 border rounded text-xs">
+                  <select id="isOFW" class="w-full p-1 border border-slate-300 rounded text-xs">
                     <option value="No">No</option>
                     <option value="Yes - OFW">Yes (OFW)</option>
                     <option value="Yes - Non-OFW">Yes (Non-OFW)</option>
                   </select>
                 </div>
-                <div>
-                  <label class="font-semibold block text-[10px] text-slate-600">Foreign National Traveler?</label>
-                  <select id="isForeignTraveler" class="w-full p-1 border rounded text-xs">
-                    <option value="No">No</option>
-                    <option value="Yes">Yes (Specify Country of Origin)</option>
-                  </select>
-                </div>
               </div>
-            </div>
 
-            <!-- 1.5 Employment & Educational Details -->
-            <div class="border border-slate-900 rounded-sm p-3 space-y-2 text-xs">
-              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">1.5. Employment & Educational Details</p>
-              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                <div>
-                  <label class="font-semibold block text-[10px] text-slate-600">Current Status</label>
-                  <select id="workSchoolStatus" class="w-full p-1 border rounded text-xs">
-                    <option value="Working">Working / Employed</option>
-                    <option value="Student">Student</option>
-                    <option value="Unemployed / None">Unemployed / None</option>
-                    <option value="Retired">Retired</option>
-                  </select>
+              <div class="border border-slate-900 p-3 space-y-2 text-xs">
+                <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">1.5. Workplace / School Information</p>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="font-semibold block text-[10px] text-slate-600">Status</label>
+                    <select id="workSchoolStatus" class="w-full p-1 border border-slate-300 rounded text-xs">
+                      <option value="Working">Employed / Working</option>
+                      <option value="Student">Student</option>
+                      <option value="Unemployed">Unemployed</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="font-semibold block text-[10px] text-slate-600">Occupation / Grade</label>
+                    <input type="text" id="occupationOrGrade" placeholder="e.g. Office Staff / Gr 5" class="w-full p-1 border border-slate-300 rounded text-xs" />
+                  </div>
                 </div>
                 <div>
-                  <label class="font-semibold block text-[10px] text-slate-600">Occupation / Grade Level</label>
-                  <input type="text" id="occupationOrGrade" placeholder="e.g. Teacher / Grade 4" class="w-full p-1.5 border rounded text-xs" />
-                </div>
-                <div class="sm:col-span-2">
                   <label class="font-semibold block text-[10px] text-slate-600">Name of Workplace / School & Address</label>
-                  <input type="text" id="workplaceOrSchool" placeholder="e.g. QC High School, Brgy. Central" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="text" id="workplaceOrSchool" placeholder="Workplace or School Name & Address" class="w-full p-1 border border-slate-300 rounded text-xs" />
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- SECTION 2: CLINICAL INFORMATION & SIGNS/SYMPTOMS -->
+          <!-- PART 2: CLINICAL INFORMATION & SPECIFIC MANIFESTATIONS -->
           <div class="space-y-3 pt-2">
             <h4 class="bg-slate-900 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
-              2. Clinical Information & Disease Specific Manifestations
+              2. Clinical Information & Disease Manifestations
             </h4>
 
-            <div class="border border-slate-900 rounded-sm p-3 space-y-3 text-xs">
-              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-slate-50 p-2 rounded border">
+            <div class="border border-slate-900 p-3 space-y-3 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-slate-50 p-2 rounded border border-slate-200">
                 <div>
                   <label class="font-bold block text-[10px] text-slate-700">Date of First Symptoms (Onset) *</label>
-                  <input type="date" id="dateOnset" required class="w-full p-1.5 border rounded text-xs font-bold text-teal-800" />
+                  <input type="date" id="dateOnset" required class="w-full p-1.5 border border-slate-300 rounded text-xs font-bold text-teal-800" />
                 </div>
                 <div>
                   <label class="font-bold block text-[10px] text-slate-700">First Symptom Experienced</label>
-                  <input type="text" id="firstSymptom" placeholder="e.g. Sore throat, Fever" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="text" id="firstSymptom" placeholder="e.g. Sore throat, Fever, Rash" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
                 <div>
-                  <label class="font-bold block text-[10px] text-slate-700">Had history of this infection?</label>
-                  <select id="hadPriorInfection" class="w-full p-1.5 border rounded text-xs">
+                  <label class="font-bold block text-[10px] text-slate-700">Had prior history of this infection?</label>
+                  <select id="hadPriorInfection" class="w-full p-1.5 border border-slate-300 rounded text-xs">
                     <option value="No">No</option>
                     <option value="Yes">Yes</option>
                     <option value="Unknown">Unknown</option>
@@ -404,26 +434,26 @@
                 </div>
               </div>
 
-              <!-- DYNAMIC CLINICAL CHECKLIST (Diphtheria, Dengue, etc.) -->
-              <div id="dynamicClinicalChecklist">
-                <!-- Populated via JavaScript -->
+              <!-- DYNAMIC DISEASE-SPECIFIC CHECKLIST -->
+              <div id="dynamicChecklistSection">
+                <!-- Dynamically swapped by JavaScript based on diseaseSelect -->
               </div>
             </div>
           </div>
 
-          <!-- SECTION 2.2: MEDICAL CONSULTATION, HOSPITALIZATION & LAB -->
+          <!-- PART 2.2: MEDICAL CONSULTATION, HOSPITALIZATION & LAB -->
           <div class="space-y-3 pt-2">
             <h4 class="bg-slate-900 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
-              2.2 Medical Consultation, Admission, & Laboratory Tests
+              2.2 Medical Consultation, Hospitalization, & Laboratory Testing
             </h4>
 
-            <div class="border border-slate-900 rounded-sm p-3 space-y-3 text-xs">
+            <div class="border border-slate-900 p-3 space-y-3 text-xs">
               <!-- Consultations Table -->
               <div>
-                <p class="font-bold text-slate-900 mb-1 text-[11px] uppercase">Medical Consultations & Facilities Attended</p>
+                <p class="font-bold text-slate-900 mb-1 text-[11px] uppercase">Medical Consultations Attended</p>
                 <div class="overflow-x-auto">
                   <table class="w-full text-left text-xs border border-slate-900">
-                    <thead class="bg-slate-100 text-slate-800 uppercase font-bold text-[10px]">
+                    <thead class="bg-slate-100 text-slate-900 uppercase font-bold text-[10px]">
                       <tr>
                         <th class="p-1.5 border border-slate-900">Facility / Clinic Name</th>
                         <th class="p-1.5 border border-slate-900">Date & Time of Consultation</th>
@@ -433,11 +463,11 @@
                     </thead>
                     <tbody>
                       <tr>
-                        <td class="p-1 border border-slate-900"><input type="text" id="consultFacility1" placeholder="e.g. QC General Hospital" class="w-full p-1 border text-xs" /></td>
-                        <td class="p-1 border border-slate-900"><input type="datetime-local" id="consultDateTime1" class="w-full p-1 border text-xs" /></td>
-                        <td class="p-1 border border-slate-900"><input type="text" id="consultDiagnosis1" placeholder="e.g. Suspect Diphtheria" class="w-full p-1 border text-xs" /></td>
+                        <td class="p-1 border border-slate-900"><input type="text" id="consultFacility1" placeholder="Facility Name" class="w-full p-1 border border-slate-300 rounded text-xs" /></td>
+                        <td class="p-1 border border-slate-900"><input type="datetime-local" id="consultDateTime1" class="w-full p-1 border border-slate-300 rounded text-xs" /></td>
+                        <td class="p-1 border border-slate-900"><input type="text" id="consultDiagnosis1" placeholder="Diagnosis" class="w-full p-1 border border-slate-300 rounded text-xs" /></td>
                         <td class="p-1 border border-slate-900">
-                          <select id="consultAdmitted1" class="w-full p-1 border text-xs">
+                          <select id="consultAdmitted1" class="w-full p-1 border border-slate-300 rounded text-xs font-semibold">
                             <option value="No">No</option>
                             <option value="Yes">Yes</option>
                           </select>
@@ -449,10 +479,10 @@
               </div>
 
               <!-- Hospital Admission Details -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 p-2.5 rounded border border-slate-300">
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 p-2.5 rounded border border-slate-200">
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Bed Type Occupied</label>
-                  <select id="hospitalBedType" class="w-full p-1.5 border rounded text-xs">
+                  <select id="hospitalBedType" class="w-full p-1.5 border border-slate-300 rounded text-xs">
                     <option value="Outpatient / None">Outpatient / None</option>
                     <option value="Ward">Ward</option>
                     <option value="Isolation Room">Isolation Room</option>
@@ -462,15 +492,15 @@
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Date Admitted</label>
-                  <input type="date" id="dateAdmitted" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="date" id="dateAdmitted" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Date Discharged</label>
-                  <input type="date" id="dateDischarged" class="w-full p-1.5 border rounded text-xs" />
+                  <input type="date" id="dateDischarged" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                 </div>
                 <div>
                   <label class="font-semibold block text-[10px] text-slate-600">Reason for Discharge</label>
-                  <select id="dischargeReason" class="w-full p-1.5 border rounded text-xs">
+                  <select id="dischargeReason" class="w-full p-1.5 border border-slate-300 rounded text-xs">
                     <option value="Still Admitted">Still Admitted</option>
                     <option value="Recovered / Improved">Recovered / Improved</option>
                     <option value="Transferred / Referred">Transferred / Referred</option>
@@ -480,38 +510,39 @@
                 </div>
               </div>
 
-              <!-- Laboratory Testing Details -->
+              <!-- Laboratory & Specimen Information -->
               <div>
-                <p class="font-bold text-slate-900 mb-1 text-[11px] uppercase">2.3. Laboratory Information & Specimen Analysis</p>
+                <p class="font-bold text-slate-900 mb-1 text-[11px] uppercase">2.3. Laboratory Specimen Analysis</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   <div>
                     <label class="font-semibold block text-[10px] text-slate-600">Specimen Type</label>
-                    <select id="specimenType" class="w-full p-1.5 border rounded text-xs">
+                    <select id="specimenType" class="w-full p-1.5 border border-slate-300 rounded text-xs">
                       <option value="Nasopharyngeal Swab (NPS)">Nasopharyngeal Swab (NPS)</option>
                       <option value="Throat Swab / Pseudomembrane">Throat Swab / Pseudomembrane</option>
                       <option value="Serum / Blood Sample">Serum / Blood Sample</option>
                       <option value="Stool Sample">Stool Sample</option>
-                      <option value="Lesion / Exudate Swab">Lesion / Exudate Swab</option>
+                      <option value="Lesion / Crust Swab">Lesion / Crust Swab</option>
+                      <option value="CSF (Cerebrospinal Fluid)">CSF (Spinal Fluid)</option>
                       <option value="None Collected">None Collected</option>
                     </select>
                   </div>
                   <div>
                     <label class="font-semibold block text-[10px] text-slate-600">Date Specimen Collected</label>
-                    <input type="date" id="dateSpecimenCollected" class="w-full p-1.5 border rounded text-xs" />
+                    <input type="date" id="dateSpecimenCollected" class="w-full p-1.5 border border-slate-300 rounded text-xs" />
                   </div>
                   <div>
                     <label class="font-semibold block text-[10px] text-slate-600">Type of Test Done</label>
-                    <select id="typeTestDone" class="w-full p-1.5 border rounded text-xs">
+                    <select id="typeTestDone" class="w-full p-1.5 border border-slate-300 rounded text-xs">
                       <option value="Real-time PCR">Real-time PCR</option>
-                      <option value="Bacterial Culture & Toxigenicity">Culture & Toxigenicity</option>
-                      <option value="Serology / ELISA">Serology / ELISA</option>
-                      <option value="Rapid Diagnostic Test (RDT)">Rapid Diagnostic Test (RDT)</option>
+                      <option value="Bacterial Culture & Sensitivity">Culture & Sensitivity</option>
+                      <option value="ELISA / Serology">ELISA / Serology</option>
+                      <option value="Rapid Antigen / Antibody Test">Rapid Diagnostic Test (RDT)</option>
                     </select>
                   </div>
                   <div>
                     <label class="font-semibold block text-[10px] text-slate-600">Laboratory Result</label>
-                    <select id="labResultOfficial" class="w-full p-1.5 border rounded text-xs font-bold">
-                      <option value="Pending">Pending (RITM / Lab)</option>
+                    <select id="labResultOfficial" class="w-full p-1.5 border border-slate-300 rounded text-xs font-bold">
+                      <option value="Pending">Pending (RITM / Regional Lab)</option>
                       <option value="POSITIVE / Reactive">POSITIVE / Reactive</option>
                       <option value="NEGATIVE / Non-Reactive">NEGATIVE / Non-Reactive</option>
                       <option value="Inconclusive / Equivocal">Inconclusive / Equivocal</option>
@@ -521,32 +552,31 @@
                 </div>
               </div>
 
-              <!-- Medications Taken -->
+              <!-- Medications -->
               <div>
                 <p class="font-bold text-slate-900 mb-1 text-[11px] uppercase">2.6. Medications Received</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   <div>
-                    <label class="font-semibold block text-[10px] text-slate-600">Pre-Consultation Medication</label>
-                    <select id="medsPreConsult" class="w-full p-1.5 border rounded text-xs">
+                    <label class="font-semibold block text-[10px] text-slate-600">Pre-Consultation Medicine</label>
+                    <select id="medsPreConsult" class="w-full p-1.5 border border-slate-300 rounded text-xs">
                       <option value="None">None</option>
                       <option value="Antipyretics (Paracetamol)">Antipyretics (Paracetamol)</option>
-                      <option value="Azithromycin / Erythromycin">Azithromycin / Erythromycin</option>
-                      <option value="Other Antibiotics">Other Antibiotics</option>
+                      <option value="Antibiotics (Azithromycin/Amoxicillin)">Antibiotics</option>
                     </select>
                   </div>
                   <div>
-                    <label class="font-semibold block text-[10px] text-slate-600">Diphtheria Antitoxin (DAT) / RIG Given?</label>
-                    <select id="medsAntitoxin" class="w-full p-1.5 border rounded text-xs">
+                    <label class="font-semibold block text-[10px] text-slate-600">Antitoxin / Antidote / RIG Given?</label>
+                    <select id="medsAntitoxin" class="w-full p-1.5 border border-slate-300 rounded text-xs font-semibold">
                       <option value="No">No</option>
-                      <option value="Yes">Yes (Antitoxin / DAT Given)</option>
+                      <option value="Yes">Yes (Antitoxin / RIG Administered)</option>
                     </select>
                   </div>
                   <div>
                     <label class="font-semibold block text-[10px] text-slate-600">In-Hospital Oxygen / Intubation</label>
-                    <select id="medsSupport" class="w-full p-1.5 border rounded text-xs">
+                    <select id="medsSupport" class="w-full p-1.5 border border-slate-300 rounded text-xs">
                       <option value="None / Room Air">None / Room Air</option>
-                      <option value="Oxygen Support (Nasal Cannula/Mask)">Oxygen Support</option>
-                      <option value="Intubation / Mechanical Ventilation">Intubation / Ventilator</option>
+                      <option value="Oxygen Support (Cannula/Mask)">Oxygen Support</option>
+                      <option value="Mechanical Ventilation / Intubation">Intubation / Ventilator</option>
                     </select>
                   </div>
                 </div>
@@ -554,46 +584,46 @@
             </div>
           </div>
 
-          <!-- SECTION 3: EXPOSURE & TRAVEL HISTORY -->
+          <!-- PART 3: EXPOSURE & EPIDEMIOLOGICAL HISTORY -->
           <div class="space-y-3 pt-2">
             <h4 class="bg-slate-900 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
-              3. Exposure & Epidemiological Risk History
+              3. Exposure & Transmission Risk History
             </h4>
 
-            <div class="border border-slate-900 rounded-sm p-3 space-y-2 text-xs">
-              <p class="font-semibold text-slate-700 text-[11px]">Mark known exposures within 14 days prior to onset:</p>
+            <div class="border border-slate-900 p-3 space-y-2 text-xs">
+              <p class="font-semibold text-slate-700 text-[11px]">Mark known exposures within 14 days prior to illness onset:</p>
               <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
-                  <input type="checkbox" name="exposureHist" value="Household contact with confirmed case" class="text-teal-600 rounded" />
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border border-slate-200 hover:bg-slate-100 cursor-pointer">
+                  <input type="checkbox" name="exposureHist" value="Household direct contact with case" class="text-teal-600 rounded" />
                   <span>Household direct contact</span>
                 </label>
-                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
-                  <input type="checkbox" name="exposureHist" value="Exposure to coughing/sneezing droplets" class="text-teal-600 rounded" />
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border border-slate-200 hover:bg-slate-100 cursor-pointer">
+                  <input type="checkbox" name="exposureHist" value="Droplet exposure (cough/sneeze)" class="text-teal-600 rounded" />
                   <span>Droplet exposure (cough/sneeze)</span>
                 </label>
-                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
-                  <input type="checkbox" name="exposureHist" value="School / Daycare exposure" class="text-teal-600 rounded" />
-                  <span>School / Daycare exposure</span>
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border border-slate-200 hover:bg-slate-100 cursor-pointer">
+                  <input type="checkbox" name="exposureHist" value="School / Daycare contact" class="text-teal-600 rounded" />
+                  <span>School / Daycare contact</span>
                 </label>
-                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border border-slate-200 hover:bg-slate-100 cursor-pointer">
                   <input type="checkbox" name="exposureHist" value="Workplace contact exposure" class="text-teal-600 rounded" />
                   <span>Workplace contact exposure</span>
                 </label>
-                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border border-slate-200 hover:bg-slate-100 cursor-pointer">
                   <input type="checkbox" name="exposureHist" value="Healthcare facility exposure" class="text-teal-600 rounded" />
                   <span>Healthcare setting exposure</span>
                 </label>
-                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
-                  <input type="checkbox" name="exposureHist" value="Unvaccinated or incomplete vaccine status" class="text-teal-600 rounded" />
-                  <span>Unvaccinated / incomplete</span>
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border border-slate-200 hover:bg-slate-100 cursor-pointer">
+                  <input type="checkbox" name="exposureHist" value="Floodwater immersion / wading" class="text-teal-600 rounded" />
+                  <span>Floodwater immersion / wading</span>
                 </label>
               </div>
             </div>
           </div>
 
           <!-- FINAL CLASSIFICATION & DISPOSITION -->
-          <div class="border-2 border-slate-900 rounded-sm p-3 bg-slate-50 text-xs space-y-2">
-            <h5 class="font-bold text-slate-900 uppercase">Final Case Classification & Surveillance Outcome</h5>
+          <div class="border-2 border-slate-900 p-3 bg-slate-50 text-xs space-y-2">
+            <h5 class="font-bold text-slate-900 uppercase">Final Case Classification & Surveillance Disposition</h5>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               <div>
                 <label class="font-bold block text-[10px] text-slate-700">Case Classification *</label>
@@ -614,9 +644,9 @@
               </div>
               <div>
                 <label class="font-bold block text-[10px] text-slate-700">Vaccination History for this Disease</label>
-                <select id="vaccineHistory" class="w-full p-2 border border-slate-900 rounded text-xs bg-white">
+                <select id="vaccineHistory" class="w-full p-2 border border-slate-900 rounded text-xs bg-white font-semibold">
                   <option value="Complete Doses for Age">Complete Doses for Age</option>
-                  <option value="Partially Vaccinated (Incomplete)">Partially Vaccinated (Incomplete)</option>
+                  <option value="Partially Vaccinated">Partially Vaccinated</option>
                   <option value="0 Doses (Unvaccinated)">0 Doses (Unvaccinated)</option>
                   <option value="Unknown">Unknown</option>
                 </select>
@@ -624,21 +654,30 @@
             </div>
           </div>
 
-          <!-- OFFICIAL FOOTER BANNER -->
-          <div class="border-t-2 border-slate-900 pt-3 flex flex-wrap justify-between items-center text-[10px] text-slate-600">
-            <p class="font-serif italic font-bold">"Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan"</p>
-            <p class="font-mono">Quezon City Epidemiology and Surveillance Division • ISO 9001:2015 Standard Form</p>
+          <!-- OFFICIAL GOVERNMENT FOOTER BANNER WITH SEALS -->
+          <div class="border-t-2 border-slate-900 pt-3 flex flex-wrap justify-between items-center text-[10px] text-slate-700">
+            <div>
+              <p class="font-serif italic font-bold text-slate-900">"Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan"</p>
+              <p class="font-mono text-[9px] text-slate-500">Quezon City Epidemiology and Disease Surveillance Division (CESD)</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-0.5 border border-slate-800 rounded font-bold text-[9px] uppercase">Bagong Pilipinas</span>
+              <span class="px-2 py-0.5 border border-slate-800 rounded font-bold text-[9px] uppercase bg-slate-50">ISO 9001:2015 Certified</span>
+            </div>
           </div>
 
         </div>
 
-        <!-- ACTION BAR -->
+        <!-- SUBMIT & EXPORT ACTION BAR (Screen Only) -->
         <div class="flex flex-wrap justify-end gap-3 pt-2 no-print">
-          <button type="button" onclick="printOfficialForm()" class="px-5 py-2.5 rounded-lg border-2 border-slate-800 bg-slate-800 text-white font-bold text-xs hover:bg-slate-900 transition flex items-center gap-1.5 shadow">
-            <i class="fa-solid fa-print text-sm"></i> Print Official 3-Page Form
+          <button type="button" onclick="exportToWordDoc()" class="px-5 py-2.5 rounded-lg border-2 border-blue-600 bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 transition flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-file-word"></i> Download Pre-filled Word (.doc)
+          </button>
+          <button type="button" onclick="window.print()" class="px-5 py-2.5 rounded-lg border-2 border-slate-800 bg-slate-800 text-white font-bold text-xs hover:bg-slate-900 transition flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-print"></i> Print Official 3-Page PDF
           </button>
           <button type="submit" class="px-6 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-black text-xs shadow-md transition flex items-center gap-2">
-            <i class="fa-solid fa-floppy-disk text-sm"></i> Save & Log Questionnaire Case
+            <i class="fa-solid fa-floppy-disk"></i> Save & Log to Cloud Registry
           </button>
         </div>
 
@@ -656,14 +695,14 @@
           <select id="filterDiseaseRegistry" onchange="fetchRegistryCases()" class="text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
             <option value="ALL">All Notifiable Conditions</option>
             <option value="Diphtheria">Diphtheria</option>
-            <option value="Vectorborne - Dengue">Dengue</option>
+            <option value="Vectorborne">Vectorborne: Dengue</option>
             <option value="Leptospirosis">Leptospirosis</option>
             <option value="Rabies">Rabies</option>
-            <option value="FWBD - Acute Bloody Diarrhea (ABD)">FWBD / ABD</option>
-            <option value="Measles_Rubella">Measles / Rubella</option>
             <option value="Mpox">Mpox</option>
-            <option value="Panrespi">Pan-Respiratory</option>
+            <option value="FWBD">Food & Waterborne (FWBD)</option>
+            <option value="Measles_Rubella">Measles / Rubella</option>
             <option value="Pertussis">Pertussis</option>
+            <option value="Panrespi">Pan-Respiratory (COVID-19)</option>
           </select>
         </div>
 
@@ -681,7 +720,7 @@
                 <th class="p-3">Date Investigated</th>
                 <th class="p-3">Patient Name</th>
                 <th class="p-3">Age/Sex</th>
-                <th class="p-3">Disease / Form</th>
+                <th class="p-3">Disease Form</th>
                 <th class="p-3">Barangay</th>
                 <th class="p-3">Classification</th>
                 <th class="p-3">Outcome</th>
@@ -700,32 +739,30 @@
       </div>
     </section>
 
-    <!-- TAB 3: FORMS REPOSITORY (LINKS) -->
+    <!-- TAB 3: FORMS & LINKS REPOSITORY -->
     <section id="repoTab" class="hidden space-y-6 no-print">
-      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-folder-tree text-teal-600"></i> Official Forms & Lab Requests Repository
-          </h2>
-          <p class="text-xs text-slate-500">Downloadable reference templates stored in <code class="bg-slate-100 px-1 py-0.5 rounded text-teal-700 font-mono">/LINKS</code>.</p>
-        </div>
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-folder-open text-teal-600"></i> Blank Template Files Repository (/LINKS)
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">Download blank templates stored in your <code class="bg-slate-100 px-1 py-0.5 rounded text-teal-700 font-mono">public/LINKS/</code> directory.</p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <a href="/LINKS/template.docx" download class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 flex items-center justify-between">
+          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-word text-blue-600 text-2xl"></i><div><p class="font-bold text-xs">Master Template</p><span class="text-[10px] text-slate-400">template.docx</span></div></div>
+          <i class="fa-solid fa-circle-down text-slate-400 text-lg"></i>
+        </a>
         <a href="/LINKS/EpiForms (2026)/Diphtheria.docx" download class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 flex items-center justify-between">
-          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-word text-blue-600 text-2xl"></i><div><p class="font-bold text-xs">Diphtheria EpiForm</p><span class="text-[10px] text-slate-400">Microsoft Word (.docx)</span></div></div>
+          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-word text-blue-600 text-2xl"></i><div><p class="font-bold text-xs">Diphtheria EpiForm</p><span class="text-[10px] text-slate-400">Word Template</span></div></div>
           <i class="fa-solid fa-circle-down text-slate-400 text-lg"></i>
         </a>
         <a href="/LINKS/EpiForms (2026)/Leptospirosis.docx" download class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 flex items-center justify-between">
-          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-word text-blue-600 text-2xl"></i><div><p class="font-bold text-xs">Leptospirosis CRF</p><span class="text-[10px] text-slate-400">Microsoft Word (.docx)</span></div></div>
+          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-word text-blue-600 text-2xl"></i><div><p class="font-bold text-xs">Leptospirosis CRF</p><span class="text-[10px] text-slate-400">Word Template</span></div></div>
           <i class="fa-solid fa-circle-down text-slate-400 text-lg"></i>
         </a>
         <a href="/LINKS/EpiForms (2026)/Mpox Epiform.docx" download class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 flex items-center justify-between">
-          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-word text-blue-600 text-2xl"></i><div><p class="font-bold text-xs">Mpox EpiForm</p><span class="text-[10px] text-slate-400">Monkeypox (.docx)</span></div></div>
-          <i class="fa-solid fa-circle-down text-slate-400 text-lg"></i>
-        </a>
-        <a href="/LINKS/FORMS(SACCL,NKTI,ETC)/F-SACCL-046 MOLECULAR DIAGNOST.pdf" target="_blank" download class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 flex items-center justify-between">
-          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-pdf text-rose-600 text-2xl"></i><div><p class="font-bold text-xs">SACCL-046 Molecular Form</p><span class="text-[10px] text-slate-400">San Lazaro SACCL (.pdf)</span></div></div>
+          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-word text-blue-600 text-2xl"></i><div><p class="font-bold text-xs">Mpox EpiForm</p><span class="text-[10px] text-slate-400">Word Template</span></div></div>
           <i class="fa-solid fa-circle-down text-slate-400 text-lg"></i>
         </a>
       </div>
@@ -740,8 +777,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('reportDate').valueAsDate = new Date();
       generateEpidNumber();
-      updateQuestionnaireTitle();
-      renderDynamicClinicalSections();
+      changeQuestionnaireForm();
       loadDashboardStats();
       fetchRegistryCases();
     });
@@ -752,7 +788,7 @@
       document.getElementById('epidId').value = `QC-${yr}-${rand}`;
     }
 
-    function autoCalcDetailedAge() {
+    function autoCalcAgeBreakdown() {
       const dobVal = document.getElementById('dob').value;
       if (!dobVal) return;
       const dob = new Date(dobVal);
@@ -768,9 +804,125 @@
       if (months >= 0) document.getElementById('ageMonths').value = months;
     }
 
-    function updateQuestionnaireTitle() {
-      const disease = document.getElementById('disease').value;
-      document.getElementById('formMainTitle').textContent = `EPIDEMIOLOGICAL QUESTIONNAIRE (${disease.toUpperCase()})`;
+    // Change Questionnaire Form & Clinical Modules dynamically
+    function changeQuestionnaireForm() {
+      const disease = document.getElementById('diseaseSelect').value;
+      const titleElem = document.getElementById('formTitleHeader');
+      const checklistContainer = document.getElementById('dynamicChecklistSection');
+
+      titleElem.textContent = `EPIDEMIOLOGICAL QUESTIONNAIRE (${disease.toUpperCase().replace('_', ' ')})`;
+
+      if (disease === 'Diphtheria') {
+        checklistContainer.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Mild / Initial Symptoms</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Fever" /> <span>Fever</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Cough" /> <span>Cough</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Coryza" /> <span>Coryza (Runny nose)</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Sore throat" /> <span>Sore throat</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Neck swelling (Bull neck)" /> <span>Neck swelling (Bull neck)</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Greyish membrane in throat/nostril" /> <span class="font-bold text-rose-700">Greyish membrane in throat</span></label>
+              </div>
+            </div>
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Classic & Severe Complications</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Barking cough / Stridor" /> <span>Barking cough / Stridor</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Difficulty swallowing" /> <span>Difficulty swallowing</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Breathing obstruction" /> <span class="font-bold text-rose-700">Airway obstruction</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Heart damage (Myocarditis)" /> <span>Myocarditis / Arrhythmia</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Paralysis / Nerve damage" /> <span>Paralysis / Neuropathy</span></label>
+              </div>
+            </div>
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Comorbidities & Underlying</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Asthma / COPD" /> <span>Asthma / COPD</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Pulmonary TB" /> <span>Pulmonary TB</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Hypertension" /> <span>Hypertension</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Diabetes" /> <span>Diabetes Mellitus</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Pregnancy" /> <span>Pregnant / Post-partum</span></label>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (disease === 'Leptospirosis') {
+        checklistContainer.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Leptospirosis Signs</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="High Fever" /> <span>High Fever</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Calf Muscle Pain" /> <span class="font-bold">Calf Muscle Tenderness</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Conjunctival Suffusion (Red eyes)" /> <span>Conjunctival Suffusion (Red eyes)</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Jaundice / Yellowing of skin" /> <span>Jaundice / Yellowing</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Oliguria (Decreased urine)" /> <span>Oliguria / Renal failure</span></label>
+              </div>
+            </div>
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Exposure & Prophylaxis</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Wading in floodwater with open wound" /> <span class="text-rose-700 font-bold">Flood wading with wound</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Exposure to rodent urine / garbage" /> <span>Rodent / Garbage contact</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Doxycycline taken within 24-48hrs" /> <span>Doxycycline Prophylaxis Taken</span></label>
+              </div>
+            </div>
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Diagnostic Test</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="MAT Positive" /> <span>MAT (Microscopic Agglutination)</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Leptocheck / IgM Positive" /> <span>Leptocheck / Rapid Dipstick</span></label>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (disease === 'Mpox') {
+        checklistContainer.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Mpox Lesion Characteristics</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Macules / Papules" /> <span>Macules / Papules</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Vesicles / Pustules" /> <span>Vesicles / Pustules</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Umbilicated Lesions with Crusts" /> <span>Umbilicated Lesions with Crusts</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Lymphadenopathy (Swollen nodes)" /> <span class="font-bold text-rose-700">Lymphadenopathy (Swollen Nodes)</span></label>
+              </div>
+            </div>
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Lesion Anatomical Sites</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Genital / Perianal lesions" /> <span>Genital / Perianal Area</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Palms / Soles" /> <span>Palms and Soles</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Face / Oral mucosa" /> <span>Face / Oral Cavity</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Trunk / Extremities" /> <span>Trunk / Extremities</span></label>
+              </div>
+            </div>
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Epidemiological Link</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Skin-to-skin / intimate contact" /> <span>Intimate / Skin-to-skin contact</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Travel to area with active outbreak" /> <span>Travel history to outbreak zone</span></label>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        checklistContainer.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Primary Symptoms</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Fever" /> <span>Fever</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Skin Rash / Eruptions" /> <span>Skin Rash / Eruptions</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Cough / Difficulty breathing" /> <span>Cough / Dyspnea</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Diarrhea / Vomiting" /> <span>Diarrhea / Vomiting</span></label>
+              </div>
+            </div>
+          </div>
+        `;
+      }
     }
 
     function switchTab(tabId) {
@@ -783,91 +935,42 @@
       const btnReg = document.getElementById('btn-registryTab');
       const btnRepo = document.getElementById('btn-repoTab');
 
-      const activeClass = "px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-teal-600 text-white shadow flex items-center gap-2";
-      const inactiveClass = "px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2";
+      const active = "px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-teal-600 text-white shadow flex items-center gap-2";
+      const inactive = "px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2";
 
-      btnQ.className = inactiveClass;
-      btnReg.className = inactiveClass;
-      btnRepo.className = inactiveClass;
+      btnQ.className = inactive;
+      btnReg.className = inactive;
+      btnRepo.className = inactive;
 
-      if (tabId === 'questionnaireTab') btnQ.className = activeClass;
-      else if (tabId === 'registryTab') { btnReg.className = activeClass; fetchRegistryCases(); }
-      else if (tabId === 'repoTab') btnRepo.className = activeClass;
+      if (tabId === 'questionnaireTab') btnQ.className = active;
+      else if (tabId === 'registryTab') { btnReg.className = active; fetchRegistryCases(); }
+      else if (tabId === 'repoTab') btnRepo.className = active;
     }
 
-    // Dynamic Clinical Checklist Renderer (Matches Diphtheria & Other Forms)
-    function renderDynamicClinicalSections() {
-      const disease = document.getElementById('disease').value;
-      const container = document.getElementById('dynamicClinicalChecklist');
-
-      if (disease.includes('Diphtheria')) {
-        container.innerHTML = `
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-            <!-- Mild Symptoms -->
-            <div class="border p-2.5 rounded bg-white space-y-1">
-              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Mild / Initial Symptoms</p>
-              <div class="space-y-1 text-slate-700">
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Fever" /> <span>Fever</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Cough" /> <span>Cough</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Coryza" /> <span>Coryza (Runny nose)</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Sore throat" /> <span>Sore throat</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Neck swelling (Bull neck)" /> <span>Neck swelling (Bull neck)</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Shortness of breath" /> <span>Shortness of breath</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Greyish membrane in throat/nostril" /> <span class="font-bold text-rose-700">Greyish membrane in throat</span></label>
-              </div>
-            </div>
-
-            <!-- Classic & Severe Diphtheria -->
-            <div class="border p-2.5 rounded bg-white space-y-1">
-              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Classic & Severe Complications</p>
-              <div class="space-y-1 text-slate-700">
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Nasal discharge" /> <span>Nasal discharge</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Swollen lymph nodes" /> <span>Swollen lymph nodes</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Barking cough" /> <span>Barking cough / Stridor</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Difficulty swallowing" /> <span>Difficulty swallowing</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Breathing obstruction" /> <span class="font-bold text-rose-700">Airway obstruction</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Heart damage (Myocarditis)" /> <span>Myocarditis / Arrhythmia</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Paralysis / Nerve damage" /> <span>Paralysis / Neuropathy</span></label>
-              </div>
-            </div>
-
-            <!-- Comorbidities -->
-            <div class="border p-2.5 rounded bg-white space-y-1">
-              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Comorbidities & Underlying</p>
-              <div class="space-y-1 text-slate-700">
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Asthma / COPD" /> <span>Asthma / COPD</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Pulmonary Tuberculosis" /> <span>Pulmonary TB</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Hypertension" /> <span>Hypertension</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Diabetes" /> <span>Diabetes Mellitus</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="HIV / Immunodeficiency" /> <span>HIV / Immunodeficiency</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Pregnancy" /> <span>Pregnant / Post-partum</span></label>
-              </div>
-            </div>
-          </div>
-        `;
-      } else {
-        container.innerHTML = `
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
-            <div class="border p-2.5 rounded bg-white">
-              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">General Manifestations</p>
-              <div class="space-y-1 text-slate-700 mt-1">
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Fever" /> <span>Fever</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Skin Lesions / Rash" /> <span>Skin Lesions / Rash</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Cough / Dyspnea" /> <span>Cough / Dyspnea</span></label>
-                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Diarrhea / Vomiting" /> <span>Diarrhea / Vomiting</span></label>
-              </div>
-            </div>
-          </div>
-        `;
-      }
+    // Export Filled Questionnaire as Word Document (.doc format)
+    function exportToWordDoc() {
+      const content = document.getElementById('printableArea').innerHTML;
+      const html = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>Epidemiological Questionnaire</title>
+        <style>
+          body { font-family: Arial, sans-serif; font-size: 10pt; }
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid black; padding: 4px; font-size: 9pt; }
+        </style>
+        </head><body>${content}</body></html>
+      `;
+      const blob = new Blob(['\ufeff' + html], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `EpiQuestionnaire_${document.getElementById('epidId').value}_${document.getElementById('patientLastName').value || 'Case'}.doc`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
-    // Official Print Handler
-    function printOfficialForm() {
-      window.print();
-    }
-
-    // Submit Questionnaire Case to Backend
+    // Submit Questionnaire Case to Cloud Backend
     async function handleFormSubmit(e) {
       e.preventDefault();
 
@@ -877,17 +980,14 @@
       const suffix = document.getElementById('patientSuffix').value.trim();
       const fullName = `${lastName}, ${firstName} ${middleName} ${suffix}`.trim();
 
-      // Collect symptoms and exposures
       const symps = [];
       document.querySelectorAll('input[name="symp"]:checked').forEach(c => symps.push(c.value));
-      const comorbids = [];
-      document.querySelectorAll('input[name="comorbid"]:checked').forEach(c => comorbids.push(c.value));
       const exposures = [];
       document.querySelectorAll('input[name="exposureHist"]:checked').forEach(c => exposures.push(c.value));
 
       const payload = {
         epid_id: document.getElementById('epidId').value,
-        disease: document.getElementById('disease').value,
+        disease: document.getElementById('diseaseSelect').value,
         dru_name: document.getElementById('druName').value,
         investigator: document.getElementById('investigator').value,
         report_date: document.getElementById('reportDate').value,
@@ -907,7 +1007,6 @@
           druDistrict: document.getElementById('druDistrict').value,
           streetAddress: document.getElementById('streetAddress').value,
           symptoms: symps,
-          comorbidities: comorbids,
           exposures: exposures,
           specimenType: document.getElementById('specimenType').value,
           labResult: document.getElementById('labResultOfficial').value,
@@ -923,15 +1022,15 @@
         });
 
         if (res.ok) {
-          alert(`✅ Questionnaire for ${fullName} (${payload.epid_id}) saved into Surveillance Registry!`);
+          alert(`✅ Case for ${fullName} (${payload.epid_id}) saved to Cloud Database!`);
           loadDashboardStats();
           switchTab('registryTab');
         } else {
           const err = await res.json();
-          alert(`❌ Failed to save: ${err.error || 'Check fields'}`);
+          alert(`❌ Save failed: ${err.error || 'Check fields'}`);
         }
       } catch (err) {
-        alert('Network error saving to backend database.');
+        alert('Network error saving to database.');
       }
     }
 
