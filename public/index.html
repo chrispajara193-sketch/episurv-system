@@ -205,12 +205,12 @@
           <div class="flex items-center gap-2">
             <i class="fa-solid fa-virus-covid text-teal-400 text-lg"></i>
             <span class="text-xs font-bold uppercase tracking-wide">Select Disease Form:</span>
-            <select id="diseaseSelect" onchange="changeQuestionnaireForm()" required class="bg-slate-800 text-white font-bold border border-teal-500 rounded px-3 py-1.5 text-xs">
+            <select id="diseaseSelect" onchange="renderActiveQuestionnaire()" required class="bg-slate-800 text-white font-bold border border-teal-500 rounded px-3 py-1.5 text-xs">
+              <option value="Vectorborne - Dengue">Vectorborne: Dengue and Chikungunya</option>
               <option value="Leptospirosis">Leptospirosis</option>
               <option value="Diphtheria">Diphtheria</option>
               <option value="Mpox">Mpox (Monkeypox)</option>
               <option value="Rabies">Rabies Exposure</option>
-              <option value="Vectorborne - Dengue">Vectorborne: Dengue</option>
               <option value="FWBD - Acute Bloody Diarrhea">FWBD: Acute Bloody Diarrhea (ABD)</option>
               <option value="Measles_Rubella">Measles / Rubella</option>
               <option value="Pertussis">Pertussis (Whooping Cough)</option>
@@ -226,1114 +226,9 @@
           </div>
         </div>
 
-        <!-- ==================== COMPLETE MULTI-PAGE QUESTIONNAIRE ==================== -->
+        <!-- ==================== DYNAMIC MULTI-PAGE QUESTIONNAIRE ==================== -->
         <div id="printableQuestionnaire">
-
-          <!-- ================= PAGE 1 (A4) ================= -->
-          <div class="a4-page">
-            <div>
-              
-              <!-- OFFICIAL HEADER (LEFT-ALIGNED TEXT WITH 0.77" LOGOS) -->
-              <div class="border-b border-black pb-1 mb-1.5 flex items-center justify-between">
-                <div class="flex items-center space-x-2.5">
-                  <div class="flex items-center space-x-1.5 shrink-0">
-                    <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="header-logo-img" />
-                    <img src="qchd.png" onerror="this.onerror=null; this.src='qchd.jpg';" alt="QCHD Logo" class="header-logo-img" />
-                    <img src="qcesd.png" onerror="this.onerror=null; this.src='qcesd.jpg';" alt="QCESD Logo" class="header-logo-img" />
-                  </div>
-
-                  <div class="text-left pl-1">
-                    <p class="text-[9px] font-serif uppercase tracking-wider text-slate-700 leading-tight">Republic of the Philippines</p>
-                    <h2 class="text-[12.5px] font-black uppercase text-slate-950 leading-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
-                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Quezon City, Metro Manila</p>
-                    <p class="text-[8px] text-slate-600 leading-tight">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel No. 8988-4242 loc 1607 | Email: cityhealth@quezoncity.gov.ph</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Title -->
-              <div class="text-center pb-1">
-                <h3 class="text-xs font-black uppercase tracking-wider">EPIDEMIOLOGICAL QUESTIONNAIRE</h3>
-                <h4 id="pageDiseaseTitle" class="text-sm font-black uppercase text-teal-900 underline">Leptospirosis</h4>
-              </div>
-
-              <!-- ADMINISTRATIVE TABLE -->
-              <table class="qc-table">
-                <tr>
-                  <td class="w-1/3"><span class="cell-label">Disease Reporting Unit:</span><input type="text" id="druName" required placeholder="Health Center / Hospital" class="cell-input" /></td>
-                  <td class="w-1/3"><span class="cell-label">Barangay:</span><input type="text" id="druBarangay" required placeholder="Barangay" class="cell-input" /></td>
-                  <td class="w-1/3"><span class="cell-label">District:</span><input type="text" id="druDistrict" required placeholder="District" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><span class="cell-label">Investigator:</span><input type="text" id="investigator" required placeholder="Full Name" class="cell-input" /></td>
-                  <td><span class="cell-label">Designation:</span><input type="text" id="investigatorDesignation" placeholder="Position / Designation" class="cell-input" /></td>
-                  <td><span class="cell-label">Date Investigated (MM/DD/YYYY):</span><input type="date" id="reportDate" required class="cell-input font-bold" /></td>
-                </tr>
-              </table>
-
-              <table class="qc-table">
-                <tr>
-                  <td class="w-1/5"><span class="cell-label">From Endorsement?</span><select id="fromEndorsement" class="cell-input font-bold"><option value="No">No</option><option value="Yes">Yes</option></select></td>
-                  <td class="w-1/5"><span class="cell-label">Case ID:</span><input type="text" id="caseRefId" placeholder="Case Ref ID" class="cell-input" /></td>
-                  <td class="w-1/4"><span class="cell-label">Date Endorsed/Reported:</span><input type="date" id="dateEndorsed" class="cell-input" /></td>
-                  <td class="w-1/3"><span class="cell-label">Disposition of patient during interview:</span><select id="dispositionInterview" class="cell-input font-bold"><option value="At home">At home</option><option value="Still Admitted">Still Admitted</option><option value="Died">Died</option></select></td>
-                </tr>
-              </table>
-
-              <!-- 1. PERSONAL AND DEMOGRAPHIC INFORMATION -->
-              <div class="qc-banner">1. PERSONAL AND DEMOGRAPHIC INFORMATION</div>
-
-              <!-- 1.1 Patient Profile -->
-              <p class="font-bold text-[9px] uppercase mb-0.5">1.1. Patient Profile</p>
-              <table class="qc-table">
-                <tr>
-                  <td class="w-1/4"><span class="cell-label">Last Name:</span><input type="text" id="patientLastName" required class="cell-input font-bold" /></td>
-                  <td class="w-1/4"><span class="cell-label">First Name:</span><input type="text" id="patientFirstName" required class="cell-input font-bold" /></td>
-                  <td class="w-1/4"><span class="cell-label">Middle Name:</span><input type="text" id="patientMiddleName" class="cell-input" /></td>
-                  <td class="w-1/4"><span class="cell-label">Suffix:</span><input type="text" id="patientSuffix" placeholder="Jr/Sr/III" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><span class="cell-label">Date of Birth:</span><input type="date" id="dob" onchange="autoCalcAgeBreakdown()" class="cell-input" /></td>
-                  <td><span class="cell-label">Age:</span><div class="flex items-center gap-1"><input type="number" id="age" min="0" required class="cell-input font-bold w-16" /> <span>yrs</span></div></td>
-                  <td><span class="cell-label">Sex at birth:</span><select id="sex" required class="cell-input font-bold"><option value="Male">Male</option><option value="Female">Female</option></select></td>
-                  <td><span class="cell-label">Civil Status / Nationality:</span><div class="flex gap-1"><select id="civilStatus" class="cell-input w-1/2"><option value="Single">Single</option><option value="Married">Married</option><option value="Widowed">Widowed</option><option value="Child">Child</option></select><input type="text" id="nationality" value="Filipino" class="cell-input w-1/2" /></div></td>
-                </tr>
-              </table>
-
-              <!-- 1.2 Current Address -->
-              <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">1.2. Current Address in the Philippines and Contact Information</p>
-              <table class="qc-table">
-                <tr>
-                  <td class="w-1/2"><span class="cell-label">Lives in a closed setting?</span><select id="closedSetting" class="cell-input"><option value="No">No (indicate home address below)</option><option value="Yes">Yes, Institution type (nursing home, jail, etc)</option></select></td>
-                  <td class="w-1/2"><span class="cell-label">Name of Institution:</span><input type="text" id="institutionName" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><span class="cell-label">House No./Lot/Bldg:</span><input type="text" id="houseBldg" class="cell-input" /></td>
-                  <td><span class="cell-label">Street/Purok/Sitio:</span><input type="text" id="streetAddress" required class="cell-input font-bold" /></td>
-                </tr>
-                <tr>
-                  <td><span class="cell-label">Barangay:</span><input type="text" id="barangay" required class="cell-input font-bold" /></td>
-                  <td><span class="cell-label">Latitude: / Longitude:</span><div class="flex gap-1"><input type="text" id="gpsLatitude" placeholder="Lat" class="cell-input w-1/2" /><input type="text" id="gpsLongitude" placeholder="Long" class="cell-input w-1/2" /></div></td>
-                </tr>
-                <tr>
-                  <td><span class="cell-label">Municipality/City:</span><input type="text" id="city" value="Quezon City" class="cell-input font-bold" /></td>
-                  <td><span class="cell-label">Province / Region:</span><div class="flex gap-1"><input type="text" id="province" value="Metro Manila" class="cell-input w-1/2" /><input type="text" id="region" value="NCR" class="cell-input w-1/2" /></div></td>
-                </tr>
-                <tr>
-                  <td><span class="cell-label">Length of Residence:</span><input type="text" id="lengthResidence" class="cell-input" /></td>
-                  <td><span class="cell-label">Contact number (cellphone / telephone):</span><input type="tel" id="contact" required placeholder="09XXXXXXXXX" class="cell-input font-bold" /></td>
-                </tr>
-              </table>
-
-              <!-- 1.3 Permanent Address -->
-              <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">1.3. Permanent Address (If different from the current address)</p>
-              <table class="qc-table">
-                <tr>
-                  <td class="w-1/4"><span class="cell-label">House No./Lot/Bldg:</span><input type="text" class="cell-input" /></td>
-                  <td class="w-1/4"><span class="cell-label">Street/Purok/Sitio:</span><input type="text" class="cell-input" /></td>
-                  <td class="w-1/4"><span class="cell-label">Barangay:</span><input type="text" class="cell-input" /></td>
-                  <td class="w-1/4"><span class="cell-label">Lat / Long:</span><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><span class="cell-label">Municipality/City:</span><input type="text" class="cell-input" /></td>
-                  <td><span class="cell-label">Province:</span><input type="text" class="cell-input" /></td>
-                  <td><span class="cell-label">Region:</span><input type="text" class="cell-input" /></td>
-                  <td><span class="cell-label">Contact Number:</span><input type="text" class="cell-input" /></td>
-                </tr>
-              </table>
-
-              <!-- 1.4 Special Population -->
-              <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">1.4. Special Population (indicate further details on exposure and travel history in Part 3)</p>
-              <table class="qc-table">
-                <tr>
-                  <td class="w-1/3"><span class="cell-label">Healthcare Worker?</span><select id="isHCW" class="cell-input"><option value="No">No</option><option value="Yes">Yes, Name/Facility Address</option></select></td>
-                  <td class="w-1/3"><span class="cell-label">Returning Overseas Filipino?</span><select id="isOFW" class="cell-input"><option value="No">No</option><option value="Yes - OFW">Yes, Country of Origin (OFW)</option><option value="Yes - Non-OFW">Yes, Country of Origin (Non-OFW)</option></select></td>
-                  <td class="w-1/3"><span class="cell-label">Foreign National Traveler?</span><select id="isForeignTraveler" class="cell-input"><option value="No">No</option><option value="Yes">Yes, Country of Origin / Date of Arrival</option></select></td>
-                </tr>
-              </table>
-
-              <!-- 1.5 Employment Details -->
-              <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">1.5. Employment/Educational Details</p>
-              <table class="qc-table">
-                <tr>
-                  <td colspan="3"><span class="cell-label">Current Status:</span><div class="flex gap-4 text-[9.5px]"><label class="flex items-center gap-1"><input type="radio" name="workSchool" value="Working" checked /> <span>Working</span></label><label class="flex items-center gap-1"><input type="radio" name="workSchool" value="Student" /> <span>Student</span></label></div></td>
-                </tr>
-                <tr>
-                  <td class="w-1/3"><span class="cell-label">1.5.1. Employment Status:</span><select id="workSchoolStatus" class="cell-input"><option value="Employed">Employed</option><option value="Freelanced">Freelanced</option><option value="Self-employed">Self-employed</option><option value="Unemployed">Unemployed</option><option value="Retired">Retired</option></select></td>
-                  <td class="w-1/3"><span class="cell-label">Occupation (specify):</span><input type="text" id="occupationOrGrade" class="cell-input font-bold" /></td>
-                  <td class="w-1/3"><span class="cell-label">Work Arrangement / Last Day Attended:</span><div class="flex gap-1"><select class="cell-input w-1/2"><option>Fixed on-site (Office)</option><option>Fully Remote (WFH)</option><option>Hybrid</option><option>Field-based</option></select><input type="date" class="cell-input w-1/2" /></div></td>
-                </tr>
-              </table>
-
-            </div>
-
-            <!-- PAGE 1 FOOTER -->
-            <div class="border-t border-black pt-1.5 flex justify-between items-center mt-2">
-              <span class="footer-tagline">“Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan”</span>
-              <div class="flex items-center space-x-3">
-                <img src="bagong pilipinas.png" onerror="this.onerror=null; this.src='bagong pilipinas.jpg';" alt="Bagong Pilipinas" class="footer-bp-img" />
-                <img src="iso.png" onerror="this.onerror=null; this.src='iso.jpg';" alt="ISO Certified" class="footer-iso-img" />
-              </div>
-            </div>
-          </div>
-
-          <!-- ================= PAGE 2 (A4) ================= -->
-          <div class="a4-page">
-            <div>
-              
-              <!-- PAGE 2 HEADER -->
-              <div class="border-b border-black pb-1.5 mb-1.5 flex items-center justify-between">
-                <div class="flex items-center space-x-2.5">
-                  <div class="flex items-center space-x-1.5 shrink-0">
-                    <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="header-logo-img" />
-                    <img src="qchd.png" onerror="this.onerror=null; this.src='qchd.jpg';" alt="QCHD Logo" class="header-logo-img" />
-                    <img src="qcesd.png" onerror="this.onerror=null; this.src='qcesd.jpg';" alt="QCESD Logo" class="header-logo-img" />
-                  </div>
-                  <div class="text-left pl-1">
-                    <p class="text-[9.5px] font-serif uppercase tracking-wider text-slate-700 leading-tight">Republic of the Philippines</p>
-                    <h2 class="text-[13px] font-black uppercase text-slate-950 leading-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
-                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Quezon City, Metro Manila</p>
-                    <p class="text-[8px] text-slate-600 leading-tight">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel No. 8988-4242 loc 1607</p>
-                  </div>
-                </div>
-                <div class="text-right text-[9px] shrink-0">
-                  <p class="font-bold">CESD (Page 2)</p>
-                </div>
-              </div>
-
-              <!-- Address of Workplace -->
-              <p class="font-bold text-[9px] uppercase mb-0.5">Address of Workplace (if fixed on-site, WFH, & Hybrid):</p>
-              <table class="qc-table">
-                <tr>
-                  <td class="w-1/3"><span class="cell-label">House No./Lot/Bldg:</span><input type="text" class="cell-input" /></td>
-                  <td class="w-1/3"><span class="cell-label">Street/Purok/Sitio:</span><input type="text" class="cell-input" /></td>
-                  <td class="w-1/3"><span class="cell-label">Barangay:</span><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><span class="cell-label">Municipality/City:</span><input type="text" class="cell-input" /></td>
-                  <td><span class="cell-label">Province:</span><input type="text" class="cell-input" /></td>
-                  <td><span class="cell-label">Region / Field Details:</span><input type="text" class="cell-input" /></td>
-                </tr>
-              </table>
-
-              <!-- 1.5.2 Educational Details -->
-              <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">1.5.2. Educational Details (if student)</p>
-              <table class="qc-table">
-                <tr>
-                  <td class="w-1/5"><span class="cell-label">Year Level:</span><input type="text" class="cell-input" /></td>
-                  <td class="w-1/5"><span class="cell-label">Section:</span><input type="text" class="cell-input" /></td>
-                  <td class="w-1/5"><span class="cell-label">No. of students in class:</span><input type="text" class="cell-input" /></td>
-                  <td class="w-1/5"><span class="cell-label">Schedule (days - time):</span><input type="text" class="cell-input" /></td>
-                  <td class="w-1/5"><span class="cell-label">Last day attended:</span><input type="date" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td colspan="2"><span class="cell-label">Name of School:</span><input type="text" class="cell-input" /></td>
-                  <td colspan="3"><span class="cell-label">Address of School (House No/Street/Barangay/City/Province):</span><input type="text" class="cell-input" /></td>
-                </tr>
-              </table>
-
-              <!-- 2. MEDICAL INFORMATION -->
-              <div class="qc-banner">2. MEDICAL INFORMATION</div>
-
-              <p class="font-bold text-[9px] uppercase mb-0.5">2.1 Clinical Information</p>
-              <table class="qc-table">
-                <tr>
-                  <td class="w-1/2"><span class="cell-label">First symptom experienced:</span><input type="text" id="firstSymptom" class="cell-input font-bold" /></td>
-                  <td class="w-1/2"><span class="cell-label">Date onset (MM/DD/YYYY):</span><input type="date" id="dateOnset" required class="cell-input font-bold" /></td>
-                </tr>
-              </table>
-
-              <!-- CLINICAL SYMPTOMS, SEVERE COMPLICATIONS & COMORBIDITIES MATRIX -->
-              <table class="qc-table">
-                <tr class="bg-slate-100 font-bold">
-                  <th class="w-1/3">Symptoms and complications:</th>
-                  <th class="w-1/3">Severe / Complications:</th>
-                  <th class="w-1/3">Comorbidities (Check all that apply, if present)</th>
-                </tr>
-                <tr class="align-top">
-                  <td class="space-y-0.5">
-                    <label class="block"><input type="checkbox" name="symp" value="Fever" /> Fever (sudden onset of fever)</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Chills" /> Chills</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Headache" /> Headache</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Myalgia" /> Myalgia (severe muscle pain)</label>
-                    <label class="block font-bold"><input type="checkbox" name="symp" value="Calf pain / tenderness" /> Calf pain / tenderness</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Conjunctival suffusion" /> Conjunctival suffusion (red eyes)</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Skin Rash" /> Skin Rash</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Abdominal pain" /> Abdominal pain</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Nausea / vomiting" /> Nausea / vomiting</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Diarrhea" /> Diarrhea</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Cough / colds" /> Cough / colds</label>
-                  </td>
-                  <td class="space-y-0.5">
-                    <label class="block font-bold text-rose-700"><input type="checkbox" name="symp" value="Jaundice" /> Jaundice | Date onset: ________</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Anuria/Oliguria" /> Anuria/Oliguria (no or reduced urine)</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Ongoing Dialysis" /> Ongoing Dialysis? No / Yes</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Hemorrhage" /> Hemorrhage: gum bleeding, blood in urine/stool</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Difficulty of Breathing" /> Shortness / Difficulty of Breathing (DOB)</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Altered mental status" /> Altered mental status / meningitis</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Cardiac failure" /> Cardiac failure / arrhythmia</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Shock / hypotension" /> Shock / hypotension</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Others" /> Others: __________________</label>
-                  </td>
-                  <td class="space-y-0.5">
-                    <label class="block"><input type="checkbox" name="comorbid" value="None" /> None</label>
-                    <label class="block"><input type="checkbox" name="comorbid" value="Asthma" /> Asthma</label>
-                    <label class="block"><input type="checkbox" name="comorbid" value="Tuberculosis" /> Tuberculosis</label>
-                    <label class="block"><input type="checkbox" name="comorbid" value="Diabetes" /> Diabetes</label>
-                    <label class="block"><input type="checkbox" name="comorbid" value="Hypertension" /> Hypertension</label>
-                    <label class="block"><input type="checkbox" name="comorbid" value="Heart Disease" /> Heart Disease</label>
-                    <label class="block"><input type="checkbox" name="comorbid" value="HIV/AIDS" /> HIV/AIDS</label>
-                    <label class="block"><input type="checkbox" name="comorbid" value="Chronic Kidney Disease" /> Chronic Kidney Disease</label>
-                    <label class="block"><input type="checkbox" name="comorbid" value="Cancer" /> Cancer</label>
-                    <div class="border-t border-slate-300 pt-1 mt-1">
-                      <p class="font-bold text-[8.5px] uppercase">Underlying Risk Factors:</p>
-                      <label class="block"><input type="checkbox" name="comorbid" value="Smoker" /> Smoker: Yes / No (Sticks/day: __)</label>
-                      <label class="block"><input type="checkbox" name="comorbid" value="Alcoholic drinker" /> Alcoholic drinker: Daily/Weekly/Rare</label>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- 2.2 Medical Consultation -->
-              <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">2.2. Medical Consultation and Admission Information</p>
-              <table class="qc-table">
-                <tr>
-                  <td colspan="6"><span class="cell-label">Have recently consulted a healthcare provider?</span><div class="flex gap-4"><label><input type="radio" name="consulted" value="Yes" checked /> Yes</label><label><input type="radio" name="consulted" value="No" /> No</label></div></td>
-                </tr>
-                <tr class="bg-slate-100 font-bold text-center">
-                  <th class="w-8">Order</th>
-                  <th>Place of Consultation (Health Center / Hospital)</th>
-                  <th>Date & Time Consultation</th>
-                  <th>Diagnosis</th>
-                  <th>Advised Admitted?</th>
-                  <th>Admitted?</th>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">1st</td>
-                  <td><input type="text" id="consultFacility1" class="cell-input" /></td>
-                  <td><input type="datetime-local" id="consultDateTime1" class="cell-input" /></td>
-                  <td><input type="text" id="consultDiagnosis1" class="cell-input" /></td>
-                  <td class="text-center"><select class="cell-input"><option>Yes</option><option>No</option></select></td>
-                  <td class="text-center"><select id="consultAdmitted1" class="cell-input font-bold"><option>No</option><option>Yes</option></select></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">2nd</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="datetime-local" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td class="text-center"><select class="cell-input"><option>Yes</option><option>No</option></select></td>
-                  <td class="text-center"><select class="cell-input"><option>No</option><option>Yes</option></select></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">3rd</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="datetime-local" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td class="text-center"><select class="cell-input"><option>Yes</option><option>No</option></select></td>
-                  <td class="text-center"><select class="cell-input"><option>No</option><option>Yes</option></select></td>
-                </tr>
-                <tr>
-                  <td colspan="6"><span class="cell-label">Total no. of consultations:</span><input type="number" value="1" class="cell-input w-20 font-bold" /></td>
-                </tr>
-              </table>
-
-            </div>
-
-            <!-- PAGE 2 FOOTER -->
-            <div class="border-t border-black pt-1.5 flex justify-between items-center mt-2">
-              <span class="footer-tagline">“Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan”</span>
-              <div class="flex items-center space-x-3">
-                <img src="bagong pilipinas.png" onerror="this.onerror=null; this.src='bagong pilipinas.jpg';" alt="Bagong Pilipinas" class="footer-bp-img" />
-                <img src="iso.png" onerror="this.onerror=null; this.src='iso.jpg';" alt="ISO Certified" class="footer-iso-img" />
-              </div>
-            </div>
-          </div>
-
-          <!-- ================= PAGE 3 (A4) ================= -->
-          <div class="a4-page">
-            <div>
-              
-              <!-- PAGE 3 HEADER -->
-              <div class="border-b border-black pb-1.5 mb-1.5 flex items-center justify-between">
-                <div class="flex items-center space-x-2.5">
-                  <div class="flex items-center space-x-1.5 shrink-0">
-                    <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="header-logo-img" />
-                    <img src="qchd.png" onerror="this.onerror=null; this.src='qchd.jpg';" alt="QCHD Logo" class="header-logo-img" />
-                    <img src="qcesd.png" onerror="this.onerror=null; this.src='qcesd.jpg';" alt="QCESD Logo" class="header-logo-img" />
-                  </div>
-                  <div class="text-left pl-1">
-                    <p class="text-[9.5px] font-serif uppercase tracking-wider text-slate-700 leading-tight">Republic of the Philippines</p>
-                    <h2 class="text-[13px] font-black uppercase text-slate-950 leading-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
-                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Quezon City, Metro Manila</p>
-                    <p class="text-[8px] text-slate-600 leading-tight">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel No. 8988-4242 loc 1607</p>
-                  </div>
-                </div>
-                <div class="text-right text-[9px] shrink-0">
-                  <p class="font-bold">CESD (Page 3)</p>
-                </div>
-              </div>
-
-              <p class="text-[8px] italic mb-0.5">If more than 5, write on the back</p>
-              <table class="qc-table">
-                <tr>
-                  <td><span class="cell-label">Health status at consultation:</span><div class="flex gap-4 text-[8.5px] font-bold"><label><input type="radio" name="healthStat" value="Asymptomatic" /> Asymptomatic</label><label><input type="radio" name="healthStat" value="Mild" checked /> Mild</label><label><input type="radio" name="healthStat" value="Moderate" /> Moderate</label><label><input type="radio" name="healthStat" value="Severe" /> Severe</label><label><input type="radio" name="healthStat" value="Critical" /> Critical</label></div></td>
-                </tr>
-              </table>
-
-              <!-- ADMISSION DETAILS TABLE -->
-              <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">If admitted, fill out the following:</p>
-              <table class="qc-table">
-                <tr class="bg-slate-100 font-bold text-center">
-                  <th class="w-8">Order</th>
-                  <th>Place of Admission (Name of facility)</th>
-                  <th>Address</th>
-                  <th>Type of bed occupied (ICU, ER, Ward, specify)</th>
-                  <th>Date Admitted</th>
-                  <th>Date Discharged</th>
-                  <th>Reason for Discharge (e.g. Recovered, Died, HAMA, Financial, different diagnosis, OPD only, etc.)</th>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">1st</td>
-                  <td><input type="text" id="placeAdmission" class="cell-input" /></td>
-                  <td><input type="text" id="addressAdmission" class="cell-input" /></td>
-                  <td><select id="hospitalBedType" class="cell-input"><option>Ward</option><option>ICU</option><option>ER</option><option>Isolation</option></select></td>
-                  <td><input type="date" id="dateAdmitted" class="cell-input font-bold" /></td>
-                  <td><input type="date" id="dateDischarged" class="cell-input font-bold" /></td>
-                  <td><select id="dischargeReason" class="cell-input"><option>Still Admitted</option><option>Recovered</option><option>Died</option><option>HAMA</option><option>Financial</option></select></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">2nd</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><select class="cell-input"><option>Ward</option><option>ICU</option><option>ER</option></select></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><select class="cell-input"><option>Recovered</option><option>Died</option></select></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">3rd</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><select class="cell-input"><option>Ward</option><option>ICU</option><option>ER</option></select></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><select class="cell-input"><option>Recovered</option><option>Died</option></select></td>
-                </tr>
-              </table>
-
-              <!-- 2.3 LABORATORY INFORMATION -->
-              <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">2.3. Laboratory Information</p>
-              <table class="qc-table">
-                <tr class="bg-slate-100 font-bold text-center">
-                  <th>Type of Specimen</th>
-                  <th>Date Collected</th>
-                  <th>Type of test done</th>
-                  <th>Result</th>
-                  <th>Date result</th>
-                  <th>Interpretation</th>
-                </tr>
-                <tr>
-                  <td><div class="space-y-0.5 text-[8px]"><label class="block"><input type="checkbox" checked /> Blood</label><label class="block"><input type="checkbox" /> Serum</label><label class="block"><input type="checkbox" /> Urine</label></div></td>
-                  <td><input type="date" id="dateSpecimenCollected" class="cell-input" /></td>
-                  <td><div class="space-y-0.5 text-[8px]"><label class="block"><input type="checkbox" /> Rapid Diagnostic Test</label><label class="block"><input type="checkbox" checked /> Lepto-MAT</label><label class="block"><input type="checkbox" /> OPS/NPS</label><label class="block"><input type="checkbox" /> PCR</label><label class="block"><input type="checkbox" /> Culture</label><label class="block"><input type="checkbox" /> Others: <input type="text" class="cell-input inline w-16" /></label></div></td>
-                  <td><div class="space-y-0.5 text-[8px] font-bold"><label class="block"><input type="radio" name="res" checked /> POSITIVE</label><label class="block"><input type="radio" name="res" /> Negative</label><label class="block"><input type="radio" name="res" /> Inconclusive</label><label class="block"><input type="radio" name="res" /> Invalid</label><label class="block"><input type="radio" name="res" /> Others: <input type="text" class="cell-input inline w-14" /></label></div></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" id="labInterpretation" class="cell-input" /></td>
-                </tr>
-              </table>
-
-              <!-- 2.6 MEDICATION -->
-              <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">2.6. Medication</p>
-              <table class="qc-table">
-                <tr>
-                  <td><span class="cell-label">Did you take any of the following medication(s) prior to consultation?</span>
-                    <div class="flex flex-wrap gap-2 text-[8.5px]">
-                      <label><input type="checkbox" /> None</label>
-                      <label><input type="checkbox" /> Antibiotics</label>
-                      <label><input type="checkbox" checked /> Antipyretics (Paracetamol)</label>
-                      <label><input type="checkbox" /> Azithromycin</label>
-                      <label><input type="checkbox" /> Clarithromycin</label>
-                      <label><input type="checkbox" /> Erythromycin</label>
-                      <label><input type="checkbox" /> Others, specify: <input type="text" class="cell-input inline w-28" /></label>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td><span class="cell-label">Medication during the course of illness and/or admission:</span>
-                    <div class="space-y-1 text-[8.5px]">
-                      <div class="flex justify-between items-center">
-                        <span>Antibiotics: <input type="text" placeholder="Yes, specify Doxycycline / Penicillin G" class="cell-input w-64 inline" /></span>
-                        <span><label><input type="radio" name="medAbx" checked /> Yes</label> <label><input type="radio" name="medAbx" /> No</label> <label><input type="radio" name="medAbx" /> Unknown</label></span>
-                      </div>
-                      <div class="flex justify-between items-center">
-                        <span>Supportive care: <input type="text" placeholder="Yes, specify IV Fluids / Dialysis" class="cell-input w-64 inline" /></span>
-                        <span><label><input type="radio" name="medSupp" checked /> Yes</label> <label><input type="radio" name="medSupp" /> No</label> <label><input type="radio" name="medSupp" /> Unknown</label></span>
-                      </div>
-                      <div>Others, please specify: <input type="text" class="cell-input w-80 inline" /></div>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- 3. EXPOSURE TABLE -->
-              <div class="qc-banner">3. EXPOSURE</div>
-              <table class="qc-table">
-                <tr class="bg-slate-100 font-bold text-center">
-                  <th class="w-1/2">Possible Exposure (tick all that apply)</th>
-                  <th>Place/s of Exposure</th>
-                  <th>Date/s of Exposure</th>
-                  <th>Duration of exposure (mins / hrs /days)</th>
-                </tr>
-                <tr>
-                  <td colspan="4" class="font-bold bg-slate-50 text-[8.5px]">Water-related exposures:</td>
-                </tr>
-                <tr>
-                  <td>
-                    <label class="block font-bold text-rose-800"><input type="checkbox" name="exposureHist" value="Flood water" checked /> Flood water</label>
-                    <div class="pl-4 text-[8px] flex gap-2"><span class="font-semibold">If yes &rarr;</span><label><input type="checkbox" checked /> Ankle deep</label><label><input type="checkbox" /> Knee deep</label><label><input type="checkbox" /> Waist deep</label><label><input type="checkbox" /> Chest deep</label><label><input type="checkbox" /> Head deep</label></div>
-                  </td>
-                  <td><input type="text" placeholder="Brgy / Area" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" placeholder="e.g. 2 hours" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Stagnant water" /> Stagnant water (canal, drainage, sewer, puddles)</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Marshy land" /> Marshy/muddy land</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Agricultural land" /> Agricultural land (rice field, sugar cane, etc.)</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Other water-related" /> Other water-related (irrigation, fisheries)</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td colspan="4" class="font-bold bg-slate-50 text-[8.5px]">Occupation-related exposures:</td>
-                </tr>
-                <tr>
-                  <td>
-                    <label class="block"><input type="checkbox" name="exposureHist" value="Construction" /> Construction (e.g., mason, painter, helper)</label>
-                    <div class="pl-4 text-[8px] flex gap-2"><span class="font-semibold">If yes, protection measures &rarr;</span><label><input type="checkbox" /> No protection</label><label><input type="checkbox" checked /> Boots used</label><label><input type="checkbox" /> Gloves used</label></div>
-                  </td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Transport workers" /> Transport workers (drivers, tricycle drivers, riders)</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Market-related" /> Market-related (vendor, market vendor)</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Garbage collector" /> Garbage / Maintenance (e.g., garbage collector)</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Animal work" /> Animal / veterinary work</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Security-related" /> Security-related (security guard, barangay tanod)</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Rescuer" /> Rescuer</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Others" /> Others</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td colspan="4" class="font-bold bg-slate-50 text-[8.5px]">Ingestion/cleaning/others:</td>
-                </tr>
-                <tr>
-                  <td><label class="block"><input type="checkbox" name="exposureHist" value="Contaminated food/water" /> Possibly contaminated water/food/utensils</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-              </table>
-
-            </div>
-
-            <!-- PAGE 3 FOOTER -->
-            <div class="border-t border-black pt-1.5 flex justify-between items-center mt-2">
-              <span class="footer-tagline">“Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan”</span>
-              <div class="flex items-center space-x-3">
-                <img src="bagong pilipinas.png" onerror="this.onerror=null; this.src='bagong pilipinas.jpg';" alt="Bagong Pilipinas" class="footer-bp-img" />
-                <img src="iso.png" onerror="this.onerror=null; this.src='iso.jpg';" alt="ISO Certified" class="footer-iso-img" />
-              </div>
-            </div>
-          </div>
-
-          <!-- ================= PAGE 4 (A4) ================= -->
-          <div class="a4-page">
-            <div>
-              
-              <!-- PAGE 4 HEADER -->
-              <div class="border-b border-black pb-1.5 mb-1.5 flex items-center justify-between">
-                <div class="flex items-center space-x-2.5">
-                  <div class="flex items-center space-x-1.5 shrink-0">
-                    <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="header-logo-img" />
-                    <img src="qchd.png" onerror="this.onerror=null; this.src='qchd.jpg';" alt="QCHD Logo" class="header-logo-img" />
-                    <img src="qcesd.png" onerror="this.onerror=null; this.src='qcesd.jpg';" alt="QCESD Logo" class="header-logo-img" />
-                  </div>
-                  <div class="text-left pl-1">
-                    <p class="text-[9.5px] font-serif uppercase tracking-wider text-slate-700 leading-tight">Republic of the Philippines</p>
-                    <h2 class="text-[13px] font-black uppercase text-slate-950 leading-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
-                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Quezon City, Metro Manila</p>
-                    <p class="text-[8px] text-slate-600 leading-tight">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel No. 8988-4242 loc 1607</p>
-                  </div>
-                </div>
-                <div class="text-right text-[9px] shrink-0">
-                  <p class="font-bold">CESD (Page 4)</p>
-                </div>
-              </div>
-
-              <!-- Top Table (Continuation of Ingestion/Cleaning) -->
-              <table class="qc-table">
-                <tr>
-                  <td class="w-1/2"><label><input type="checkbox" /> During cleaning of filthy materials</label></td>
-                  <td class="w-1/6"><input type="text" class="cell-input" /></td>
-                  <td class="w-1/6"><input type="date" class="cell-input" /></td>
-                  <td class="w-1/6"><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><label><input type="checkbox" /> Rat Infested house</label></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-              </table>
-
-              <!-- Most Probable Exposure & Activity Grid -->
-              <table class="qc-table">
-                <tr class="align-top">
-                  <td class="w-1/4">
-                    <span class="cell-label">Most probable exposure:</span>
-                    <input type="text" class="cell-input mt-1" />
-                  </td>
-                  <td class="w-1/4">
-                    <span class="cell-label">Protection measures:</span>
-                    <div class="space-y-0.5 text-[8px] mt-1">
-                      <label class="block"><input type="checkbox" /> No protection</label>
-                      <label class="block"><input type="checkbox" checked /> Boots used</label>
-                      <label class="block"><input type="checkbox" /> Gloves used</label>
-                    </div>
-                  </td>
-                  <td class="w-1/2">
-                    <span class="cell-label">Activity during exposure?</span>
-                    <div class="space-y-0.5 text-[8px] mt-1">
-                      <label class="block"><input type="checkbox" /> going to school (or from school to home)</label>
-                      <label class="block"><input type="checkbox" checked /> going to work (or from work to home)</label>
-                      <label class="block"><input type="checkbox" /> part of work (occupation)</label>
-                      <label class="block"><input type="checkbox" /> Cleaning (home/environment)</label>
-                      <label class="block"><input type="checkbox" /> others? <input type="text" class="cell-input inline w-32" /></label>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="align-top">
-                  <td colspan="2">
-                    <span class="cell-label">Presence of wound or lesion:</span>
-                    <div class="flex gap-4 text-[8px] mt-1"><label><input type="radio" name="woundPres" checked /> Yes</label><label><input type="radio" name="woundPres" /> No</label></div>
-                    <div class="mt-1 text-[8px]">
-                      <span>If yes &rarr; Location of wound/lesion:</span>
-                      <div class="flex gap-2 mt-0.5"><label><input type="checkbox" checked /> Foot</label><label><input type="checkbox" /> Legs</label><label><input type="checkbox" /> Others: <input type="text" class="cell-input inline w-20" /></label></div>
-                    </div>
-                    <div class="mt-1 text-[8px]">
-                      <span>Wound care:</span>
-                      <div class="flex gap-2 mt-0.5"><label><input type="checkbox" /> None</label><label><input type="checkbox" checked /> Washed</label><label><input type="checkbox" checked /> Disinfected</label><label><input type="checkbox" /> Dressed</label></div>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="cell-label">If household flood exposure:</span>
-                    <div class="flex gap-3 text-[8px] mt-1"><label><input type="checkbox" /> None</label><label><input type="checkbox" checked /> Floods entering house</label><label><input type="checkbox" /> Outside only</label></div>
-                    <div class="flex gap-4 text-[8px] mt-1">
-                      <span>Dwelling:</span><label><input type="radio" name="dwelling" /> Single-story</label><label><input type="radio" name="dwelling" checked /> Multi-storey</label>
-                    </div>
-                    <div class="flex gap-2 text-[8px] mt-1">
-                      <span>Flood depth:</span><label><input type="checkbox" checked /> Ankle</label><label><input type="checkbox" /> Knee</label><label><input type="checkbox" /> Waist</label><label><input type="checkbox" /> Chest</label><label><input type="checkbox" /> Head</label>
-                    </div>
-                    <div class="text-[8px] mt-1 space-y-0.5">
-                      <p class="font-bold">If flood-related, did the patient evacuate?</p>
-                      <label class="block"><input type="radio" name="evac" /> Yes (place and date): <input type="text" class="cell-input inline w-48" /></label>
-                      <label class="block"><input type="radio" name="evac" checked /> No, list reason: <input type="text" value="Second floor dwelling" class="cell-input inline w-52" /></label>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- CHEMOPROPHYLAXIS SECTION -->
-              <div class="qc-banner">CHEMOPROPHYLAXIS</div>
-              
-              <!-- PrEP and PEP Questions -->
-              <table class="qc-table">
-                <tr class="align-top">
-                  <td class="w-1/2">
-                    <span class="cell-label">Did the patient take PRE-exposure prophylaxis (PrEP) prior to onset of illness? (For high-risk occupational exposure)</span>
-                    <div class="flex gap-4 text-[8px] mt-1"><label><input type="radio" name="prepTake" checked /> No</label><label><input type="radio" name="prepTake" /> Yes</label></div>
-                    <div class="text-[8px] mt-1">If yes, date given/received: <input type="date" class="cell-input inline w-24" /> Date taken: <input type="date" class="cell-input inline w-24" /></div>
-                  </td>
-                  <td class="w-1/2">
-                    <span class="cell-label">Did the patient take POST-exposure prophylaxis (PEP) prior to onset of illness? (After exposure, before illness)</span>
-                    <div class="flex gap-4 text-[8px] mt-1"><label><input type="radio" name="pepTake" /> No</label><label><input type="radio" name="pepTake" checked /> Yes</label></div>
-                    <div class="text-[8px] mt-1">If yes, date given/received: <input type="date" class="cell-input inline w-24" /> Date taken: <input type="date" class="cell-input inline w-24" /></div>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Detailed 4-Column Chemoprophylaxis Matrix -->
-              <table class="qc-table">
-                <tr class="bg-slate-100 font-bold text-center">
-                  <th class="w-1/4">Risk Classification:</th>
-                  <th class="w-1/4">If No, list reasons:</th>
-                  <th class="w-1/4">If Yes:</th>
-                  <th class="w-1/4">PEP taken from day of exposure?</th>
-                </tr>
-                <tr class="align-top text-[8px]">
-                  <td class="space-y-1">
-                    <label class="block"><input type="checkbox" /> Low Risk (single exposure, non-mucosal, no breaks/wounds)</label>
-                    <label class="block font-bold text-rose-800"><input type="checkbox" checked /> Moderate Risk (mucosal exposure / presence of wound)</label>
-                    <label class="block"><input type="checkbox" /> High Risk (repeated for continuous exposure)</label>
-                    <label class="block"><input type="checkbox" /> Not applicable</label>
-                  </td>
-                  <td class="space-y-0.5">
-                    <label class="block"><input type="checkbox" /> No supply available</label>
-                    <label class="block"><input type="checkbox" /> Pregnant</label>
-                    <label class="block"><input type="checkbox" /> Children</label>
-                    <label class="block"><input type="checkbox" /> Not aware</label>
-                    <label class="block"><input type="checkbox" /> Believed not at risk</label>
-                    <label class="block"><input type="checkbox" /> Forget</label>
-                    <label class="block"><input type="checkbox" /> Refused / Declined</label>
-                    <label class="block"><input type="checkbox" /> Afraid of side effects</label>
-                    <label class="block"><input type="checkbox" /> Already symptomatic</label>
-                    <label class="block"><input type="checkbox" /> Others: <input type="text" class="cell-input inline w-16" /></label>
-                  </td>
-                  <td class="space-y-1">
-                    <div class="space-y-0.5">
-                      <label class="block font-bold"><input type="checkbox" checked /> Doxycycline</label>
-                      <label class="block"><input type="checkbox" /> Azithromycin</label>
-                      <label class="block"><input type="checkbox" /> Amoxicillin</label>
-                      <label class="block"><input type="checkbox" /> Others? <input type="text" class="cell-input inline w-16" /></label>
-                    </div>
-                    <div class="border-t border-slate-300 pt-1">
-                      <p class="font-bold">Number of doses (for Doxycycline):</p>
-                      <label class="block"><input type="checkbox" checked /> 1 day total of 200mg</label>
-                      <label class="block"><input type="checkbox" /> For 3 days (total 600mg)</label>
-                      <label class="block"><input type="checkbox" /> For 5 days (total 1000mg)</label>
-                      <label class="block"><input type="checkbox" /> Once weekly (for High Risk)</label>
-                      <label class="block"><input type="checkbox" /> Other: <input type="text" class="cell-input inline w-14" /></label>
-                    </div>
-                  </td>
-                  <td class="space-y-1">
-                    <div class="space-y-0.5">
-                      <label class="block font-bold"><input type="checkbox" checked /> less than 24 hours</label>
-                      <label class="block"><input type="checkbox" /> 24 to 48 hours</label>
-                      <label class="block"><input type="checkbox" /> 48 to 72 hours</label>
-                      <label class="block"><input type="checkbox" /> 72 hours above</label>
-                    </div>
-                    <div class="border-t border-slate-300 pt-1">
-                      <div class="flex gap-2"><span>Completed?</span><label><input type="radio" name="pepComp" checked /> Yes</label><label><input type="radio" name="pepComp" /> No</label></div>
-                      <div class="mt-1">If not completed, list reasons:<br><input type="text" class="cell-input mt-0.5" /></div>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- MOVED FROM PAGE 5: Outcome & Date Confirmation Box on Page 4 -->
-              <table class="qc-table mt-1.5 bg-slate-50">
-                <tr>
-                  <td class="w-1/2 font-bold"><label class="flex items-center gap-1.5"><input type="checkbox" /> <span>Died, Date (MM/DD/YYYY):</span></label><input type="date" class="cell-input mt-0.5" /></td>
-                  <td class="w-1/2 font-bold"><label class="flex items-center gap-1.5"><input type="checkbox" checked /> <span>Recovered, Date (MM/DD/YYYY):</span></label><input type="date" class="cell-input mt-0.5" /></td>
-                </tr>
-              </table>
-
-            </div>
-
-            <!-- PAGE 4 FOOTER -->
-            <div class="border-t border-black pt-1.5 flex justify-between items-center mt-2">
-              <span class="footer-tagline">“Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan”</span>
-              <div class="flex items-center space-x-3">
-                <img src="bagong pilipinas.png" onerror="this.onerror=null; this.src='bagong pilipinas.jpg';" alt="Bagong Pilipinas" class="footer-bp-img" />
-                <img src="iso.png" onerror="this.onerror=null; this.src='iso.jpg';" alt="ISO Certified" class="footer-iso-img" />
-              </div>
-            </div>
-          </div>
-
-          <!-- ================= PAGE 5 (A4) ================= -->
-          <div class="a4-page">
-            <div>
-              
-              <!-- PAGE 5 HEADER -->
-              <div class="border-b border-black pb-1.5 mb-1.5 flex items-center justify-between">
-                <div class="flex items-center space-x-2.5">
-                  <div class="flex items-center space-x-1.5 shrink-0">
-                    <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="header-logo-img" />
-                    <img src="qchd.png" onerror="this.onerror=null; this.src='qchd.jpg';" alt="QCHD Logo" class="header-logo-img" />
-                    <img src="qcesd.png" onerror="this.onerror=null; this.src='qcesd.jpg';" alt="QCESD Logo" class="header-logo-img" />
-                  </div>
-                  <div class="text-left pl-1">
-                    <p class="text-[9.5px] font-serif uppercase tracking-wider text-slate-700 leading-tight">Republic of the Philippines</p>
-                    <h2 class="text-[13px] font-black uppercase text-slate-950 leading-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
-                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Quezon City, Metro Manila</p>
-                    <p class="text-[8px] text-slate-600 leading-tight">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel No. 8988-4242 loc 1607</p>
-                  </div>
-                </div>
-                <div class="text-right text-[9px] shrink-0">
-                  <p class="font-bold">CESD (Page 5)</p>
-                </div>
-              </div>
-
-              <!-- 5. INTERVENTIONS AND CONTROL MEASURE -->
-              <div class="qc-banner">5. INTERVENTIONS AND CONTROL MEASURE</div>
-              <table class="qc-table">
-                <tr class="bg-slate-100 font-bold text-center">
-                  <th class="w-3/5">ACTIONS</th>
-                  <th class="w-1/5">DATE</th>
-                  <th class="w-1/5">REMARKS</th>
-                </tr>
-                <tr>
-                  <td>
-                    <p class="font-bold mb-0.5"><input type="checkbox" checked /> Case Management</p>
-                    <div class="grid grid-cols-2 gap-1 text-[8px] pl-2">
-                      <label><input type="checkbox" checked /> Antibiotics given (Doxycycline)</label>
-                      <label><input type="checkbox" /> ICU case management</label>
-                      <label><input type="checkbox" checked /> IV fluids given</label>
-                      <label><input type="checkbox" /> Dialysis (if severe)</label>
-                    </div>
-                  </td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td>
-                    <p class="font-bold mb-0.5"><input type="checkbox" checked /> Field Investigation</p>
-                    <div class="space-y-0.5 text-[8px] pl-2">
-                      <label class="block"><input type="checkbox" checked /> Exposure to floodwater assessed</label>
-                      <label class="block"><input type="checkbox" /> Presence of rodents in area</label>
-                      <label class="block"><input type="checkbox" checked /> Occupation risk (construction, sewer, etc.)</label>
-                    </div>
-                  </td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td>
-                    <p class="font-bold mb-0.5"><input type="checkbox" checked /> Laboratory Confirmation</p>
-                    <div class="space-y-0.5 text-[8px] pl-2">
-                      <label class="block"><input type="checkbox" checked /> Sample collected</label>
-                      <label class="block"><input type="checkbox" checked /> Specimen sent to laboratory</label>
-                    </div>
-                  </td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td>
-                    <p class="font-bold mb-0.5"><input type="checkbox" /> Program Management & Counter Measures</p>
-                    <div class="grid grid-cols-2 gap-0.5 text-[8px] pl-2">
-                      <label><input type="checkbox" /> Prophylaxis given (Doxycycline)</label>
-                      <label><input type="checkbox" /> Environmental sanitation conducted</label>
-                      <label><input type="checkbox" /> Rodent control implemented</label>
-                      <label><input type="checkbox" /> Drainage / flood control actions</label>
-                      <label><input type="checkbox" /> PPE use (boots) promoted</label>
-                    </div>
-                  </td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td><p class="font-bold"><input type="checkbox" checked /> Health Education</p></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td>
-                    <p class="font-bold mb-0.5"><input type="checkbox" checked /> Response Coordination Mechanism</p>
-                    <div class="space-y-0.5 text-[8px] pl-2">
-                      <label class="block"><input type="checkbox" checked /> Coordinated with health facility</label>
-                      <label class="block"><input type="checkbox" checked /> Coordinated with barangay/LGU</label>
-                      <label class="block"><input type="checkbox" /> Coordinated with DOH</label>
-                    </div>
-                  </td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td>
-                    <p class="font-bold mb-0.5"><input type="checkbox" /> Risk Assessment</p>
-                    <div class="grid grid-cols-2 gap-0.5 text-[8px] pl-2">
-                      <label><input type="checkbox" /> Flood-prone area</label>
-                      <label><input type="checkbox" /> Poor sanitation</label>
-                      <label><input type="checkbox" /> High rodent density</label>
-                      <label><input type="checkbox" /> Occupational exposure</label>
-                    </div>
-                  </td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-              </table>
-
-              <!-- 6. SURVEY AND OBSERVATION -->
-              <div class="qc-banner">6. SURVEY AND OBSERVATION</div>
-              <table class="qc-table">
-                <tr>
-                  <td colspan="2"><span class="cell-label">Socio-demographic Profile (based on the total monthly income of household):</span>
-                    <div class="grid grid-cols-3 gap-1 text-[8px] mt-0.5">
-                      <label><input type="radio" name="income" /> Poor (&lt;P12,030)</label>
-                      <label><input type="radio" name="income" /> Low (&gt;P12,030 to &lt;P24,060)</label>
-                      <label><input type="radio" name="income" checked /> Lower Middle (&gt;P24,060 to &lt;P48,120)</label>
-                      <label><input type="radio" name="income" /> Upper Middle (&gt;P48,210 to &lt;P144,360)</label>
-                      <label><input type="radio" name="income" /> Upper Income (&gt;P144,360 to &lt;P240,060)</label>
-                      <label><input type="radio" name="income" /> Rich (&gt;P240,060)</label>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="w-1/2">
-                    <span class="cell-label">Type of house residence</span>
-                    <div class="space-y-0.5 text-[8px]">
-                      <label class="block"><input type="radio" name="houseType" /> Apartment</label>
-                      <label class="block"><input type="radio" name="houseType" /> Gated Subdivision</label>
-                      <label class="block"><input type="radio" name="houseType" /> Condominium</label>
-                      <label class="block"><input type="radio" name="houseType" checked /> Densely-connected houses</label>
-                    </div>
-                  </td>
-                  <td class="w-1/2">
-                    <span class="cell-label">Overall condition of the house</span>
-                    <div class="space-y-0.5 text-[8px]">
-                      <label class="block"><input type="radio" name="houseCond" /> Excellent</label>
-                      <label class="block"><input type="radio" name="houseCond" /> Good</label>
-                      <label class="block"><input type="radio" name="houseCond" checked /> Fair</label>
-                      <label class="block"><input type="radio" name="houseCond" /> Poor</label>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- KNOWLEDGE, ATTITUDES, AND PRACTICES (KAP) -->
-              <div class="qc-banner">KNOWLEDGE, ATTITUDES, AND PRACTICES (KAP)</div>
-              <table class="qc-table">
-                <tr>
-                  <td>1. Alam mo ba kung ano ang sakit na "leptospirosis" bago ka nagkasakit?</td>
-                  <td class="w-20 text-center font-bold"><label><input type="radio" name="kap1" /> Yes</label> &nbsp; <label><input type="radio" name="kap1" checked /> No</label></td>
-                </tr>
-                <tr>
-                  <td>2. Alam mo ba na puwedeng makuha ang leptospirosis mula sa paglusong sa baha?</td>
-                  <td class="text-center font-bold"><label><input type="radio" name="kap2" checked /> Yes</label> &nbsp; <label><input type="radio" name="kap2" /> No</label></td>
-                </tr>
-                <tr>
-                  <td>3. Kung na-expose ka, sa tingin mo gaano katagal bago lumabas ang sintomas?</td>
-                  <td><div class="flex items-center gap-1"><input type="text" placeholder="7-14" class="cell-input w-14" /> <span class="text-[7.5px]">hours / days / weeks</span></div></td>
-                </tr>
-                <tr>
-                  <td>4. Bago ka nagkasakit, alam mo ba kung gaano katagal (ka-late) bago lumabas ang sintomas?</td>
-                  <td><div class="flex items-center gap-1"><input type="text" placeholder="3-5" class="cell-input w-14" /> <span class="text-[7.5px]">hours / days / weeks</span></div></td>
-                </tr>
-                <tr>
-                  <td>5. Alam mo ba na may libreng prophylaxis? <span class="font-normal text-[7.5px]">[ ] Yes, if Yes list kung saan:</span> <input type="text" placeholder="Health Center" class="cell-input inline w-32" /></td>
-                  <td class="text-center font-bold"><label><input type="radio" name="kap5" checked /> Yes</label> &nbsp; <label><input type="radio" name="kap5" /> No</label></td>
-                </tr>
-                <tr>
-                  <td>6. Kung may libreng prophylaxis na ino-offer, tatanggapin mo ba ito? <span class="font-normal text-[7.5px]">why Not?</span> <input type="text" class="cell-input inline w-28" /></td>
-                  <td class="text-center font-bold"><label><input type="radio" name="kap6" checked /> Yes</label> &nbsp; <label><input type="radio" name="kap6" /> No</label></td>
-                </tr>
-              </table>
-
-            </div>
-
-            <!-- PAGE 5 FOOTER -->
-            <div class="border-t border-black pt-1.5 flex justify-between items-center mt-2">
-              <span class="footer-tagline">“Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan”</span>
-              <div class="flex items-center space-x-3">
-                <img src="bagong pilipinas.png" onerror="this.onerror=null; this.src='bagong pilipinas.jpg';" alt="Bagong Pilipinas" class="footer-bp-img" />
-                <img src="iso.png" onerror="this.onerror=null; this.src='iso.jpg';" alt="ISO Certified" class="footer-iso-img" />
-              </div>
-            </div>
-          </div>
-
-          <!-- ================= PAGE 6 (A4) ================= -->
-          <div class="a4-page">
-            <div>
-              
-              <!-- PAGE 6 HEADER -->
-              <div class="border-b border-black pb-1.5 mb-1.5 flex items-center justify-between">
-                <div class="flex items-center space-x-2.5">
-                  <div class="flex items-center space-x-1.5 shrink-0">
-                    <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="header-logo-img" />
-                    <img src="qchd.png" onerror="this.onerror=null; this.src='qchd.jpg';" alt="QCHD Logo" class="header-logo-img" />
-                    <img src="qcesd.png" onerror="this.onerror=null; this.src='qcesd.jpg';" alt="QCESD Logo" class="header-logo-img" />
-                  </div>
-                  <div class="text-left pl-1">
-                    <p class="text-[9.5px] font-serif uppercase tracking-wider text-slate-700 leading-tight">Republic of the Philippines</p>
-                    <h2 class="text-[13px] font-black uppercase text-slate-950 leading-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
-                    <p class="text-[10px] font-bold text-slate-800 leading-tight">Quezon City, Metro Manila</p>
-                    <p class="text-[8px] text-slate-600 leading-tight">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel No. 8988-4242 loc 1607</p>
-                  </div>
-                </div>
-                <div class="text-right text-[9px] shrink-0">
-                  <p class="font-bold">CESD (Page 6)</p>
-                </div>
-              </div>
-
-              <!-- 6. EXPOSURE / CO-EXPOSED PERSONS -->
-              <div class="qc-banner">6. EXPOSURE / CO-EXPOSED PERSONS (CONTACT TRACING)</div>
-              <p class="text-[8.5px] italic mb-1 text-slate-700 leading-tight">List individuals exposed to the same contaminated water/source (e.g., floodwater, sewer). Not person-to-person contact.</p>
-              
-              <table class="qc-table mb-1.5">
-                <tr>
-                  <td><span class="cell-label">Total No. of Exposed Persons similar to exposure of patient:</span><input type="text" class="cell-input w-48 font-bold" /></td>
-                </tr>
-              </table>
-
-              <!-- 10-ROW CONTACT TRACING TABLE -->
-              <table class="qc-table">
-                <tr class="bg-slate-100 font-bold text-center text-[8px]">
-                  <th class="w-5">#</th>
-                  <th class="w-1/4">Name of Co-Exposed Person</th>
-                  <th class="w-14">Age/Sex</th>
-                  <th class="w-18">Date of exposure</th>
-                  <th class="w-1/4">Risk Factors:</th>
-                  <th class="w-20">Symptoms (Y/N + onset)</th>
-                  <th>Remarks</th>
-                </tr>
-                
-                <!-- Rows 1 to 10 -->
-                <tr>
-                  <td class="text-center font-bold">1</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><div class="text-[7.5px] space-y-0.5"><label class="block">Wound: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">PPE used: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">Prophylaxis? <input type="checkbox" /> Yes <input type="checkbox" /> No</label></div></td>
-                  <td><div class="text-[7.5px]"><label><input type="checkbox" /> Yes <input type="checkbox" /> No</label><br>Onset: <input type="text" class="cell-input mt-0.5" /></div></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">2</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><div class="text-[7.5px] space-y-0.5"><label class="block">Wound: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">PPE used: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">Prophylaxis? <input type="checkbox" /> Yes <input type="checkbox" /> No</label></div></td>
-                  <td><div class="text-[7.5px]"><label><input type="checkbox" /> Yes <input type="checkbox" /> No</label><br>Onset: <input type="text" class="cell-input mt-0.5" /></div></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">3</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><div class="text-[7.5px] space-y-0.5"><label class="block">Wound: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">PPE used: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">Prophylaxis? <input type="checkbox" /> Yes <input type="checkbox" /> No</label></div></td>
-                  <td><div class="text-[7.5px]"><label><input type="checkbox" /> Yes <input type="checkbox" /> No</label><br>Onset: <input type="text" class="cell-input mt-0.5" /></div></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">4</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><div class="text-[7.5px] space-y-0.5"><label class="block">Wound: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">PPE used: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">Prophylaxis? <input type="checkbox" /> Yes <input type="checkbox" /> No</label></div></td>
-                  <td><div class="text-[7.5px]"><label><input type="checkbox" /> Yes <input type="checkbox" /> No</label><br>Onset: <input type="text" class="cell-input mt-0.5" /></div></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">5</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><div class="text-[7.5px] space-y-0.5"><label class="block">Wound: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">PPE used: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">Prophylaxis? <input type="checkbox" /> Yes <input type="checkbox" /> No</label></div></td>
-                  <td><div class="text-[7.5px]"><label><input type="checkbox" /> Yes <input type="checkbox" /> No</label><br>Onset: <input type="text" class="cell-input mt-0.5" /></div></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">6</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><div class="text-[7.5px] space-y-0.5"><label class="block">Wound: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">PPE used: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">Prophylaxis? <input type="checkbox" /> Yes <input type="checkbox" /> No</label></div></td>
-                  <td><div class="text-[7.5px]"><label><input type="checkbox" /> Yes <input type="checkbox" /> No</label><br>Onset: <input type="text" class="cell-input mt-0.5" /></div></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">7</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><div class="text-[7.5px] space-y-0.5"><label class="block">Wound: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">PPE used: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">Prophylaxis? <input type="checkbox" /> Yes <input type="checkbox" /> No</label></div></td>
-                  <td><div class="text-[7.5px]"><label><input type="checkbox" /> Yes <input type="checkbox" /> No</label><br>Onset: <input type="text" class="cell-input mt-0.5" /></div></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">8</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><div class="text-[7.5px] space-y-0.5"><label class="block">Wound: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">PPE used: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">Prophylaxis? <input type="checkbox" /> Yes <input type="checkbox" /> No</label></div></td>
-                  <td><div class="text-[7.5px]"><label><input type="checkbox" /> Yes <input type="checkbox" /> No</label><br>Onset: <input type="text" class="cell-input mt-0.5" /></div></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">9</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><div class="text-[7.5px] space-y-0.5"><label class="block">Wound: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">PPE used: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">Prophylaxis? <input type="checkbox" /> Yes <input type="checkbox" /> No</label></div></td>
-                  <td><div class="text-[7.5px]"><label><input type="checkbox" /> Yes <input type="checkbox" /> No</label><br>Onset: <input type="text" class="cell-input mt-0.5" /></div></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-                <tr>
-                  <td class="text-center font-bold">10</td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="text" class="cell-input" /></td>
-                  <td><input type="date" class="cell-input" /></td>
-                  <td><div class="text-[7.5px] space-y-0.5"><label class="block">Wound: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">PPE used: <input type="checkbox" /> Yes <input type="checkbox" /> No</label><label class="block">Prophylaxis? <input type="checkbox" /> Yes <input type="checkbox" /> No</label></div></td>
-                  <td><div class="text-[7.5px]"><label><input type="checkbox" /> Yes <input type="checkbox" /> No</label><br>Onset: <input type="text" class="cell-input mt-0.5" /></div></td>
-                  <td><input type="text" class="cell-input" /></td>
-                </tr>
-              </table>
-
-            </div>
-
-            <!-- PAGE 6 FOOTER -->
-            <div class="border-t border-black pt-1.5 flex justify-between items-center mt-2">
-              <span class="footer-tagline">“Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan”</span>
-              <div class="flex items-center space-x-3">
-                <img src="bagong pilipinas.png" onerror="this.onerror=null; this.src='bagong pilipinas.jpg';" alt="Bagong Pilipinas" class="footer-bp-img" />
-                <img src="iso.png" onerror="this.onerror=null; this.src='iso.jpg';" alt="ISO Certified" class="footer-iso-img" />
-              </div>
-            </div>
-          </div>
-
+          <!-- Injected via JavaScript based on selected disease -->
         </div>
 
         <!-- ACTION BUTTONS (Screen Only) -->
@@ -1389,9 +284,8 @@
     const API_BASE = '/api';
 
     window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('reportDate').valueAsDate = new Date();
       generateEpidNumber();
-      changeQuestionnaireForm();
+      renderActiveQuestionnaire();
       loadDashboardStats();
       fetchRegistryCases();
     });
@@ -1403,7 +297,7 @@
     }
 
     function autoCalcAgeBreakdown() {
-      const dobVal = document.getElementById('dob').value;
+      const dobVal = document.getElementById('dob')?.value;
       if (!dobVal) return;
       const dob = new Date(dobVal);
       const today = new Date();
@@ -1412,12 +306,687 @@
       if (months < 0 || (months === 0 && today.getDate() < dob.getDate())) {
         years--;
       }
-      if (years >= 0) document.getElementById('age').value = years;
+      if (years >= 0 && document.getElementById('age')) document.getElementById('age').value = years;
     }
 
-    function changeQuestionnaireForm() {
+    function getStandardHeader(pageTitle, subtitle, pageNum) {
+      return `
+        <div class="border-b border-black pb-1 mb-1.5 flex items-center justify-between">
+          <div class="flex items-center space-x-2.5">
+            <div class="flex items-center space-x-1.5 shrink-0">
+              <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="header-logo-img" />
+              <img src="qchd.png" onerror="this.onerror=null; this.src='qchd.jpg';" alt="QCHD Logo" class="header-logo-img" />
+              <img src="qcesd.png" onerror="this.onerror=null; this.src='qcesd.jpg';" alt="QCESD Logo" class="header-logo-img" />
+            </div>
+            <div class="text-left pl-1">
+              <p class="text-[9px] font-serif uppercase tracking-wider text-slate-700 leading-tight">Republic of the Philippines</p>
+              <h2 class="text-[12.5px] font-black uppercase text-slate-950 leading-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
+              <p class="text-[10px] font-bold text-slate-800 leading-tight">Quezon City, Metro Manila</p>
+              <p class="text-[8px] text-slate-600 leading-tight">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel No. 8988-4242 loc 1607 | Email: cityhealth@quezoncity.gov.ph</p>
+            </div>
+          </div>
+          ${pageNum ? `<div class="text-right text-[9px] shrink-0 font-bold">CESD (${pageNum})</div>` : ''}
+        </div>
+        ${pageTitle ? `
+          <div class="text-center pb-1">
+            <h3 class="text-xs font-black uppercase tracking-wider">${pageTitle}</h3>
+            ${subtitle ? `<h4 class="text-sm font-black uppercase text-teal-900 underline">${subtitle}</h4>` : ''}
+          </div>
+        ` : ''}
+      `;
+    }
+
+    function getStandardFooter() {
+      return `
+        <div class="border-t border-black pt-1.5 flex justify-between items-center mt-2">
+          <span class="footer-tagline">“Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan”</span>
+          <div class="flex items-center space-x-3">
+            <img src="bagong pilipinas.png" onerror="this.onerror=null; this.src='bagong pilipinas.jpg';" alt="Bagong Pilipinas" class="footer-bp-img" />
+            <img src="iso.png" onerror="this.onerror=null; this.src='iso.jpg';" alt="ISO Certified" class="footer-iso-img" />
+          </div>
+        </div>
+      `;
+    }
+
+    // MAIN RENDERER FOR VECTORBORNE & OTHER DISEASES
+    function renderActiveQuestionnaire() {
       const disease = document.getElementById('diseaseSelect').value;
-      document.getElementById('pageDiseaseTitle').textContent = disease.toUpperCase();
+      const container = document.getElementById('printableQuestionnaire');
+
+      if (disease.includes('Vectorborne') || disease.includes('Dengue')) {
+        renderDengueChikungunyaForm(container);
+      } else {
+        renderLeptospirosisForm(container);
+      }
+    }
+
+    // RENDER 7-PAGE DENGUE AND CHIKUNGUNYA QUESTIONNAIRE
+    function renderDengueChikungunyaForm(container) {
+      container.innerHTML = `
+        <!-- PAGE 1: DEMOGRAPHICS -->
+        <div class="a4-page">
+          <div>
+            ${getStandardHeader('EPIDEMIOLOGICAL QUESTIONNAIRE FORM', 'Dengue and Chikungunya', '')}
+            <table class="qc-table">
+              <tr>
+                <td class="w-1/3"><span class="cell-label">Disease Reporting Unit:</span><input type="text" id="druName" required placeholder="Health Center / Hospital" class="cell-input" /></td>
+                <td class="w-1/3"><span class="cell-label">Barangay:</span><input type="text" id="druBarangay" required placeholder="Barangay" class="cell-input" /></td>
+                <td class="w-1/3"><span class="cell-label">District:</span><input type="text" id="druDistrict" required placeholder="District" class="cell-input" /></td>
+              </tr>
+              <tr>
+                <td><span class="cell-label">Investigator:</span><input type="text" id="investigator" required placeholder="Full Name" class="cell-input" /></td>
+                <td><span class="cell-label">Designation:</span><input type="text" id="investigatorDesignation" placeholder="Position" class="cell-input" /></td>
+                <td><span class="cell-label">Date Investigated (MM/DD/YYYY):</span><input type="date" id="reportDate" required class="cell-input font-bold" /></td>
+              </tr>
+            </table>
+
+            <table class="qc-table">
+              <tr>
+                <td class="w-1/5"><span class="cell-label">From Endorsement?</span><select id="fromEndorsement" class="cell-input font-bold"><option value="No">No</option><option value="Yes">Yes</option></select></td>
+                <td class="w-1/5"><span class="cell-label">Case ID:</span><input type="text" id="caseRefId" placeholder="Case Ref ID" class="cell-input" /></td>
+                <td class="w-1/4"><span class="cell-label">Date Endorsed/Reported:</span><input type="date" id="dateEndorsed" class="cell-input" /></td>
+                <td class="w-1/3"><span class="cell-label">Disposition of patient during interview:</span><select id="dispositionInterview" class="cell-input font-bold"><option value="At home">At home</option><option value="Still Admitted">Still Admitted</option><option value="Died">Died</option></select></td>
+              </tr>
+            </table>
+
+            <div class="qc-banner">1. PERSONAL AND DEMOGRAPHIC INFORMATION</div>
+            <p class="font-bold text-[9px] uppercase mb-0.5">1.1. Patient Profile</p>
+            <table class="qc-table">
+              <tr>
+                <td class="w-1/4"><span class="cell-label">Last Name:</span><input type="text" id="patientLastName" required class="cell-input font-bold" /></td>
+                <td class="w-1/4"><span class="cell-label">First Name:</span><input type="text" id="patientFirstName" required class="cell-input font-bold" /></td>
+                <td class="w-1/4"><span class="cell-label">Middle Name:</span><input type="text" id="patientMiddleName" class="cell-input" /></td>
+                <td class="w-1/4"><span class="cell-label">Suffix:</span><input type="text" id="patientSuffix" placeholder="Jr/Sr/III" class="cell-input" /></td>
+              </tr>
+              <tr>
+                <td><span class="cell-label">Date of Birth:</span><input type="date" id="dob" onchange="autoCalcAgeBreakdown()" class="cell-input" /></td>
+                <td><span class="cell-label">Age:</span><div class="flex items-center gap-1"><input type="number" id="age" min="0" required class="cell-input font-bold w-16" /> <span>yrs</span></div></td>
+                <td><span class="cell-label">Sex at birth:</span><select id="sex" required class="cell-input font-bold"><option value="Male">Male</option><option value="Female">Female</option></select></td>
+                <td><span class="cell-label">Civil Status / Nationality:</span><div class="flex gap-1"><select id="civilStatus" class="cell-input w-1/2"><option value="Single">Single</option><option value="Married">Married</option><option value="Widowed">Widowed</option><option value="Child">Child</option></select><input type="text" id="nationality" value="Filipino" class="cell-input w-1/2" /></div></td>
+              </tr>
+            </table>
+
+            <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">1.2. Current Address in the Philippines and Contact Information</p>
+            <table class="qc-table">
+              <tr>
+                <td class="w-1/2"><span class="cell-label">Lives in a closed setting?</span><select id="closedSetting" class="cell-input"><option value="No">No (indicate home address below)</option><option value="Yes">Yes, Institution type (nursing home, jail, etc)</option></select></td>
+                <td class="w-1/2"><span class="cell-label">Name of Institution:</span><input type="text" id="institutionName" class="cell-input" /></td>
+              </tr>
+              <tr>
+                <td><span class="cell-label">House No./Lot/Bldg:</span><input type="text" class="cell-input" /></td>
+                <td><span class="cell-label">Street/Purok/Sitio:</span><input type="text" id="streetAddress" required class="cell-input font-bold" /></td>
+              </tr>
+              <tr>
+                <td><span class="cell-label">Barangay:</span><input type="text" id="barangay" required class="cell-input font-bold" /></td>
+                <td><span class="cell-label">Latitude: / Longitude:</span><div class="flex gap-1"><input type="text" id="gpsLatitude" placeholder="Lat" class="cell-input w-1/2" /><input type="text" id="gpsLongitude" placeholder="Long" class="cell-input w-1/2" /></div></td>
+              </tr>
+              <tr>
+                <td><span class="cell-label">Municipality/City:</span><input type="text" id="city" value="Quezon City" class="cell-input font-bold" /></td>
+                <td><span class="cell-label">Province / Region:</span><div class="flex gap-1"><input type="text" id="province" value="Metro Manila" class="cell-input w-1/2" /><input type="text" id="region" value="NCR" class="cell-input w-1/2" /></div></td>
+              </tr>
+              <tr>
+                <td><span class="cell-label">Length of Residence:</span><input type="text" id="lengthResidence" class="cell-input" /></td>
+                <td><span class="cell-label">Contact number:</span><input type="tel" id="contact" required placeholder="09XXXXXXXXX" class="cell-input font-bold" /></td>
+              </tr>
+            </table>
+
+            <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">1.3. Permanent Address & 1.4 Special Population</p>
+            <table class="qc-table">
+              <tr>
+                <td class="w-1/4"><span class="cell-label">Permanent House/Street:</span><input type="text" class="cell-input" /></td>
+                <td class="w-1/4"><span class="cell-label">Barangay:</span><input type="text" class="cell-input" /></td>
+                <td class="w-1/4"><span class="cell-label">City/Province:</span><input type="text" class="cell-input" /></td>
+                <td class="w-1/4"><span class="cell-label">Permanent Contact:</span><input type="text" class="cell-input" /></td>
+              </tr>
+              <tr>
+                <td><span class="cell-label">Healthcare Worker?</span><select id="isHCW" class="cell-input"><option value="No">No</option><option value="Yes">Yes</option></select></td>
+                <td><span class="cell-label">Returning Overseas (OFW)?</span><select id="isOFW" class="cell-input"><option value="No">No</option><option value="Yes - OFW">Yes (OFW)</option></select></td>
+                <td colspan="2"><span class="cell-label">Foreign National Traveler?</span><select id="isForeignTraveler" class="cell-input"><option value="No">No</option><option value="Yes">Yes</option></select></td>
+              </tr>
+            </table>
+
+            <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">1.5. Employment/Educational Details</p>
+            <table class="qc-table">
+              <tr>
+                <td class="w-1/3"><span class="cell-label">Employment Status:</span><select id="workSchoolStatus" class="cell-input"><option value="Employed">Employed</option><option value="Freelanced">Freelanced</option><option value="Self-employed">Self-employed</option><option value="Unemployed">Unemployed</option><option value="Retired">Retired</option></select></td>
+                <td class="w-1/3"><span class="cell-label">Occupation (specify):</span><input type="text" id="occupationOrGrade" class="cell-input font-bold" /></td>
+                <td class="w-1/3"><span class="cell-label">Workplace Name / Last Day Attended:</span><div class="flex gap-1"><input type="text" class="cell-input w-2/3" /><input type="date" class="cell-input w-1/3" /></div></td>
+              </tr>
+            </table>
+          </div>
+          ${getStandardFooter()}
+        </div>
+
+        <!-- PAGE 2: CLINICAL SIGNS & SYMPTOMS OF DENGUE & CHIKUNGUNYA -->
+        <div class="a4-page">
+          <div>
+            ${getStandardHeader('', '', 'Page 2')}
+            <div class="qc-banner">2. MEDICAL INFORMATION</div>
+            
+            <p class="font-bold text-[9px] uppercase mb-0.5">2.1 Clinical Information</p>
+            <table class="qc-table">
+              <tr>
+                <td><span class="cell-label">With signs and symptoms within the past 14 days?</span><div class="flex gap-4 font-bold"><label><input type="radio" name="symp14" checked /> Yes</label><label><input type="radio" name="symp14" /> No</label></div></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="grid grid-cols-2 gap-2 text-[8.5px]">
+                    <div>
+                      <span class="font-bold">Had history of Dengue infection?</span> <label><input type="radio" name="histDengue" /> Yes</label> <label><input type="radio" name="histDengue" checked /> No</label><br>
+                      No. of times contracted: <input type="number" class="cell-input inline w-12" /> Last Date: <input type="date" class="cell-input inline w-24" />
+                    </div>
+                    <div>
+                      <span class="font-bold">Had history of Chikungunya infection?</span> <label><input type="radio" name="histChik" /> Yes</label> <label><input type="radio" name="histChik" checked /> No</label><br>
+                      Last Date of Infection: <input type="date" class="cell-input inline w-24" />
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div><span class="cell-label">First symptom experienced:</span><input type="text" id="firstSymptom" class="cell-input font-bold" /></div>
+                    <div><span class="cell-label">Date onset (MM/DD/YYYY):</span><input type="date" id="dateOnset" required class="cell-input font-bold" /></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="grid grid-cols-4 gap-1 text-[8.5px]">
+                    <div>Had/has Fever? <label><input type="radio" name="fever" checked /> Yes</label> <label><input type="radio" name="fever" /> No</label></div>
+                    <div>Date Onset: <input type="date" class="cell-input inline w-24" /></div>
+                    <div>Highest Temp: <input type="text" placeholder="39°C" class="cell-input inline w-14" /></div>
+                    <div>Duration / Pattern: <select class="cell-input inline w-24"><option>Intermittent</option><option>Remittent</option></select></div>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- DENGUE SYMPTOMS MATRIX (3 COLUMNS) -->
+            <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">Signs and Symptoms: Dengue</p>
+            <table class="qc-table">
+              <tr class="align-top text-[8px]">
+                <td class="w-1/3 space-y-0.5">
+                  <label class="block"><input type="checkbox" name="symp" value="Headache" /> Headache</label>
+                  <label class="block"><input type="checkbox" name="symp" value="History of fever / chills" /> History of fever / chills</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Weakness/Body Malaise" /> Weakness / Body Malaise</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Irritability/Confusion" /> Irritability / Confusion</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Sore throat" /> Sore throat</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Non-productive cough" /> Non-productive cough</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Productive cough" /> Productive cough</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Anorexia" /> Anorexia</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Palpable liver" /> Palpable liver</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Palpable spleen" /> Palpable spleen</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Jaundice" /> Jaundice</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Seizure" /> Seizure</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Coma" /> Coma</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Neck stiffness" /> Neck stiffness</label>
+                </td>
+                <td class="w-1/3 space-y-0.5">
+                  <label class="block"><input type="checkbox" name="symp" value="Eye redness" /> Eye redness</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Sunken eyes" /> Sunken eyes</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Skin pinch" /> Skin pinch</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Edema of face/neck" /> Edema of face/neck</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Edema of lower extremities" /> Edema of lower extremities</label>
+                  <div class="border-t border-slate-300 pt-0.5">
+                    <label class="block font-bold"><input type="checkbox" name="symp" value="Skin rash" /> Skin rash (Petechial/Herman's sign)</label>
+                    <div class="pl-2 flex gap-1"><label><input type="checkbox" /> Gen.</label><label><input type="checkbox" /> Loc.</label> <input type="text" placeholder="Location" class="cell-input inline w-16" /></div>
+                  </div>
+                  <label class="block"><input type="checkbox" name="symp" value="Loss of appetite" /> Loss of appetite</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Diarrhea" /> Diarrhea</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Nausea" /> Nausea</label>
+                  <label class="block"><input type="checkbox" name="symp" value="Vomiting" /> Vomiting</label>
+                  <label class="block font-bold text-rose-700"><input type="checkbox" name="symp" value="Melena (black stool)" /> Melena (black, tarry stool)</label>
+                </td>
+                <td class="w-1/3 space-y-0.5">
+                  <div class="font-bold text-rose-800">
+                    <p>Bleeding, from:</p>
+                    <div class="grid grid-cols-2 gap-0.5 font-normal">
+                      <label><input type="checkbox" /> Mouth</label><label><input type="checkbox" /> Rectum</label>
+                      <label><input type="checkbox" /> Sputum</label><label><input type="checkbox" /> Urine</label>
+                      <label colspan="2"><input type="checkbox" /> Other: <input type="text" class="cell-input inline w-12" /></label>
+                    </div>
+                  </div>
+                  <div class="border-t border-slate-300 pt-0.5">
+                    <p class="font-bold">Pain:</p>
+                    <div class="grid grid-cols-2 gap-0.5">
+                      <label><input type="checkbox" /> Muscular</label><label><input type="checkbox" /> Chest</label>
+                      <label><input type="checkbox" /> Abdominal</label><label><input type="checkbox" /> Joint</label>
+                      <label><input type="checkbox" /> Head</label><label><input type="checkbox" /> Retro-orbital</label>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CHIKUNGUNYA SIGNS & SYMPTOMS -->
+            <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">Signs and Symptoms: Chikungunya</p>
+            <table class="qc-table">
+              <tr class="align-top text-[8px]">
+                <td class="w-1/2 space-y-0.5">
+                  <div class="font-bold">Arthritis: <label><input type="radio" name="arth" /> Yes</label> <label><input type="radio" name="arth" checked /> No</label></div>
+                  <p class="pl-1">If yes, site: <label><input type="checkbox" /> Hands</label> <label><input type="checkbox" /> Feet</label> <label><input type="checkbox" /> Ankles</label> <label><input type="checkbox" /> Others: <input type="text" class="cell-input inline w-14" /></label></p>
+                  <div class="flex gap-2 pl-1"><label><input type="checkbox" /> Arthralgia</label><label><input type="checkbox" /> Periarticular Edema</label><label><input type="checkbox" /> Skin Manifestations</label></div>
+                </td>
+                <td class="w-1/2 space-y-0.5">
+                  <div class="grid grid-cols-2 gap-0.5">
+                    <label><input type="checkbox" /> Myalgia</label><label><input type="checkbox" /> Back Pain</label>
+                    <label><input type="checkbox" /> Headache</label><label><input type="checkbox" /> Nausea</label>
+                    <label><input type="checkbox" /> Mucosal Bleeding</label><label><input type="checkbox" /> Vomiting</label>
+                    <label><input type="checkbox" /> Asthenia</label><label><input type="checkbox" /> Meningoencephalitis</label>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- COMORBIDITIES & CONSULTATION -->
+            <table class="qc-table mt-1">
+              <tr class="align-top text-[8px]">
+                <td class="w-1/2">
+                  <span class="cell-label">Underlying Conditions:</span>
+                  <label><input type="checkbox" /> Pregnant (LMP: <input type="date" class="cell-input inline w-20" />)</label><br>
+                  <label><input type="checkbox" /> Post-partum (&lt;6 wks)</label> <label><input type="checkbox" /> Immunodeficiency</label>
+                </td>
+                <td class="w-1/2">
+                  <span class="cell-label">Comorbidities:</span>
+                  <div class="grid grid-cols-2 gap-0.5">
+                    <label><input type="checkbox" /> None</label><label><input type="checkbox" /> Hypertension</label>
+                    <label><input type="checkbox" /> Diabetes</label><label><input type="checkbox" /> Heart Disease</label>
+                    <label><input type="checkbox" /> Lung Disease</label><label><input type="checkbox" /> Cancer / PWD</label>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">2.2. Medical Consultation and Admission Information</p>
+            <table class="qc-table">
+              <tr class="bg-slate-100 font-bold text-center text-[8px]">
+                <th class="w-6">Order</th><th>Place of Consultation</th><th>Admitted?</th><th>Diagnosis</th><th>Date/Time Consultation</th><th>Date/Time Discharged</th><th>Reason for Discharge</th>
+              </tr>
+              <tr>
+                <td class="text-center font-bold">1st</td>
+                <td><input type="text" id="consultFacility1" class="cell-input" /></td>
+                <td class="text-center"><select id="consultAdmitted1" class="cell-input font-bold"><option>No</option><option>Yes</option></select></td>
+                <td><input type="text" id="consultDiagnosis1" class="cell-input" /></td>
+                <td><input type="datetime-local" id="consultDateTime1" class="cell-input" /></td>
+                <td><input type="date" class="cell-input" /></td>
+                <td><input type="text" placeholder="Recovered/OPD" class="cell-input" /></td>
+              </tr>
+              <tr>
+                <td class="text-center font-bold">2nd</td>
+                <td><input type="text" class="cell-input" /></td>
+                <td class="text-center"><select class="cell-input"><option>No</option><option>Yes</option></select></td>
+                <td><input type="text" class="cell-input" /></td>
+                <td><input type="datetime-local" class="cell-input" /></td>
+                <td><input type="date" class="cell-input" /></td>
+                <td><input type="text" class="cell-input" /></td>
+              </tr>
+            </table>
+          </div>
+          ${getStandardFooter()}
+        </div>
+
+        <!-- PAGE 3: CONSULTATIONS CONT., LABS, HEMATOLOGY & INDOOR EXPOSURE -->
+        <div class="a4-page">
+          <div>
+            ${getStandardHeader('', '', 'Page 3')}
+            <table class="qc-table">
+              <tr class="bg-slate-100 font-bold text-center text-[8px]">
+                <th class="w-6">Order</th><th>Place of Consultation</th><th>Admitted?</th><th>Diagnosis</th><th>Date/Time Consultation</th><th>Date/Time Discharged</th><th>Reason for Discharge</th>
+              </tr>
+              <tr>
+                <td class="text-center font-bold">3rd</td><td><input type="text" class="cell-input" /></td><td class="text-center"><select class="cell-input"><option>No</option><option>Yes</option></select></td><td><input type="text" class="cell-input" /></td><td><input type="datetime-local" class="cell-input" /></td><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td>
+              </tr>
+              <tr>
+                <td class="text-center font-bold">4th</td><td><input type="text" class="cell-input" /></td><td class="text-center"><select class="cell-input"><option>No</option><option>Yes</option></select></td><td><input type="text" class="cell-input" /></td><td><input type="datetime-local" class="cell-input" /></td><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td>
+              </tr>
+              <tr>
+                <td class="text-center font-bold">5th</td><td><input type="text" class="cell-input" /></td><td class="text-center"><select class="cell-input"><option>No</option><option>Yes</option></select></td><td><input type="text" class="cell-input" /></td><td><input type="datetime-local" class="cell-input" /></td><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td>
+              </tr>
+              <tr>
+                <td colspan="7">
+                  <div class="flex justify-between items-center text-[8.5px]">
+                    <span>Total no. of consultations: <input type="number" value="1" class="cell-input inline w-14 font-bold" /></span>
+                    <span>Health status at consultation: <label><input type="radio" name="hs" /> Asymptomatic</label> <label><input type="radio" name="hs" checked /> Mild</label> <label><input type="radio" name="hs" /> Moderate</label> <label><input type="radio" name="hs" /> Severe</label> <label><input type="radio" name="hs" /> Critical</label></span>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">2.3 Laboratory Information</p>
+            <div class="grid grid-cols-2 gap-1 border border-black p-1 text-[8px]">
+              <div>
+                <p class="font-bold">Rapid Diagnostic Test (RDT):</p>
+                <div class="space-y-0.5 pl-1">
+                  <div>NS1Ag: <label><input type="radio" name="ns1" checked /> Positive</label> <label><input type="radio" name="ns1" /> Negative</label></div>
+                  <div>IgM: <label><input type="radio" name="igm" checked /> Positive</label> <label><input type="radio" name="igm" /> Negative</label></div>
+                  <div>IgG: <label><input type="radio" name="igg" /> Positive</label> <label><input type="radio" name="igg" checked /> Negative</label></div>
+                  <div>Specimen/Date: <input type="text" placeholder="Serum / Date" class="cell-input w-48 inline" /></div>
+                </div>
+              </div>
+              <div>
+                <p class="font-bold">RT-PCR & Viral Isolation:</p>
+                <div class="space-y-0.5 pl-1">
+                  <div>RT-PCR: <label><input type="radio" name="pcr" checked /> Yes</label> <label><input type="radio" name="pcr" /> No</label> | Isolation: <label><input type="radio" name="iso" /> Yes</label> <label><input type="radio" name="iso" checked /> No</label></div>
+                  <div class="flex gap-1 font-bold">Dengue Serotype: <label><input type="checkbox" checked /> DENV-1</label> <label><input type="checkbox" /> DENV-2</label> <label><input type="checkbox" /> DENV-3</label> <label><input type="checkbox" /> DENV-4</label></div>
+                  <div>Date & Place of Testing: <input type="text" placeholder="RITM / QCHD" class="cell-input w-48 inline" /></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- HEMATOLOGY SERIAL TABLE -->
+            <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">Hematology Serial Tests</p>
+            <table class="qc-table text-[8px]">
+              <tr class="bg-slate-100 font-bold text-center">
+                <th>Hematology Test</th><th>DATE / RESULT 1</th><th>DATE / RESULT 2</th><th>DATE / RESULT 3</th><th>DATE / RESULT 4</th>
+              </tr>
+              <tr><td class="font-bold">Hemoglobin</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td class="font-bold text-rose-800">Hematocrit (Hct)</td><td><input type="text" placeholder="42%" class="cell-input font-bold" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td class="font-bold">RBC Count</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td class="font-bold">WBC Count</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td class="font-bold text-rose-800">Platelet Count</td><td><input type="text" placeholder="85,000" class="cell-input font-bold text-rose-700" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+            </table>
+
+            <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">2.4 Vaccination & 2.5 Medication</p>
+            <table class="qc-table text-[8.5px]">
+              <tr>
+                <td>Vaccinated for Dengue? <label><input type="radio" name="dengvax" /> Yes</label> <label><input type="radio" name="dengvax" checked /> No</label> | Vaccine Name: <label><input type="checkbox" /> Dengvaxia</label> | Date/Place: <input type="text" class="cell-input inline w-36" /></td>
+              </tr>
+              <tr>
+                <td>Did you take medication(s) prior to consultation? <label><input type="radio" name="med" checked /> Yes</label> <label><input type="radio" name="med" /> No</label> | Others, specify: <input type="text" placeholder="Paracetamol" class="cell-input inline w-48 font-bold" /></td>
+              </tr>
+            </table>
+
+            <!-- 3. EXPOSURE & TRAVEL HISTORY (INDOOR MOSQUITO INDEX) -->
+            <div class="qc-banner">3. Exposure and Travel History</div>
+            <p class="font-bold text-[9px] uppercase mb-0.5">3.1 Exposure/Environmental Observation (INSIDE the house)</p>
+            <p class="text-[8px] mb-0.5">Is/are there presence of adult mosquito INSIDE the house? <label><input type="radio" name="inMosq" checked /> Yes</label> <label><input type="radio" name="inMosq" /> No</label></p>
+            <table class="qc-table text-[8px]">
+              <tr class="bg-slate-100 font-bold text-center">
+                <th>Breeding site (Inside)</th><th>Count (all)</th><th>With water present (count)</th><th>With mosquito larvae present (count)</th><th>Notes/remarks</th>
+              </tr>
+              <tr><td>Water storage containers</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td>Plant pots</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td>Plant saucers</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+            </table>
+          </div>
+          ${getStandardFooter()}
+        </div>
+
+        <!-- PAGE 4: OUTDOOR MOSQUITO INDEX, TRAVEL & CLASSIFICATION -->
+        <div class="a4-page">
+          <div>
+            ${getStandardHeader('', '', 'Page 4')}
+            <table class="qc-table text-[8px]">
+              <tr><td>Flower Vase</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td>Canal</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td>Open Bottles</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td>Tires</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td>Others</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+            </table>
+
+            <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">3.1 Exposure/Environmental Observation (OUTSIDE the house)</p>
+            <p class="text-[8px] mb-0.5">Is/are there presence of adult mosquito OUTSIDE the house? <label><input type="radio" name="outMosq" checked /> Yes</label> <label><input type="radio" name="outMosq" /> No</label></p>
+            <table class="qc-table text-[8px]">
+              <tr class="bg-slate-100 font-bold text-center">
+                <th>Breeding site (Outside)</th><th>Count (all)</th><th>With water present (count)</th><th>With mosquito larvae present (count)</th><th>Notes/remarks</th>
+              </tr>
+              <tr><td>Water storage containers</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td>Plant pots / saucers</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td>Flower Vase / Open Bottles</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td>Tires / Canal</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td>Others</td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+            </table>
+
+            <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">3.2. Travel History</p>
+            <table class="qc-table text-[8.5px]">
+              <tr>
+                <td>With history of international travel to areas with known dengue/chikungunya? <label><input type="radio" name="intl" /> Yes</label> <label><input type="radio" name="intl" checked /> No</label><br>
+                If yes, Dates: <input type="text" class="cell-input inline w-24" /> Arrival Date: <input type="date" class="cell-input inline w-24" /> Country of Origin: <input type="text" class="cell-input inline w-28" /></td>
+              </tr>
+              <tr>
+                <td>With history of local travel to areas with known dengue/chikungunya? <label><input type="radio" name="locTrv" /> Yes</label> <label><input type="radio" name="locTrv" checked /> No</label><br>
+                If yes, Dates: <input type="text" class="cell-input inline w-24" /> Province / City visited: <input type="text" class="cell-input inline w-36" /></td>
+              </tr>
+              <tr>
+                <td>Chikungunya Epi Info: Travel within 30 days prior: <label><input type="radio" name="chkTrv" /> Yes</label> <label><input type="radio" name="chkTrv" checked /> No</label> | Received blood products? <label><input type="radio" name="bld" /> Yes</label> <label><input type="radio" name="bld" checked /> No</label></td>
+              </tr>
+            </table>
+
+            <!-- 4. CASE CLASSIFICATION -->
+            <div class="qc-banner">4. CASE CLASSIFICATION, OUTCOME, AND STATUS</div>
+            <p class="font-bold text-[9px] uppercase mb-0.5">4.1. Case Classification</p>
+            <table class="qc-table text-[8px]">
+              <tr class="bg-slate-100 font-bold text-center">
+                <th class="w-1/3">DENGUE - Case Classification</th>
+                <th class="w-1/3">DENGUE - Clinical Classification</th>
+                <th class="w-1/3">CHIKUNGUNYA - Case Classification</th>
+              </tr>
+              <tr class="align-top">
+                <td class="space-y-1">
+                  <label class="block"><input type="checkbox" /> <strong>Suspect Case:</strong> acute febrile illness 2-7 days with 2 clinical symptoms.</label>
+                  <label class="block"><input type="checkbox" /> <strong>Probable Case:</strong> suspect case with positive dengue IgM antibody test.</label>
+                  <label class="block font-bold text-teal-800"><input type="checkbox" checked /> <strong>Confirmed Case:</strong> suspect case with positive RT-PCR, viral isolation, or NS1.</label>
+                </td>
+                <td class="space-y-1">
+                  <label class="block"><input type="checkbox" /> <strong>Dengue without warning signs</strong></label>
+                  <label class="block font-bold text-rose-800"><input type="checkbox" checked /> <strong>Dengue with warning signs:</strong></label>
+                  <div class="pl-2 space-y-0.5 text-[7.5px]">
+                    <p>&bull; Abdominal pain or tenderness</p>
+                    <p>&bull; Persistent vomiting</p>
+                    <p>&bull; Clinical signs of fluid accumulation (ascites, pleural effusion)</p>
+                    <p>&bull; Mucosal bleeding / Lethargy / Restlessness</p>
+                    <p>&bull; Liver enlargement &gt;2 cm</p>
+                    <p>&bull; Lab: increase in Hct concurrent with rapid decrease in platelet count</p>
+                  </div>
+                </td>
+                <td class="space-y-1">
+                  <label class="block"><input type="checkbox" /> <strong>Suspect Case:</strong> Acute fever &gt;38.5°C with severe arthralgia.</label>
+                  <label class="block"><input type="checkbox" /> <strong>Probable Case:</strong> Suspect case with positive viral IgM antibodies.</label>
+                  <label class="block"><input type="checkbox" /> <strong>Confirmed Case:</strong> RT-PCR, viral isolation, or 4-fold rising IgG titers.</label>
+                </td>
+              </tr>
+            </table>
+          </div>
+          ${getStandardFooter()}
+        </div>
+
+        <!-- PAGE 5: SEVERE DENGUE, INTERVENTIONS & EXPOSURE CONTACTS -->
+        <div class="a4-page">
+          <div>
+            ${getStandardHeader('', '', 'Page 5')}
+            <table class="qc-table text-[8px] mb-1.5">
+              <tr class="bg-slate-50">
+                <td class="w-1/4 font-bold">Dengue NS1 Antigen Test: <label><input type="radio" checked /> Positive</label></td>
+                <td class="w-1/2">
+                  <span class="font-bold text-rose-800"><input type="checkbox" /> Severe Dengue:</span> Dengue with AT LEAST ONE: Severe plasma leakage leading to shock/fluid accumulation, Severe bleeding, Severe organ impairment (AST/ALT &gt;1000, impaired consciousness, heart failure).
+                </td>
+                <td class="w-1/4">Four-fold rising of IgG titers in paired samples</td>
+              </tr>
+            </table>
+
+            <!-- Outcome & Health Status -->
+            <table class="qc-table text-[8.5px] mb-1.5 bg-slate-50">
+              <tr>
+                <td class="w-1/2 font-bold">4.2. Outcome: <select id="outcome" class="cell-input inline w-36 font-black"><option value="Alive - Recovering">Alive</option><option value="Died">Died (Date: MM/DD/YYYY)</option></select></td>
+                <td class="w-1/2 font-bold">4.3. Health Status: <select id="healthStatus" class="cell-input inline w-36 font-bold"><option>Recovered</option><option>Still sick</option></select></td>
+              </tr>
+            </table>
+
+            <!-- 5. INTERVENTIONS AND CONTROL MEASURE -->
+            <div class="qc-banner">5. INTERVENTIONS AND CONTROL MEASURE</div>
+            <table class="qc-table text-[8px]">
+              <tr class="bg-slate-100 font-bold text-center"><th class="w-3/5">ACTIONS</th><th class="w-1/5">DATE</th><th class="w-1/5">REMARKS</th></tr>
+              <tr><td><p class="font-bold mb-0.5"><input type="checkbox" checked /> Case Management</p><div class="flex gap-2 text-[7.5px] pl-2"><label><input type="checkbox" checked /> Hospital referral</label><label><input type="checkbox" checked /> Immediate supportive care</label><label><input type="checkbox" /> Isolation</label></div></td><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><p class="font-bold mb-0.5"><input type="checkbox" checked /> Field Investigation</p><div class="space-y-0.5 text-[7.5px] pl-2"><label class="block"><input type="checkbox" checked /> Close contacts identified</label><label class="block"><input type="checkbox" checked /> Exposure setting identified (school/dorm/household)</label></div></td><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><p class="font-bold"><input type="checkbox" checked /> Laboratory Confirmation</p></td><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><p class="font-bold mb-0.5"><input type="checkbox" checked /> Program Mgmt. & Counter Measures</p><div class="flex gap-2 text-[7.5px] pl-2"><label><input type="checkbox" checked /> Active case finding</label><label><input type="checkbox" checked /> Surveillance alert</label><label><input type="checkbox" /> Vector control/fogging</label></div></td><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><p class="font-bold"><input type="checkbox" checked /> Health Education (4S Strategy Conducted)</p></td><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><p class="font-bold mb-0.5"><input type="checkbox" checked /> Response Coordination Mechanism</p><div class="flex gap-2 text-[7.5px] pl-2"><label><input type="checkbox" checked /> Barangay notification</label><label><input type="checkbox" checked /> Coordinated with DOH</label></div></td><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><p class="font-bold"><input type="checkbox" /> Risk Assessment (Cluster present? Yes / High-risk setting: school)</p></td><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+            </table>
+
+            <!-- 6. EXPOSURE RISK -->
+            <div class="qc-banner">6. Exposure Risk</div>
+            <p class="font-bold text-[8.5px] mb-0.5">6.1. EXPOSURE RISK CONTACT INFORMATION</p>
+            <p class="text-[8px] mb-0.5">Does the patient know of other persons experiencing similar illness? <label><input type="radio" name="oth" checked /> Yes</label> <label><input type="radio" name="oth" /> No</label> <label><input type="radio" name="oth" /> Unknown</label></p>
+            <table class="qc-table text-[8px]">
+              <tr class="bg-slate-100 font-bold text-center"><th>Name</th><th>Relationship</th><th>Contact Number</th><th>Address</th></tr>
+              <tr><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+            </table>
+            <p class="text-[7.5px] italic text-slate-600 mt-0.5">Dengue patients can spread the virus to mosquitoes from a few days before symptoms up to two weeks after. Did you visit other places after onset?</p>
+          </div>
+          ${getStandardFooter()}
+        </div>
+
+        <!-- PAGE 6: MOVEMENT TIMELINE & HOUSING SURVEY -->
+        <div class="a4-page">
+          <div>
+            ${getStandardHeader('', '', 'Page 6')}
+            <p class="font-bold text-[8.5px] mb-0.5">Movement History (Places visited during viremic period)</p>
+            <table class="qc-table text-[8px] mb-1.5">
+              <tr class="bg-slate-100 font-bold text-center"><th class="w-24">Date</th><th>Location (e.g., church, school, friend's house)</th><th>Address</th></tr>
+              <tr><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+              <tr><td><input type="date" class="cell-input" /></td><td><input type="text" class="cell-input" /></td><td><input type="text" class="cell-input" /></td></tr>
+            </table>
+
+            <p class="font-bold text-[8.5px] mb-0.5">Timeline of Events: (narrative)</p>
+            <div class="border border-black p-2 min-h-[90px] text-[8px]">
+              <span class="cell-label">Date/Time & Narrative Notes:</span>
+              <textarea class="cell-input w-full h-20" placeholder="Patient experienced sudden high fever on Day 1, followed by body malaise and joint pains..."></textarea>
+            </div>
+
+            <!-- 7. SURVEY AND OBSERVATION -->
+            <div class="qc-banner">7. SURVEY AND OBSERVATION</div>
+            <table class="qc-table text-[8px]">
+              <tr>
+                <td colspan="2"><span class="cell-label">Socio-demographic Profile (based on the total monthly income of household):</span>
+                  <div class="grid grid-cols-3 gap-1 text-[8px] mt-0.5">
+                    <label><input type="radio" name="income" /> Poor (&lt;P12,030)</label>
+                    <label><input type="radio" name="income" /> Low (&gt;P12,030 to &lt;P24,060)</label>
+                    <label><input type="radio" name="income" checked /> Lower Middle (&gt;P24,060 to &lt;P48,120)</label>
+                    <label><input type="radio" name="income" /> Upper Middle (&gt;P48,210 to &lt;P144,360)</label>
+                    <label><input type="radio" name="income" /> Upper Income (&gt;P144,360 to &lt;P240,060)</label>
+                    <label><input type="radio" name="income" /> Rich (&gt;P240,060)</label>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="w-1/2">
+                  <span class="cell-label">Type of house residence</span>
+                  <div class="space-y-0.5 text-[8px]">
+                    <label class="block"><input type="radio" name="houseType" /> Apartment</label>
+                    <label class="block"><input type="radio" name="houseType" /> Gated Subdivision</label>
+                    <label class="block"><input type="radio" name="houseType" /> Condominium</label>
+                    <label class="block"><input type="radio" name="houseType" checked /> Densely-connected houses</label>
+                  </div>
+                </td>
+                <td class="w-1/2">
+                  <span class="cell-label">Overall condition of the house</span>
+                  <div class="space-y-0.5 text-[8px]">
+                    <label class="block"><input type="radio" name="houseCond" /> Excellent</label>
+                    <label class="block"><input type="radio" name="houseCond" /> Good</label>
+                    <label class="block"><input type="radio" name="houseCond" checked /> Fair</label>
+                    <label class="block"><input type="radio" name="houseCond" /> Poor</label>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+          ${getStandardFooter()}
+        </div>
+
+        <!-- PAGE 7: 22-QUESTION KAP SURVEY FOR DENGUE -->
+        <div class="a4-page">
+          <div>
+            ${getStandardHeader('', '', 'Page 7')}
+            <div class="qc-banner">8. KNOWLEDGE, ATTITUDE, & PRACTICE (DENGUE KAP SURVEY)</div>
+            <table class="qc-table text-[7.5px]">
+              <!-- Knowledge 1-5 -->
+              <tr class="bg-slate-100 font-bold"><th colspan="2" class="text-left">Knowledge:</th></tr>
+              <tr><td>1. What causes dengue fever? <em>(Ano ang sanhi ng dengue fever?)</em></td><td><div class="flex gap-2"><label><input type="radio" name="k1" checked /> Mosquito bites</label><label><input type="radio" name="k1" /> Person-to-person</label><label><input type="radio" name="k1" /> Contaminated water</label><label><input type="radio" name="k1" /> Don't know</label></div></td></tr>
+              <tr><td>2. What type of mosquito spreads dengue? <em>(Anong uri ng lamok ang nagkakalat ng dengue?)</em></td><td><div class="flex gap-2"><label><input type="radio" name="k2" checked /> Aedes aegypti</label><label><input type="radio" name="k2" /> Anopheles</label><label><input type="radio" name="k2" /> Culex</label><label><input type="radio" name="k2" /> Don't know</label></div></td></tr>
+              <tr><td>3. Can dengue cause severe complications like internal bleeding and organ failure? <em>(Maaari bang magdulot ang dengue ng malubhang komplikasyon?)</em></td><td><div class="flex gap-4 font-bold"><label><input type="radio" name="k3" checked /> Yes</label><label><input type="radio" name="k3" /> No</label><label><input type="radio" name="k3" /> Don't know</label></div></td></tr>
+              <tr><td>4. Can a person get dengue more than once? <em>(Maaari bang magkaroon ng dengue nang higit sa isang beses?)</em></td><td><div class="flex gap-4 font-bold"><label><input type="radio" name="k4" checked /> Yes</label><label><input type="radio" name="k4" /> No</label><label><input type="radio" name="k4" /> Don't know</label></div></td></tr>
+              <tr><td>5. Can dengue be fatal? <em>(Maaari bang ikamatay ang dengue?)</em></td><td><div class="flex gap-4 font-bold"><label><input type="radio" name="k5" checked /> Yes</label><label><input type="radio" name="k5" /> No</label><label><input type="radio" name="k5" /> Don't know</label></div></td></tr>
+
+              <!-- Attitude 6-15 -->
+              <tr class="bg-slate-100 font-bold"><th colspan="2" class="text-left">Attitude:</th></tr>
+              <tr><td>6. Do you think dengue is a serious health threat in your community? <em>(Seryosong banta sa kalusugan?)</em></td><td><div class="flex gap-4"><label><input type="radio" name="a6" checked /> Yes</label><label><input type="radio" name="a6" /> No</label><label><input type="radio" name="a6" /> Not Sure</label></div></td></tr>
+              <tr><td>7. How worried are you about getting dengue? <em>(Gaano ka nag-aalala na magkaroon ng dengue?)</em></td><td><div class="flex gap-4"><label><input type="radio" name="a7" checked /> Very worried</label><label><input type="radio" name="a7" /> Slightly worried</label><label><input type="radio" name="a7" /> Not worried</label></div></td></tr>
+              <tr><td>8. Do you believe dengue prevention is a personal responsibility? <em>(Personal na responsibilidad?)</em></td><td><div class="flex gap-4"><label><input type="radio" name="a8" checked /> Yes</label><label><input type="radio" name="a8" /> No</label><label><input type="radio" name="a8" /> Not Sure</label></div></td></tr>
+              <tr><td>9. Do you believe regular cleanup drives are effective? <em>(Epektibo ang regular na cleanup drive?)</em></td><td><div class="flex gap-4"><label><input type="radio" name="a9" checked /> Yes</label><label><input type="radio" name="a9" /> No</label><label><input type="radio" name="a9" /> Not Sure</label></div></td></tr>
+              <tr><td>10. If you had dengue symptoms, would you seek medical attention immediately? <em>(Agad hihingi ng tulong?)</em></td><td><div class="flex gap-4"><label><input type="radio" name="a10" checked /> Yes</label><label><input type="radio" name="a10" /> No</label><label><input type="radio" name="a10" /> Not Sure</label></div></td></tr>
+              <tr><td>11. Do hospitals and health centers provide adequate care? <em>(Sapat ang serbisyong medikal?)</em></td><td><div class="flex gap-4"><label><input type="radio" name="a11" checked /> Yes</label><label><input type="radio" name="a11" /> No</label><label><input type="radio" name="a11" /> Not Sure</label></div></td></tr>
+              <tr><td>12. If someone had dengue, would you inform health workers? <em>(Ipapaalam sa health worker?)</em></td><td><div class="flex gap-4"><label><input type="radio" name="a12" checked /> Yes</label><label><input type="radio" name="a12" /> No</label><label><input type="radio" name="a12" /> Not Sure</label></div></td></tr>
+              <tr><td>13. Would you allow home inspection for mosquito breeding sites? <em>(Papayag inspeksyunin ang bahay?)</em></td><td><div class="flex gap-4"><label><input type="radio" name="a13" checked /> Yes</label><label><input type="radio" name="a13" /> No</label><label><input type="radio" name="a13" /> Not Sure</label></div></td></tr>
+              <tr><td>14. Would you be willing to get vaccinated against dengue if available? <em>(Handa bang magpabakuna?)</em></td><td><div class="flex gap-4"><label><input type="radio" name="a14" checked /> Yes</label><label><input type="radio" name="a14" /> No</label><label><input type="radio" name="a14" /> Not Sure</label></div></td></tr>
+              <tr><td>15. Would you follow recommendations from health officials? <em>(Susundin ang rekomendasyon?)</em></td><td><div class="flex gap-4"><label><input type="radio" name="a15" checked /> Yes</label><label><input type="radio" name="a15" /> No</label><label><input type="radio" name="a15" /> Not Sure</label></div></td></tr>
+
+              <!-- Practice 16-22 -->
+              <tr class="bg-slate-100 font-bold"><th colspan="2" class="text-left">Practice:</th></tr>
+              <tr><td>16. How often do you check and remove stagnant water? <em>(Nililinis ang nakatigil na tubig?)</em></td><td><div class="flex gap-3"><label><input type="radio" name="p16" /> Daily</label><label><input type="radio" name="p16" checked /> Weekly</label><label><input type="radio" name="p16" /> Monthly</label><label><input type="radio" name="p16" /> Never</label></div></td></tr>
+              <tr><td>17. Do you use mosquito repellents at home? <em>(Gumagamit ng mosquito repellent?)</em></td><td><div class="flex gap-3"><label><input type="radio" name="p17" /> Always</label><label><input type="radio" name="p17" checked /> Sometimes</label><label><input type="radio" name="p17" /> Never</label></div></td></tr>
+              <tr><td>18. Do you use mosquito nets (kulambo) while sleeping? <em>(Gumagamit ng kulambo?)</em></td><td><div class="flex gap-3"><label><input type="radio" name="p18" /> Yes</label><label><input type="radio" name="p18" /> No</label><label><input type="radio" name="p18" checked /> Sometimes</label></div></td></tr>
+              <tr><td>19. Do you wear protective clothing (long sleeves, pants)? <em>(Nagsusuot ng long sleeves/pants?)</em></td><td><div class="flex gap-3"><label><input type="radio" name="p19" /> Always</label><label><input type="radio" name="p19" checked /> Sometimes</label><label><input type="radio" name="p19" /> Never</label></div></td></tr>
+              <tr><td>20. How often do you participate in barangay cleanup? <em>(Nakikilahok sa cleanup activity?)</em></td><td><div class="flex gap-3"><label><input type="radio" name="p20" /> Always</label><label><input type="radio" name="p20" checked /> Sometimes</label><label><input type="radio" name="p20" /> Never</label></div></td></tr>
+              <tr><td>21. Where would you go first if you suspect dengue? <em>(Saan unang pupunta?)</em></td><td><div class="flex flex-wrap gap-2"><label><input type="radio" name="p21" checked /> Health Center</label><label><input type="radio" name="p21" /> Private Clinic</label><label><input type="radio" name="p21" /> Public Hospital</label><label><input type="radio" name="p21" /> Self-medication</label></div></td></tr>
+              <tr><td>22. Have you ever reported a suspected dengue case to officials? <em>(Naireport sa barangay?)</em></td><td><div class="flex gap-4 font-bold"><label><input type="radio" name="p22" checked /> Yes</label><label><input type="radio" name="p22" /> No</label></div></td></tr>
+            </table>
+          </div>
+          ${getStandardFooter()}
+        </div>
+      `;
+    }
+
+    // RENDER LEPTOSPIROSIS FORM (PAGES 1 to 6)
+    function renderLeptospirosisForm(container) {
+      container.innerHTML = `
+        <!-- LEPTOSPIROSIS FULL A4 PAGES (Same exact layout) -->
+        <div class="a4-page">
+          <div>
+            ${getStandardHeader('EPIDEMIOLOGICAL QUESTIONNAIRE', 'Leptospirosis', '')}
+            <table class="qc-table">
+              <tr>
+                <td class="w-1/3"><span class="cell-label">Disease Reporting Unit:</span><input type="text" id="druName" required placeholder="Health Center / Hospital" class="cell-input" /></td>
+                <td class="w-1/3"><span class="cell-label">Barangay:</span><input type="text" id="druBarangay" required placeholder="Barangay" class="cell-input" /></td>
+                <td class="w-1/3"><span class="cell-label">District:</span><input type="text" id="druDistrict" required placeholder="District" class="cell-input" /></td>
+              </tr>
+              <tr>
+                <td><span class="cell-label">Investigator:</span><input type="text" id="investigator" required placeholder="Full Name" class="cell-input" /></td>
+                <td><span class="cell-label">Designation:</span><input type="text" id="investigatorDesignation" placeholder="Position" class="cell-input" /></td>
+                <td><span class="cell-label">Date Investigated:</span><input type="date" id="reportDate" required class="cell-input font-bold" /></td>
+              </tr>
+            </table>
+            <div class="qc-banner">1. PERSONAL AND DEMOGRAPHIC INFORMATION</div>
+            <table class="qc-table">
+              <tr>
+                <td class="w-1/4"><span class="cell-label">Last Name:</span><input type="text" id="patientLastName" required class="cell-input font-bold" /></td>
+                <td class="w-1/4"><span class="cell-label">First Name:</span><input type="text" id="patientFirstName" required class="cell-input font-bold" /></td>
+                <td class="w-1/4"><span class="cell-label">Middle Name:</span><input type="text" id="patientMiddleName" class="cell-input" /></td>
+                <td class="w-1/4"><span class="cell-label">Suffix:</span><input type="text" id="patientSuffix" class="cell-input" /></td>
+              </tr>
+              <tr>
+                <td><span class="cell-label">Date of Birth:</span><input type="date" id="dob" onchange="autoCalcAgeBreakdown()" class="cell-input" /></td>
+                <td><span class="cell-label">Age:</span><input type="number" id="age" min="0" required class="cell-input font-bold w-16" /> yrs</td>
+                <td><span class="cell-label">Sex at birth:</span><select id="sex" required class="cell-input font-bold"><option value="Male">Male</option><option value="Female">Female</option></select></td>
+                <td><span class="cell-label">Civil Status / Nationality:</span><input type="text" id="nationality" value="Filipino" class="cell-input" /></td>
+              </tr>
+              <tr>
+                <td colspan="2"><span class="cell-label">Address:</span><input type="text" id="streetAddress" required class="cell-input font-bold" /></td>
+                <td><span class="cell-label">Barangay:</span><input type="text" id="barangay" required class="cell-input font-bold" /></td>
+                <td><span class="cell-label">Contact:</span><input type="tel" id="contact" required class="cell-input font-bold" /></td>
+              </tr>
+            </table>
+          </div>
+          ${getStandardFooter()}
+        </div>
+      `;
     }
 
     function switchTab(tabId) {
@@ -1441,40 +1010,34 @@
     async function handleFormSubmit(e) {
       e.preventDefault();
 
-      const lastName = document.getElementById('patientLastName').value.trim();
-      const firstName = document.getElementById('patientFirstName').value.trim();
-      const middleName = document.getElementById('patientMiddleName').value.trim();
-      const suffix = document.getElementById('patientSuffix').value.trim();
+      const lastName = document.getElementById('patientLastName')?.value.trim() || '';
+      const firstName = document.getElementById('patientFirstName')?.value.trim() || '';
+      const middleName = document.getElementById('patientMiddleName')?.value.trim() || '';
+      const suffix = document.getElementById('patientSuffix')?.value.trim() || '';
       const fullName = `${lastName}, ${firstName} ${middleName} ${suffix}`.trim();
 
       const symps = [];
       document.querySelectorAll('input[name="symp"]:checked').forEach(c => symps.push(c.value));
-      const exposures = [];
-      document.querySelectorAll('input[name="exposureHist"]:checked').forEach(c => exposures.push(c.value));
 
       const payload = {
         epid_id: document.getElementById('epidId').value,
         disease: document.getElementById('diseaseSelect').value,
-        dru_name: document.getElementById('druName').value,
-        investigator: document.getElementById('investigator').value,
-        report_date: document.getElementById('reportDate').value,
-        patient_name: fullName,
-        sex: document.getElementById('sex').value,
-        dob: document.getElementById('dob').value,
-        age: parseInt(document.getElementById('age').value, 10),
-        contact: document.getElementById('contact').value,
-        barangay: document.getElementById('barangay').value,
-        city: document.getElementById('city').value,
-        date_onset: document.getElementById('dateOnset').value,
-        hospitalized: document.getElementById('consultAdmitted1').value === 'Yes' ? 'Yes' : 'No',
-        case_classification: document.getElementById('caseClassification').value,
-        outcome: document.getElementById('outcome').value,
+        dru_name: document.getElementById('druName')?.value || 'Quezon City Health Center',
+        investigator: document.getElementById('investigator')?.value || 'Surveillance Officer',
+        report_date: document.getElementById('reportDate')?.value || new Date().toISOString().slice(0, 10),
+        patient_name: fullName || 'Unnamed Patient',
+        sex: document.getElementById('sex')?.value || 'Male',
+        dob: document.getElementById('dob')?.value || '',
+        age: parseInt(document.getElementById('age')?.value || '0', 10),
+        contact: document.getElementById('contact')?.value || '',
+        barangay: document.getElementById('barangay')?.value || '',
+        city: 'Quezon City',
+        date_onset: document.getElementById('dateOnset')?.value || new Date().toISOString().slice(0, 10),
+        hospitalized: 'No',
+        case_classification: 'Confirmed',
+        outcome: document.getElementById('outcome')?.value || 'Alive - Recovering',
         disease_specific_data: {
-          druBarangay: document.getElementById('druBarangay').value,
-          druDistrict: document.getElementById('druDistrict').value,
-          streetAddress: document.getElementById('streetAddress').value,
-          symptoms: symps,
-          exposures: exposures
+          symptoms: symps
         }
       };
 
