@@ -3,24 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PIDSR Epidemiology Surveillance & CRF Data Entry System</title>
+  <title>Official Epidemiological Surveillance & Questionnaire System</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
+    /* Clean Print Layout matching the Official Government 3-Page Questionnaire */
     @media print {
-      body * { visibility: hidden; }
-      #printableArea, #printableArea * { visibility: visible; }
-      #printableArea { position: absolute; left: 0; top: 0; width: 100%; }
+      body {
+        background-color: white !important;
+        color: black !important;
+        font-size: 11px !important;
+      }
       .no-print { display: none !important; }
+      #printableQuestionnaire { display: block !important; }
+      .page-break { page-break-after: always; }
+      table { border-collapse: collapse !important; width: 100% !important; }
+      th, td { border: 1px solid black !important; padding: 3px 5px !important; }
+      .print-border { border: 1px solid black !important; }
     }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen">
 
   <!-- TOP HEADER -->
-  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40 border-b-2 border-teal-500">
+  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40 border-b-2 border-teal-500 no-print">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center space-x-3">
         <div class="bg-teal-600 text-white p-2.5 rounded-lg shadow-md">
@@ -28,22 +36,22 @@
         </div>
         <div>
           <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
-            EpiSurv 2026 <span class="text-xs bg-teal-500 text-slate-950 font-black px-2 py-0.5 rounded uppercase">DOH PIDSR & CRF</span>
+            EpiSurv 2026 <span class="text-xs bg-teal-500 text-slate-950 font-black px-2 py-0.5 rounded uppercase">DOH / CESU Questionnaire</span>
           </h1>
-          <p class="text-xs text-slate-300">Epidemiology & Surveillance Unit (CESU / PESU / RESU / DRU)</p>
+          <p class="text-xs text-slate-300">Epidemiology & Surveillance Division (Official PDS / CIF Digital Entry)</p>
         </div>
       </div>
 
       <!-- Navigation Tabs -->
       <div class="flex flex-wrap gap-2">
-        <button onclick="switchTab('entryTab')" id="btn-entryTab" class="px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-teal-600 text-white shadow flex items-center gap-2">
-          <i class="fa-solid fa-file-waveform"></i> New CRF/PDS Entry
+        <button onclick="switchTab('questionnaireTab')" id="btn-questionnaireTab" class="px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-teal-600 text-white shadow flex items-center gap-2">
+          <i class="fa-solid fa-file-pen"></i> Official Questionnaire Form
         </button>
         <button onclick="switchTab('registryTab')" id="btn-registryTab" class="px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2">
           <i class="fa-solid fa-table-list"></i> Surveillance Registry (<span id="recordCountBadge">0</span>)
         </button>
         <button onclick="switchTab('repoTab')" id="btn-repoTab" class="px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2">
-          <i class="fa-solid fa-folder-open text-teal-400"></i> Forms & Lab Repository (LINKS)
+          <i class="fa-solid fa-folder-open text-teal-400"></i> Forms Repository (LINKS)
         </button>
       </div>
     </div>
@@ -52,7 +60,7 @@
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
     <!-- KPI STATS BAR -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 no-print">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
         <p class="text-xs font-bold text-slate-500 uppercase">Total Logged Cases</p>
         <h3 id="statTotalCases" class="text-2xl font-black text-slate-900 mt-1">0</h3>
@@ -71,55 +79,41 @@
       </div>
     </div>
 
-    <!-- TAB 1: PDS / CRF ENTRY FORM -->
-    <section id="entryTab" class="space-y-6">
-      <form id="pdsForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
+    <!-- TAB 1: FULL OFFICIAL EPIDEMIOLOGICAL QUESTIONNAIRE -->
+    <section id="questionnaireTab" class="space-y-6">
+      <form id="officialEpiForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
 
-        <!-- 1. DISEASE & FORM SELECTION -->
-        <div class="bg-gradient-to-r from-slate-900 to-teal-950 p-5 rounded-xl shadow-md text-white border border-teal-500">
-          <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+        <!-- DISEASE SELECTOR & ACTIONS HEADER -->
+        <div class="bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 p-5 rounded-xl shadow-md text-white border border-teal-500 no-print">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
             <div class="flex items-center gap-2">
-              <i class="fa-solid fa-virus text-teal-400 text-lg"></i>
-              <h2 class="text-base font-bold uppercase tracking-wide">Select Case Investigation Form (EpiForm 2026)</h2>
+              <i class="fa-solid fa-virus-covid text-teal-400 text-xl"></i>
+              <h2 class="text-base font-bold uppercase tracking-wider">Select Notifiable Condition & Questionnaire Type</h2>
             </div>
-            <button type="button" onclick="switchTab('repoTab')" class="text-xs text-teal-300 hover:text-white underline flex items-center gap-1">
-              <i class="fa-solid fa-download"></i> Need blank Word/PDF file? Open Repository
-            </button>
+            <div class="flex gap-2">
+              <button type="button" onclick="printOfficialForm()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs rounded-lg border border-teal-500 flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-print"></i> Print Official 3-Page PDF
+              </button>
+            </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2">
-              <label class="block text-xs font-bold text-teal-300 uppercase mb-1">Notifiable Disease / Syndrome *</label>
-              <select id="disease" onchange="renderDynamicDiseaseFields()" required class="w-full bg-slate-800 text-white font-bold border-2 border-teal-500 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-400 focus:outline-none">
-                <option value="">-- Choose Disease Category --</option>
-                <optgroup label="Vectorborne Diseases">
-                  <option value="Vectorborne - Dengue">Vectorborne: Dengue</option>
-                  <option value="Vectorborne - Malaria/Chikungunya">Vectorborne: Malaria / Chikungunya</option>
-                </optgroup>
-                <optgroup label="Food and Waterborne Diseases (FWBD)">
-                  <option value="FWBD - Acute Bloody Diarrhea (ABD)">FWBD: Acute Bloody Diarrhea (ABD)</option>
-                  <option value="FWBD - Cholera / Typhoid / Rotavirus">FWBD: Cholera / Typhoid / Rotavirus</option>
-                  <option value="FWBD - Hepatitis A">FWBD: Acute Viral Hepatitis A</option>
-                </optgroup>
-                <optgroup label="Zoonotic & Bacterial Inundation">
-                  <option value="Leptospirosis">Leptospirosis</option>
-                  <option value="Rabies">Rabies Exposure / Human Rabies</option>
-                </optgroup>
-                <optgroup label="Exanthem & Rash Illnesses">
-                  <option value="Measles_Rubella">Measles / Rubella</option>
-                  <option value="Mpox">Mpox (Monkeypox)</option>
-                  <option value="HFMD">Hand, Foot, and Mouth Disease (HFMD)</option>
-                </optgroup>
-                <optgroup label="Respiratory & Vaccine-Preventable (VPD)">
-                  <option value="Panrespi">Pan-Respiratory (COVID-19 / ILI / SARI / Flu)</option>
-                  <option value="Pertussis">Pertussis (Whooping Cough)</option>
-                  <option value="Diphtheria">Diphtheria</option>
-                  <option value="Meningococcemia">Meningococcemia</option>
-                  <option value="Neonatal Tetanus">Neonatal Tetanus</option>
-                  <option value="Non-Neonatal Tetanus">Non-Neonatal Tetanus</option>
-                </optgroup>
-                <optgroup label="Specialized Care & Lab Forms (SACCL / NKTI / HEP)">
-                  <option value="Viral Hepatitis B/C (SACCL/Care)">Viral Hepatitis B / C (SACCL / Care Form)</option>
-                </optgroup>
+              <label class="block text-xs font-bold text-teal-300 uppercase mb-1">Disease / EpiForm Category *</label>
+              <select id="disease" onchange="updateQuestionnaireTitle(); renderDynamicClinicalSections();" required class="w-full bg-slate-800 text-white font-bold border-2 border-teal-500 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-400 focus:outline-none">
+                <option value="Diphtheria">Diphtheria (EPIDEMIOLOGICAL QUESTIONNAIRE)</option>
+                <option value="Vectorborne - Dengue">Vectorborne: Dengue</option>
+                <option value="FWBD - Acute Bloody Diarrhea (ABD)">FWBD: Acute Bloody Diarrhea (ABD)</option>
+                <option value="Leptospirosis">Leptospirosis</option>
+                <option value="Rabies">Rabies Exposure / Human Rabies</option>
+                <option value="Mpox">Mpox (Monkeypox)</option>
+                <option value="Measles_Rubella">Measles / Rubella</option>
+                <option value="Pertussis">Pertussis (Whooping Cough)</option>
+                <option value="Panrespi">Pan-Respiratory (COVID-19 / ILI / SARI)</option>
+                <option value="HFMD">Hand, Foot, and Mouth Disease (HFMD)</option>
+                <option value="Meningococcemia">Meningococcemia</option>
+                <option value="Neonatal Tetanus">Neonatal Tetanus</option>
+                <option value="Non-Neonatal Tetanus">Non-Neonatal Tetanus</option>
+                <option value="Viral Hepatitis B/C (SACCL/Care)">Viral Hepatitis B / C (SACCL / Care Form)</option>
               </select>
             </div>
             <div>
@@ -129,121 +123,522 @@
           </div>
         </div>
 
-        <!-- 2. REPORTING DRU & FACILITY METADATA -->
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <h3 class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b flex items-center gap-2">
-            <i class="fa-solid fa-hospital-user text-teal-600"></i> 1. Disease Reporting Unit (DRU) Information
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Name of DRU / Facility *</label>
-              <input type="text" id="druName" required placeholder="e.g., City Health Center / District Hospital" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Surveillance Officer / Investigator *</label>
-              <input type="text" id="investigator" required placeholder="Investigator Full Name" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Date of Investigation / Report *</label>
-              <input type="date" id="reportDate" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
+        <!-- ==================== OFFICIAL FORM CONTAINER ==================== -->
+        <div id="printableQuestionnaire" class="bg-white p-6 sm:p-8 rounded-xl shadow border border-slate-300 space-y-6">
+          
+          <!-- OFFICIAL GOVERNMENT HEADER -->
+          <div class="border-b-2 border-slate-900 pb-4 text-center space-y-1">
+            <p class="text-xs font-serif uppercase tracking-widest text-slate-600">Republic of the Philippines</p>
+            <h2 class="text-lg font-black uppercase text-slate-950 tracking-wide">QUEZON CITY HEALTH DEPARTMENT</h2>
+            <p class="text-xs font-medium text-slate-700">Quezon City, Metro Manila • City Epidemiology and Disease Surveillance Division (CESD)</p>
+            <p class="text-[11px] text-slate-500">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel: 8988-4242 loc 1607 | Email: cityhealth@quezoncity.gov.ph</p>
+            <div class="pt-3">
+              <h3 id="formMainTitle" class="text-base font-black uppercase bg-slate-100 py-1.5 px-4 border border-slate-900 inline-block tracking-wider">
+                EPIDEMIOLOGICAL QUESTIONNAIRE (DIPHTHERIA)
+              </h3>
             </div>
           </div>
+
+          <!-- ADMINISTRATIVE & FACILITY METADATA BOX -->
+          <div class="border border-slate-900 rounded-sm overflow-hidden text-xs">
+            <div class="grid grid-cols-1 md:grid-cols-3 border-b border-slate-900">
+              <div class="p-2 border-r border-slate-900">
+                <label class="font-bold block uppercase text-[10px] text-slate-600">Disease Reporting Unit (DRU) *</label>
+                <input type="text" id="druName" required placeholder="Hospital / Health Center Name" class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+              </div>
+              <div class="p-2 border-r border-slate-900">
+                <label class="font-bold block uppercase text-[10px] text-slate-600">Barangay of DRU *</label>
+                <input type="text" id="druBarangay" required placeholder="e.g. Brgy. Central" class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+              </div>
+              <div class="p-2">
+                <label class="font-bold block uppercase text-[10px] text-slate-600">District *</label>
+                <input type="text" id="druDistrict" required placeholder="e.g. District IV" class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 border-b border-slate-900">
+              <div class="p-2 border-r border-slate-900">
+                <label class="font-bold block uppercase text-[10px] text-slate-600">Investigator Name *</label>
+                <input type="text" id="investigator" required placeholder="Full Name of Surveillance Officer" class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+              </div>
+              <div class="p-2 border-r border-slate-900">
+                <label class="font-bold block uppercase text-[10px] text-slate-600">Designation / Position</label>
+                <input type="text" id="investigatorDesignation" placeholder="e.g. Nurse II / Surveillance Officer" class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+              </div>
+              <div class="p-2">
+                <label class="font-bold block uppercase text-[10px] text-slate-600">Date Investigated (MM/DD/YYYY) *</label>
+                <input type="date" id="reportDate" required class="w-full font-medium p-1 border rounded focus:ring-1 focus:ring-teal-500 focus:outline-none text-xs" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 bg-slate-50">
+              <div class="p-2 border-r border-slate-900">
+                <label class="font-bold block uppercase text-[10px] text-slate-600">From Endorsement?</label>
+                <select id="fromEndorsement" class="w-full font-medium p-1 border rounded text-xs">
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
+              <div class="p-2 border-r border-slate-900">
+                <label class="font-bold block uppercase text-[10px] text-slate-600">Date Endorsed / Reported</label>
+                <input type="date" id="dateEndorsed" class="w-full font-medium p-1 border rounded text-xs" />
+              </div>
+              <div class="p-2">
+                <label class="font-bold block uppercase text-[10px] text-slate-600">Disposition during Interview</label>
+                <select id="dispositionInterview" class="w-full font-medium p-1 border rounded text-xs">
+                  <option value="At Home">At Home</option>
+                  <option value="Still Admitted">Still Admitted</option>
+                  <option value="Died">Died</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 1: PERSONAL & DEMOGRAPHIC INFORMATION -->
+          <div class="space-y-3">
+            <h4 class="bg-slate-900 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
+              1. Personal and Demographic Information
+            </h4>
+
+            <!-- 1.1 Patient Profile -->
+            <div class="border border-slate-900 rounded-sm p-3 space-y-3 text-xs">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">1.1. Patient Profile</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Last Name *</label>
+                  <input type="text" id="patientLastName" required placeholder="Last Name" class="w-full p-1.5 border rounded focus:ring-1 focus:ring-teal-500 text-xs" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">First Name *</label>
+                  <input type="text" id="patientFirstName" required placeholder="First Name" class="w-full p-1.5 border rounded focus:ring-1 focus:ring-teal-500 text-xs" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Middle Name</label>
+                  <input type="text" id="patientMiddleName" placeholder="Middle Name" class="w-full p-1.5 border rounded focus:ring-1 focus:ring-teal-500 text-xs" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Suffix (Jr/Sr/III)</label>
+                  <input type="text" id="patientSuffix" placeholder="e.g. Jr." class="w-full p-1.5 border rounded focus:ring-1 focus:ring-teal-500 text-xs" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Date of Birth (MM/DD/YYYY)</label>
+                  <input type="date" id="dob" onchange="autoCalcDetailedAge()" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Age * (Years / Mos / Days)</label>
+                  <div class="flex gap-1">
+                    <input type="number" id="age" min="0" placeholder="Yrs" required class="w-1/2 p-1.5 border rounded text-xs" />
+                    <input type="number" id="ageMonths" min="0" max="11" placeholder="Mos" class="w-1/2 p-1.5 border rounded text-xs" />
+                  </div>
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Sex at Birth *</label>
+                  <select id="sex" required class="w-full p-1.5 border rounded text-xs">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Civil Status</label>
+                  <select id="civilStatus" class="w-full p-1.5 border rounded text-xs">
+                    <option value="Single">Single</option>
+                    <option value="Married">Married</option>
+                    <option value="Widowed">Widowed</option>
+                    <option value="Separated">Separated</option>
+                    <option value="Child/Minor">Child/Minor</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Nationality</label>
+                  <input type="text" id="nationality" value="Filipino" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 1.2 Current Address -->
+            <div class="border border-slate-900 rounded-sm p-3 space-y-3 text-xs">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">1.2. Current Address in the Philippines and Contact Information</p>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-2 rounded border">
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Lives in a closed setting / institution?</label>
+                  <select id="closedSetting" class="w-full p-1 border rounded text-xs">
+                    <option value="No">No (Private home address)</option>
+                    <option value="Yes - Nursing Home">Yes (Nursing home)</option>
+                    <option value="Yes - Jail / Prison">Yes (Jail / Correctional institution)</option>
+                    <option value="Yes - Dormitory / Orphanage">Yes (Dormitory / Orphanage)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Name of Institution (if applicable)</label>
+                  <input type="text" id="institutionName" placeholder="Institution Name" class="w-full p-1 border rounded text-xs" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <div class="sm:col-span-2">
+                  <label class="font-semibold block text-[10px] text-slate-600">House No. / Lot / Street / Sitio / Purok *</label>
+                  <input type="text" id="streetAddress" required placeholder="e.g. #123 Mayaman St., Sitio Uno" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Barangay *</label>
+                  <input type="text" id="barangay" required placeholder="e.g. Brgy. Central" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">City / Municipality *</label>
+                  <input type="text" id="city" required value="Quezon City" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Province</label>
+                  <input type="text" id="province" value="NCR" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Region</label>
+                  <input type="text" id="region" value="NCR" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Length of Residence</label>
+                  <input type="text" id="lengthResidence" placeholder="e.g. 5 years" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Contact Number (Cellphone / Tel) *</label>
+                  <input type="tel" id="contact" required placeholder="09XXXXXXXXX" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">GPS Latitude (Optional)</label>
+                  <input type="text" id="gpsLatitude" placeholder="14.6488" class="w-full p-1.5 border rounded text-xs font-mono" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">GPS Longitude (Optional)</label>
+                  <input type="text" id="gpsLongitude" placeholder="121.0509" class="w-full p-1.5 border rounded text-xs font-mono" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 1.4 Special Population -->
+            <div class="border border-slate-900 rounded-sm p-3 space-y-2 text-xs">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">1.4. Special Population</p>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Healthcare Worker?</label>
+                  <select id="isHCW" class="w-full p-1 border rounded text-xs">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes (Specify facility in notes)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Returning Overseas Filipino (OFW/non-OFW)?</label>
+                  <select id="isOFW" class="w-full p-1 border rounded text-xs">
+                    <option value="No">No</option>
+                    <option value="Yes - OFW">Yes (OFW)</option>
+                    <option value="Yes - Non-OFW">Yes (Non-OFW)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Foreign National Traveler?</label>
+                  <select id="isForeignTraveler" class="w-full p-1 border rounded text-xs">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes (Specify Country of Origin)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- 1.5 Employment & Educational Details -->
+            <div class="border border-slate-900 rounded-sm p-3 space-y-2 text-xs">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">1.5. Employment & Educational Details</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Current Status</label>
+                  <select id="workSchoolStatus" class="w-full p-1 border rounded text-xs">
+                    <option value="Working">Working / Employed</option>
+                    <option value="Student">Student</option>
+                    <option value="Unemployed / None">Unemployed / None</option>
+                    <option value="Retired">Retired</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Occupation / Grade Level</label>
+                  <input type="text" id="occupationOrGrade" placeholder="e.g. Teacher / Grade 4" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="font-semibold block text-[10px] text-slate-600">Name of Workplace / School & Address</label>
+                  <input type="text" id="workplaceOrSchool" placeholder="e.g. QC High School, Brgy. Central" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: CLINICAL INFORMATION & SIGNS/SYMPTOMS -->
+          <div class="space-y-3 pt-2">
+            <h4 class="bg-slate-900 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
+              2. Clinical Information & Disease Specific Manifestations
+            </h4>
+
+            <div class="border border-slate-900 rounded-sm p-3 space-y-3 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-slate-50 p-2 rounded border">
+                <div>
+                  <label class="font-bold block text-[10px] text-slate-700">Date of First Symptoms (Onset) *</label>
+                  <input type="date" id="dateOnset" required class="w-full p-1.5 border rounded text-xs font-bold text-teal-800" />
+                </div>
+                <div>
+                  <label class="font-bold block text-[10px] text-slate-700">First Symptom Experienced</label>
+                  <input type="text" id="firstSymptom" placeholder="e.g. Sore throat, Fever" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+                <div>
+                  <label class="font-bold block text-[10px] text-slate-700">Had history of this infection?</label>
+                  <select id="hadPriorInfection" class="w-full p-1.5 border rounded text-xs">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                    <option value="Unknown">Unknown</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- DYNAMIC CLINICAL CHECKLIST (Diphtheria, Dengue, etc.) -->
+              <div id="dynamicClinicalChecklist">
+                <!-- Populated via JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2.2: MEDICAL CONSULTATION, HOSPITALIZATION & LAB -->
+          <div class="space-y-3 pt-2">
+            <h4 class="bg-slate-900 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
+              2.2 Medical Consultation, Admission, & Laboratory Tests
+            </h4>
+
+            <div class="border border-slate-900 rounded-sm p-3 space-y-3 text-xs">
+              <!-- Consultations Table -->
+              <div>
+                <p class="font-bold text-slate-900 mb-1 text-[11px] uppercase">Medical Consultations & Facilities Attended</p>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-xs border border-slate-900">
+                    <thead class="bg-slate-100 text-slate-800 uppercase font-bold text-[10px]">
+                      <tr>
+                        <th class="p-1.5 border border-slate-900">Facility / Clinic Name</th>
+                        <th class="p-1.5 border border-slate-900">Date & Time of Consultation</th>
+                        <th class="p-1.5 border border-slate-900">Diagnosis Given</th>
+                        <th class="p-1.5 border border-slate-900">Admitted?</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="p-1 border border-slate-900"><input type="text" id="consultFacility1" placeholder="e.g. QC General Hospital" class="w-full p-1 border text-xs" /></td>
+                        <td class="p-1 border border-slate-900"><input type="datetime-local" id="consultDateTime1" class="w-full p-1 border text-xs" /></td>
+                        <td class="p-1 border border-slate-900"><input type="text" id="consultDiagnosis1" placeholder="e.g. Suspect Diphtheria" class="w-full p-1 border text-xs" /></td>
+                        <td class="p-1 border border-slate-900">
+                          <select id="consultAdmitted1" class="w-full p-1 border text-xs">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                          </select>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Hospital Admission Details -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 p-2.5 rounded border border-slate-300">
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Bed Type Occupied</label>
+                  <select id="hospitalBedType" class="w-full p-1.5 border rounded text-xs">
+                    <option value="Outpatient / None">Outpatient / None</option>
+                    <option value="Ward">Ward</option>
+                    <option value="Isolation Room">Isolation Room</option>
+                    <option value="ICU (Intensive Care)">ICU (Intensive Care)</option>
+                    <option value="ER (Emergency Room)">ER (Emergency Room)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Date Admitted</label>
+                  <input type="date" id="dateAdmitted" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Date Discharged</label>
+                  <input type="date" id="dateDischarged" class="w-full p-1.5 border rounded text-xs" />
+                </div>
+                <div>
+                  <label class="font-semibold block text-[10px] text-slate-600">Reason for Discharge</label>
+                  <select id="dischargeReason" class="w-full p-1.5 border rounded text-xs">
+                    <option value="Still Admitted">Still Admitted</option>
+                    <option value="Recovered / Improved">Recovered / Improved</option>
+                    <option value="Transferred / Referred">Transferred / Referred</option>
+                    <option value="HAMA (Against Medical Advice)">HAMA (Against Medical Advice)</option>
+                    <option value="Died">Died</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Laboratory Testing Details -->
+              <div>
+                <p class="font-bold text-slate-900 mb-1 text-[11px] uppercase">2.3. Laboratory Information & Specimen Analysis</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <label class="font-semibold block text-[10px] text-slate-600">Specimen Type</label>
+                    <select id="specimenType" class="w-full p-1.5 border rounded text-xs">
+                      <option value="Nasopharyngeal Swab (NPS)">Nasopharyngeal Swab (NPS)</option>
+                      <option value="Throat Swab / Pseudomembrane">Throat Swab / Pseudomembrane</option>
+                      <option value="Serum / Blood Sample">Serum / Blood Sample</option>
+                      <option value="Stool Sample">Stool Sample</option>
+                      <option value="Lesion / Exudate Swab">Lesion / Exudate Swab</option>
+                      <option value="None Collected">None Collected</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="font-semibold block text-[10px] text-slate-600">Date Specimen Collected</label>
+                    <input type="date" id="dateSpecimenCollected" class="w-full p-1.5 border rounded text-xs" />
+                  </div>
+                  <div>
+                    <label class="font-semibold block text-[10px] text-slate-600">Type of Test Done</label>
+                    <select id="typeTestDone" class="w-full p-1.5 border rounded text-xs">
+                      <option value="Real-time PCR">Real-time PCR</option>
+                      <option value="Bacterial Culture & Toxigenicity">Culture & Toxigenicity</option>
+                      <option value="Serology / ELISA">Serology / ELISA</option>
+                      <option value="Rapid Diagnostic Test (RDT)">Rapid Diagnostic Test (RDT)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="font-semibold block text-[10px] text-slate-600">Laboratory Result</label>
+                    <select id="labResultOfficial" class="w-full p-1.5 border rounded text-xs font-bold">
+                      <option value="Pending">Pending (RITM / Lab)</option>
+                      <option value="POSITIVE / Reactive">POSITIVE / Reactive</option>
+                      <option value="NEGATIVE / Non-Reactive">NEGATIVE / Non-Reactive</option>
+                      <option value="Inconclusive / Equivocal">Inconclusive / Equivocal</option>
+                      <option value="Invalid / Rejected">Invalid / Rejected</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Medications Taken -->
+              <div>
+                <p class="font-bold text-slate-900 mb-1 text-[11px] uppercase">2.6. Medications Received</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  <div>
+                    <label class="font-semibold block text-[10px] text-slate-600">Pre-Consultation Medication</label>
+                    <select id="medsPreConsult" class="w-full p-1.5 border rounded text-xs">
+                      <option value="None">None</option>
+                      <option value="Antipyretics (Paracetamol)">Antipyretics (Paracetamol)</option>
+                      <option value="Azithromycin / Erythromycin">Azithromycin / Erythromycin</option>
+                      <option value="Other Antibiotics">Other Antibiotics</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="font-semibold block text-[10px] text-slate-600">Diphtheria Antitoxin (DAT) / RIG Given?</label>
+                    <select id="medsAntitoxin" class="w-full p-1.5 border rounded text-xs">
+                      <option value="No">No</option>
+                      <option value="Yes">Yes (Antitoxin / DAT Given)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="font-semibold block text-[10px] text-slate-600">In-Hospital Oxygen / Intubation</label>
+                    <select id="medsSupport" class="w-full p-1.5 border rounded text-xs">
+                      <option value="None / Room Air">None / Room Air</option>
+                      <option value="Oxygen Support (Nasal Cannula/Mask)">Oxygen Support</option>
+                      <option value="Intubation / Mechanical Ventilation">Intubation / Ventilator</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: EXPOSURE & TRAVEL HISTORY -->
+          <div class="space-y-3 pt-2">
+            <h4 class="bg-slate-900 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
+              3. Exposure & Epidemiological Risk History
+            </h4>
+
+            <div class="border border-slate-900 rounded-sm p-3 space-y-2 text-xs">
+              <p class="font-semibold text-slate-700 text-[11px]">Mark known exposures within 14 days prior to onset:</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
+                  <input type="checkbox" name="exposureHist" value="Household contact with confirmed case" class="text-teal-600 rounded" />
+                  <span>Household direct contact</span>
+                </label>
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
+                  <input type="checkbox" name="exposureHist" value="Exposure to coughing/sneezing droplets" class="text-teal-600 rounded" />
+                  <span>Droplet exposure (cough/sneeze)</span>
+                </label>
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
+                  <input type="checkbox" name="exposureHist" value="School / Daycare exposure" class="text-teal-600 rounded" />
+                  <span>School / Daycare exposure</span>
+                </label>
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
+                  <input type="checkbox" name="exposureHist" value="Workplace contact exposure" class="text-teal-600 rounded" />
+                  <span>Workplace contact exposure</span>
+                </label>
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
+                  <input type="checkbox" name="exposureHist" value="Healthcare facility exposure" class="text-teal-600 rounded" />
+                  <span>Healthcare setting exposure</span>
+                </label>
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded border hover:bg-slate-100 cursor-pointer">
+                  <input type="checkbox" name="exposureHist" value="Unvaccinated or incomplete vaccine status" class="text-teal-600 rounded" />
+                  <span>Unvaccinated / incomplete</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- FINAL CLASSIFICATION & DISPOSITION -->
+          <div class="border-2 border-slate-900 rounded-sm p-3 bg-slate-50 text-xs space-y-2">
+            <h5 class="font-bold text-slate-900 uppercase">Final Case Classification & Surveillance Outcome</h5>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              <div>
+                <label class="font-bold block text-[10px] text-slate-700">Case Classification *</label>
+                <select id="caseClassification" required class="w-full p-2 border-2 border-slate-900 rounded text-xs font-black bg-white">
+                  <option value="Suspected">Suspected</option>
+                  <option value="Probable">Probable</option>
+                  <option value="Confirmed">Confirmed</option>
+                  <option value="Discarded / Non-Case">Discarded / Non-Case</option>
+                </select>
+              </div>
+              <div>
+                <label class="font-bold block text-[10px] text-slate-700">Patient Outcome *</label>
+                <select id="outcome" required class="w-full p-2 border-2 border-slate-900 rounded text-xs font-black bg-white">
+                  <option value="Alive - Recovering">Alive - Recovering</option>
+                  <option value="Alive - Under Treatment">Alive - Under Treatment</option>
+                  <option value="Died">Died (Surveillance Mortality)</option>
+                </select>
+              </div>
+              <div>
+                <label class="font-bold block text-[10px] text-slate-700">Vaccination History for this Disease</label>
+                <select id="vaccineHistory" class="w-full p-2 border border-slate-900 rounded text-xs bg-white">
+                  <option value="Complete Doses for Age">Complete Doses for Age</option>
+                  <option value="Partially Vaccinated (Incomplete)">Partially Vaccinated (Incomplete)</option>
+                  <option value="0 Doses (Unvaccinated)">0 Doses (Unvaccinated)</option>
+                  <option value="Unknown">Unknown</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- OFFICIAL FOOTER BANNER -->
+          <div class="border-t-2 border-slate-900 pt-3 flex flex-wrap justify-between items-center text-[10px] text-slate-600">
+            <p class="font-serif italic font-bold">"Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan"</p>
+            <p class="font-mono">Quezon City Epidemiology and Surveillance Division • ISO 9001:2015 Standard Form</p>
+          </div>
+
         </div>
 
-        <!-- 3. PATIENT DEMOGRAPHICS & PROFILE -->
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <h3 class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b flex items-center gap-2">
-            <i class="fa-solid fa-address-card text-teal-600"></i> 2. Patient Profile & Geolocation
-          </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            <div class="sm:col-span-2">
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Patient Name (Last, First, Middle) *</label>
-              <input type="text" id="patientName" required placeholder="Dela Cruz, Juan M." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Sex *</label>
-              <select id="sex" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Date of Birth</label>
-              <input type="date" id="dob" onchange="autoCalcAge()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Age (Years) *</label>
-              <input type="number" id="age" min="0" max="125" required placeholder="Age in years" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Contact No. / Mobile</label>
-              <input type="text" id="contact" placeholder="09xxxxxxxxx" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Barangay *</label>
-              <input type="text" id="barangay" required placeholder="e.g. Brgy. Poblacion" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Municipality / City *</label>
-              <input type="text" id="city" required placeholder="e.g. Quezon City / San Fernando" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
-            </div>
-          </div>
-        </div>
-
-        <!-- 4. DYNAMIC DISEASE-SPECIFIC INVESTIGATION MODULE -->
-        <div id="dynamicDiseaseCard" class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hidden">
-          <div id="dynamicContainer">
-            <!-- Injected via JavaScript based on selected form -->
-          </div>
-        </div>
-
-        <!-- 5. CLINICAL STATUS, OUTCOME & CLASSIFICATION -->
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-          <h3 class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b flex items-center gap-2">
-            <i class="fa-solid fa-clipboard-check text-teal-600"></i> 4. Final Classification & Patient Disposition
-          </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Date Onset of Illness *</label>
-              <input type="date" id="dateOnset" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Admitted / Hospitalized?</label>
-              <select id="hospitalized" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                <option value="No (Outpatient / Home)">No (Outpatient / Home)</option>
-                <option value="Yes (Inpatient / Admitted)">Yes (Inpatient / Admitted)</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Case Classification *</label>
-              <select id="caseClassification" required class="w-full font-bold border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none text-slate-900">
-                <option value="Suspected">Suspected</option>
-                <option value="Probable">Probable</option>
-                <option value="Confirmed">Confirmed</option>
-                <option value="Discarded / Non-Case">Discarded / Non-Case</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Outcome / Status *</label>
-              <select id="outcome" required class="w-full font-bold border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                <option value="Alive - Recovering">Alive - Recovering</option>
-                <option value="Alive - Under Treatment">Alive - Under Treatment</option>
-                <option value="Died">Died (Surveillance Mortality)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- SUBMIT BAR -->
-        <div class="flex justify-end gap-3 pt-2">
-          <button type="button" onclick="resetForm()" class="px-5 py-2.5 rounded-lg border border-slate-300 bg-white font-semibold text-slate-700 hover:bg-slate-50 transition">
-            <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Reset Form
+        <!-- ACTION BAR -->
+        <div class="flex flex-wrap justify-end gap-3 pt-2 no-print">
+          <button type="button" onclick="printOfficialForm()" class="px-5 py-2.5 rounded-lg border-2 border-slate-800 bg-slate-800 text-white font-bold text-xs hover:bg-slate-900 transition flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-print text-sm"></i> Print Official 3-Page Form
           </button>
-          <button type="submit" class="px-6 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-md transition flex items-center gap-2">
-            <i class="fa-solid fa-floppy-disk"></i> Save & Log to Registry
+          <button type="submit" class="px-6 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-black text-xs shadow-md transition flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk text-sm"></i> Save & Log Questionnaire Case
           </button>
         </div>
 
@@ -251,9 +646,7 @@
     </section>
 
     <!-- TAB 2: SURVEILLANCE REGISTRY -->
-    <section id="registryTab" class="hidden space-y-6">
-      
-      <!-- Filter and Export Bar -->
+    <section id="registryTab" class="hidden space-y-6 no-print">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-3">
         <div class="flex flex-wrap gap-2 items-center flex-1">
           <div class="relative min-w-[220px]">
@@ -261,7 +654,8 @@
             <input type="text" id="searchRegistry" oninput="fetchRegistryCases()" placeholder="Search patient, ID, barangay..." class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none" />
           </div>
           <select id="filterDiseaseRegistry" onchange="fetchRegistryCases()" class="text-sm border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
-            <option value="ALL">All EpiForm Categories</option>
+            <option value="ALL">All Notifiable Conditions</option>
+            <option value="Diphtheria">Diphtheria</option>
             <option value="Vectorborne - Dengue">Dengue</option>
             <option value="Leptospirosis">Leptospirosis</option>
             <option value="Rabies">Rabies</option>
@@ -270,7 +664,6 @@
             <option value="Mpox">Mpox</option>
             <option value="Panrespi">Pan-Respiratory</option>
             <option value="Pertussis">Pertussis</option>
-            <option value="Viral Hepatitis B/C (SACCL/Care)">Viral Hepatitis / SACCL</option>
           </select>
         </div>
 
@@ -279,25 +672,24 @@
         </button>
       </div>
 
-      <!-- Surveillance Table -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs">
               <tr>
                 <th class="p-3">EPID ID</th>
-                <th class="p-3">Report Date</th>
+                <th class="p-3">Date Investigated</th>
                 <th class="p-3">Patient Name</th>
                 <th class="p-3">Age/Sex</th>
-                <th class="p-3">EpiForm / Disease</th>
-                <th class="p-3">Barangay / LGU</th>
+                <th class="p-3">Disease / Form</th>
+                <th class="p-3">Barangay</th>
                 <th class="p-3">Classification</th>
                 <th class="p-3">Outcome</th>
                 <th class="p-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody id="registryBody" class="divide-y divide-slate-100">
-              <!-- Rendered via JS -->
+              <!-- Dynamically populated -->
             </tbody>
           </table>
         </div>
@@ -306,327 +698,40 @@
           <p>No surveillance cases recorded yet.</p>
         </div>
       </div>
-
     </section>
 
-    <!-- TAB 3: FORMS & LAB REQUEST REPOSITORY (LINKS) -->
-    <section id="repoTab" class="hidden space-y-6">
-      
-      <!-- Search & Notice Header -->
+    <!-- TAB 3: FORMS REPOSITORY (LINKS) -->
+    <section id="repoTab" class="hidden space-y-6 no-print">
       <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
         <div>
           <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-folder-tree text-teal-600"></i> Surveillance Forms & Guidelines Repository
+            <i class="fa-solid fa-folder-tree text-teal-600"></i> Official Forms & Lab Requests Repository
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Direct access to official blank Word documents, Excel templates, and printable laboratory request forms located in your <code class="bg-slate-100 px-1 py-0.5 rounded text-teal-700 font-mono">/LINKS</code> folder.</p>
-        </div>
-
-        <div class="relative w-full sm:w-72">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-sm"></i>
-          <input type="text" id="repoSearch" oninput="filterRepoForms()" placeholder="Search form name or category..." class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none" />
+          <p class="text-xs text-slate-500">Downloadable reference templates stored in <code class="bg-slate-100 px-1 py-0.5 rounded text-teal-700 font-mono">/LINKS</code>.</p>
         </div>
       </div>
 
-      <!-- Category 1: 2026 EpiForms -->
-      <div class="space-y-3">
-        <div class="flex items-center gap-2 pb-1 border-b border-slate-300">
-          <i class="fa-solid fa-file-word text-blue-600 text-lg"></i>
-          <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide">1. Official 2026 Case Investigation Forms (EpiForms)</h3>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 repo-grid">
-          
-          <a href="/LINKS/EpiForms (2026)/Diphtheria.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Diphtheria EpiForm</p>
-                <span class="text-[10px] text-slate-400">Microsoft Word (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/FWBD.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">FWBD Case Form</p>
-                <span class="text-[10px] text-slate-400">Food & Waterborne (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/HFMD.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">HFMD EpiForm</p>
-                <span class="text-[10px] text-slate-400">Hand, Foot, Mouth (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/kobotool_epiform.xlsx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-excel text-emerald-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">KoboTool EpiForm</p>
-                <span class="text-[10px] text-slate-400">XLSForm Template (.xlsx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/Leptospirosis.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Leptospirosis CRF</p>
-                <span class="text-[10px] text-slate-400">Microsoft Word (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/Measles_Rubella.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Measles & Rubella</p>
-                <span class="text-[10px] text-slate-400">MR Case Form (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/Meningococcemia.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Meningococcemia</p>
-                <span class="text-[10px] text-slate-400">Bacterial Meningitis (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/Mpox Epiform.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Mpox EpiForm (2026)</p>
-                <span class="text-[10px] text-slate-400">Monkeypox Form (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/Neonatal.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Neonatal Tetanus</p>
-                <span class="text-[10px] text-slate-400">NT Investigation (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/Non Neonatal.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Non-Neonatal Tetanus</p>
-                <span class="text-[10px] text-slate-400">Tetanus Case Form (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/Panrespi EpiForm.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Panrespi EpiForm</p>
-                <span class="text-[10px] text-slate-400">COVID / ILI / SARI (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/Pertussis.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Pertussis EpiForm</p>
-                <span class="text-[10px] text-slate-400">Whooping Cough (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/Rabies.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Rabies Case Form</p>
-                <span class="text-[10px] text-slate-400">Animal Bite & PEP (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-          <a href="/LINKS/EpiForms (2026)/Vectorborne.docx" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-word text-blue-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Vectorborne EpiForm</p>
-                <span class="text-[10px] text-slate-400">Dengue / Malaria (.docx)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-        </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <a href="/LINKS/EpiForms (2026)/Diphtheria.docx" download class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 flex items-center justify-between">
+          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-word text-blue-600 text-2xl"></i><div><p class="font-bold text-xs">Diphtheria EpiForm</p><span class="text-[10px] text-slate-400">Microsoft Word (.docx)</span></div></div>
+          <i class="fa-solid fa-circle-down text-slate-400 text-lg"></i>
+        </a>
+        <a href="/LINKS/EpiForms (2026)/Leptospirosis.docx" download class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 flex items-center justify-between">
+          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-word text-blue-600 text-2xl"></i><div><p class="font-bold text-xs">Leptospirosis CRF</p><span class="text-[10px] text-slate-400">Microsoft Word (.docx)</span></div></div>
+          <i class="fa-solid fa-circle-down text-slate-400 text-lg"></i>
+        </a>
+        <a href="/LINKS/EpiForms (2026)/Mpox Epiform.docx" download class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 flex items-center justify-between">
+          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-word text-blue-600 text-2xl"></i><div><p class="font-bold text-xs">Mpox EpiForm</p><span class="text-[10px] text-slate-400">Monkeypox (.docx)</span></div></div>
+          <i class="fa-solid fa-circle-down text-slate-400 text-lg"></i>
+        </a>
+        <a href="/LINKS/FORMS(SACCL,NKTI,ETC)/F-SACCL-046 MOLECULAR DIAGNOST.pdf" target="_blank" download class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 flex items-center justify-between">
+          <div class="flex items-center gap-2.5"><i class="fa-solid fa-file-pdf text-rose-600 text-2xl"></i><div><p class="font-bold text-xs">SACCL-046 Molecular Form</p><span class="text-[10px] text-slate-400">San Lazaro SACCL (.pdf)</span></div></div>
+          <i class="fa-solid fa-circle-down text-slate-400 text-lg"></i>
+        </a>
       </div>
-
-      <!-- Category 2: Specialized Lab Request & Care Forms -->
-      <div class="space-y-3 pt-4">
-        <div class="flex items-center gap-2 pb-1 border-b border-slate-300">
-          <i class="fa-solid fa-vial-circle-check text-rose-600 text-lg"></i>
-          <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide">2. Laboratory Request & Specialized Care Forms (SACCL, NKTI, PLE)</h3>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 repo-grid">
-          
-          <a href="/LINKS/FORMS(SACCL,NKTI,ETC)/F-SACCL-046 MOLECULAR DIAGNOST.pdf" target="_blank" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-pdf text-rose-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">SACCL-046 Molecular Diagnostic</p>
-                <span class="text-[10px] text-slate-400">San Lazaro SACCL (.pdf)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-arrow-up-right-from-square text-slate-400 group-hover:text-teal-600 text-base"></i>
-          </a>
-
-          <a href="/LINKS/FORMS(SACCL,NKTI,ETC)/Fillable Laboratory Request Form-PLE.pdf" target="_blank" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-pdf text-rose-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Fillable Lab Request Form (PLE)</p>
-                <span class="text-[10px] text-slate-400">Public Health Lab (.pdf)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-arrow-up-right-from-square text-slate-400 group-hover:text-teal-600 text-base"></i>
-          </a>
-
-          <a href="/LINKS/FORMS(SACCL,NKTI,ETC)/HEPATI_1 (Care Form).pdf" target="_blank" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-pdf text-rose-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">HEPATI_1 (Care Form)</p>
-                <span class="text-[10px] text-slate-400">Viral Hepatitis Care (.pdf)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-arrow-up-right-from-square text-slate-400 group-hover:text-teal-600 text-base"></i>
-          </a>
-
-          <a href="/LINKS/FORMS(SACCL,NKTI,ETC)/VIRAL-HEPATITIS-B-CASE-REPORT-FO.pdf" target="_blank" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-pdf text-rose-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Viral Hepatitis B Case Report</p>
-                <span class="text-[10px] text-slate-400">HBsAg Registry (.pdf)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-arrow-up-right-from-square text-slate-400 group-hover:text-teal-600 text-base"></i>
-          </a>
-
-          <a href="/LINKS/FORMS(SACCL,NKTI,ETC)/Isolation-Order-Covid19_v10-with-iso.pdf" target="_blank" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-pdf text-rose-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">COVID-19 Isolation Order</p>
-                <span class="text-[10px] text-slate-400">Isolation Directive (.pdf)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-arrow-up-right-from-square text-slate-400 group-hover:text-teal-600 text-base"></i>
-          </a>
-
-          <a href="/LINKS/FORMS(SACCL,NKTI,ETC)/STICH.pub" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-invoice text-purple-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">STICH Document</p>
-                <span class="text-[10px] text-slate-400">Microsoft Publisher (.pub)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-circle-down text-slate-400 group-hover:text-teal-600 text-lg"></i>
-          </a>
-
-        </div>
-      </div>
-
-      <!-- Category 3: Notifiable Diseases CRFs -->
-      <div class="space-y-3 pt-4">
-        <div class="flex items-center gap-2 pb-1 border-b border-slate-300">
-          <i class="fa-solid fa-clipboard-list text-amber-600 text-lg"></i>
-          <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide">3. Notifiable Diseases CRFs (FWBD / ABD)</h3>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 repo-grid">
-          <a href="/LINKS/NOTIFIABLE DISEASES FORMS/FWBD/ABD/CRF/Acute Bloody Diarrhea CRF.pdf" target="_blank" download class="repo-item bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm hover:border-teal-500 hover:shadow transition flex items-center justify-between group">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-              <i class="fa-solid fa-file-pdf text-rose-600 text-2xl group-hover:scale-110 transition"></i>
-              <div>
-                <p class="font-bold text-xs text-slate-800 truncate">Acute Bloody Diarrhea (ABD) CRF</p>
-                <span class="text-[10px] text-slate-400">FWBD Surveillance (.pdf)</span>
-              </div>
-            </div>
-            <i class="fa-solid fa-arrow-up-right-from-square text-slate-400 group-hover:text-teal-600 text-base"></i>
-          </a>
-        </div>
-      </div>
-
     </section>
 
   </main>
-
-  <!-- PRINT / VIEW CASE MODAL -->
-  <div id="caseViewModal" class="fixed inset-0 bg-slate-900 bg-opacity-60 hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-200 no-print">
-        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-          <i class="fa-solid fa-file-medical text-teal-600"></i> Case Investigation Form (CIF) Summary
-        </h3>
-        <button onclick="closeCaseModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold">&times;</button>
-      </div>
-
-      <div id="printableArea" class="py-4 space-y-4">
-        <div class="text-center border-b pb-3">
-          <p class="text-xs text-slate-500 uppercase font-bold tracking-widest">Republic of the Philippines • Epidemiology Bureau</p>
-          <h2 id="modalDocTitle" class="text-lg font-black uppercase text-slate-900">Case Investigation Form (PDS)</h2>
-          <p id="modalEpidSub" class="font-mono text-xs text-teal-700 font-bold"></p>
-        </div>
-        <div id="modalDetailsBody" class="text-sm space-y-3">
-          <!-- Filled by JS -->
-        </div>
-      </div>
-
-      <div class="pt-4 border-t border-slate-200 flex justify-end gap-2 no-print">
-        <button onclick="window.print()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-sm font-semibold flex items-center gap-2">
-          <i class="fa-solid fa-print"></i> Print Official CIF
-        </button>
-        <button onclick="closeCaseModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-sm font-semibold">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
@@ -635,7 +740,8 @@
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('reportDate').valueAsDate = new Date();
       generateEpidNumber();
-      renderDynamicDiseaseFields();
+      updateQuestionnaireTitle();
+      renderDynamicClinicalSections();
       loadDashboardStats();
       fetchRegistryCases();
     });
@@ -643,177 +749,141 @@
     function generateEpidNumber() {
       const yr = new Date().getFullYear();
       const rand = Math.floor(10000 + Math.random() * 90000);
-      document.getElementById('epidId').value = `PH-${yr}-${rand}`;
+      document.getElementById('epidId').value = `QC-${yr}-${rand}`;
     }
 
-    function autoCalcAge() {
+    function autoCalcDetailedAge() {
       const dobVal = document.getElementById('dob').value;
       if (!dobVal) return;
       const dob = new Date(dobVal);
-      const diff = Date.now() - dob.getTime();
-      const ageDate = new Date(diff);
-      const calculatedAge = Math.abs(ageDate.getUTCFullYear() - 1970);
-      if (!isNaN(calculatedAge)) document.getElementById('age').value = calculatedAge;
+      const today = new Date();
+      
+      let years = today.getFullYear() - dob.getFullYear();
+      let months = today.getMonth() - dob.getMonth();
+      if (months < 0 || (months === 0 && today.getDate() < dob.getDate())) {
+        years--;
+        months = (12 + months) % 12;
+      }
+      if (years >= 0) document.getElementById('age').value = years;
+      if (months >= 0) document.getElementById('ageMonths').value = months;
     }
 
-    // Tab Switcher with Support for Repository Tab
+    function updateQuestionnaireTitle() {
+      const disease = document.getElementById('disease').value;
+      document.getElementById('formMainTitle').textContent = `EPIDEMIOLOGICAL QUESTIONNAIRE (${disease.toUpperCase()})`;
+    }
+
     function switchTab(tabId) {
-      document.getElementById('entryTab').classList.add('hidden');
+      document.getElementById('questionnaireTab').classList.add('hidden');
       document.getElementById('registryTab').classList.add('hidden');
       document.getElementById('repoTab').classList.add('hidden');
       document.getElementById(tabId).classList.remove('hidden');
 
-      const btnEntry = document.getElementById('btn-entryTab');
+      const btnQ = document.getElementById('btn-questionnaireTab');
       const btnReg = document.getElementById('btn-registryTab');
       const btnRepo = document.getElementById('btn-repoTab');
 
-      // Reset styles
       const activeClass = "px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-teal-600 text-white shadow flex items-center gap-2";
       const inactiveClass = "px-3.5 py-2 rounded-lg font-semibold text-sm transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2";
 
-      btnEntry.className = inactiveClass;
+      btnQ.className = inactiveClass;
       btnReg.className = inactiveClass;
       btnRepo.className = inactiveClass;
 
-      if (tabId === 'entryTab') {
-        btnEntry.className = activeClass;
-      } else if (tabId === 'registryTab') {
-        btnReg.className = activeClass;
-        fetchRegistryCases();
-      } else if (tabId === 'repoTab') {
-        btnRepo.className = activeClass;
-      }
+      if (tabId === 'questionnaireTab') btnQ.className = activeClass;
+      else if (tabId === 'registryTab') { btnReg.className = activeClass; fetchRegistryCases(); }
+      else if (tabId === 'repoTab') btnRepo.className = activeClass;
     }
 
-    // Live search filter inside the Forms Repository
-    function filterRepoForms() {
-      const query = (document.getElementById('repoSearch').value || '').toLowerCase();
-      document.querySelectorAll('.repo-item').forEach(item => {
-        const text = item.textContent.toLowerCase();
-        if (text.includes(query)) {
-          item.classList.remove('hidden');
-        } else {
-          item.classList.add('hidden');
-        }
-      });
-    }
-
-    // Dynamic Disease Field Generation
-    function renderDynamicDiseaseFields() {
+    // Dynamic Clinical Checklist Renderer (Matches Diphtheria & Other Forms)
+    function renderDynamicClinicalSections() {
       const disease = document.getElementById('disease').value;
-      const card = document.getElementById('dynamicDiseaseCard');
-      const container = document.getElementById('dynamicContainer');
+      const container = document.getElementById('dynamicClinicalChecklist');
 
-      if (!disease) {
-        card.classList.add('hidden');
-        container.innerHTML = '';
-        return;
-      }
+      if (disease.includes('Diphtheria')) {
+        container.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+            <!-- Mild Symptoms -->
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Mild / Initial Symptoms</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Fever" /> <span>Fever</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Cough" /> <span>Cough</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Coryza" /> <span>Coryza (Runny nose)</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Sore throat" /> <span>Sore throat</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Neck swelling (Bull neck)" /> <span>Neck swelling (Bull neck)</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Shortness of breath" /> <span>Shortness of breath</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Greyish membrane in throat/nostril" /> <span class="font-bold text-rose-700">Greyish membrane in throat</span></label>
+              </div>
+            </div>
 
-      card.classList.remove('hidden');
-      let html = '';
+            <!-- Classic & Severe Diphtheria -->
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Classic & Severe Complications</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Nasal discharge" /> <span>Nasal discharge</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Swollen lymph nodes" /> <span>Swollen lymph nodes</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Barking cough" /> <span>Barking cough / Stridor</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Difficulty swallowing" /> <span>Difficulty swallowing</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Breathing obstruction" /> <span class="font-bold text-rose-700">Airway obstruction</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Heart damage (Myocarditis)" /> <span>Myocarditis / Arrhythmia</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Paralysis / Nerve damage" /> <span>Paralysis / Neuropathy</span></label>
+              </div>
+            </div>
 
-      if (disease.includes('Dengue') || disease.includes('Vectorborne')) {
-        html = `
-          <h3 class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b flex items-center gap-2">
-            <i class="fa-solid fa-mosquito text-teal-600"></i> 3. Vectorborne / Dengue Clinical Details
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Dengue Classification</label>
-              <select id="dyn_dengue_class" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
-                <option value="Without Warning Signs">Without Warning Signs</option>
-                <option value="With Warning Signs">With Warning Signs</option>
-                <option value="Severe Dengue">Severe Dengue</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">NS1 Antigen Test</label>
-              <select id="dyn_ns1" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
-                <option value="Not Done">Not Done</option>
-                <option value="Positive">Positive</option>
-                <option value="Negative">Negative</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">ELISA IgM/IgG</label>
-              <select id="dyn_elisa" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
-                <option value="Not Done">Not Done</option>
-                <option value="IgM Positive">IgM Positive</option>
-                <option value="IgG Positive">IgG Positive</option>
-                <option value="Negative">Negative</option>
-              </select>
-            </div>
-          </div>
-        `;
-      } else if (disease.includes('Leptospirosis')) {
-        html = `
-          <h3 class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b flex items-center gap-2">
-            <i class="fa-solid fa-water text-teal-600"></i> 3. Leptospirosis Exposure History
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Flood Exposure</label>
-              <select id="dyn_lepto_flood" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
-                <option value="Yes - With Open Wounds">Yes - With Open Wounds</option>
-                <option value="Yes - Intact Skin">Yes - Intact Skin</option>
-                <option value="No Known Exposure">No Known Exposure</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Doxycycline Prophylaxis</label>
-              <select id="dyn_lepto_doxy" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">MAT / Lepto-Dipstick</label>
-              <select id="dyn_lepto_lab" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
-                <option value="Pending">Pending</option>
-                <option value="Positive">Positive</option>
-                <option value="Negative">Negative</option>
-              </select>
+            <!-- Comorbidities -->
+            <div class="border p-2.5 rounded bg-white space-y-1">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">Comorbidities & Underlying</p>
+              <div class="space-y-1 text-slate-700">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Asthma / COPD" /> <span>Asthma / COPD</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Pulmonary Tuberculosis" /> <span>Pulmonary TB</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Hypertension" /> <span>Hypertension</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Diabetes" /> <span>Diabetes Mellitus</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="HIV / Immunodeficiency" /> <span>HIV / Immunodeficiency</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="comorbid" value="Pregnancy" /> <span>Pregnant / Post-partum</span></label>
+              </div>
             </div>
           </div>
         `;
       } else {
-        html = `
-          <h3 class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b flex items-center gap-2">
-            <i class="fa-solid fa-vial text-teal-600"></i> 3. Clinical & Vaccine Specifics (${disease})
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Signs / Specific Notes</label>
-              <input type="text" id="dyn_notes" placeholder="e.g. Paroxysmal cough, maculopapular rash, dog bite site" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Diagnostic / PCR Result</label>
-              <select id="dyn_lab" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
-                <option value="Pending">Pending</option>
-                <option value="Positive / Reactive">Positive / Reactive</option>
-                <option value="Negative / Non-Reactive">Negative / Non-Reactive</option>
-                <option value="Not Collected">Not Collected</option>
-              </select>
+        container.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+            <div class="border p-2.5 rounded bg-white">
+              <p class="font-bold text-slate-900 border-b pb-1 text-[11px] uppercase">General Manifestations</p>
+              <div class="space-y-1 text-slate-700 mt-1">
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Fever" /> <span>Fever</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Skin Lesions / Rash" /> <span>Skin Lesions / Rash</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Cough / Dyspnea" /> <span>Cough / Dyspnea</span></label>
+                <label class="flex items-center gap-1.5"><input type="checkbox" name="symp" value="Diarrhea / Vomiting" /> <span>Diarrhea / Vomiting</span></label>
+              </div>
             </div>
           </div>
         `;
       }
-      container.innerHTML = html;
     }
 
-    // ----------------------------------------
-    // API CALLS: CREATE, READ, STATS, DELETE
-    // ----------------------------------------
+    // Official Print Handler
+    function printOfficialForm() {
+      window.print();
+    }
 
-    // 1. Submit Case to Backend API
+    // Submit Questionnaire Case to Backend
     async function handleFormSubmit(e) {
       e.preventDefault();
 
-      const dynamicPayload = {};
-      document.querySelectorAll('#dynamicContainer input, #dynamicContainer select').forEach(el => {
-        dynamicPayload[el.id] = el.value;
-      });
+      const lastName = document.getElementById('patientLastName').value.trim();
+      const firstName = document.getElementById('patientFirstName').value.trim();
+      const middleName = document.getElementById('patientMiddleName').value.trim();
+      const suffix = document.getElementById('patientSuffix').value.trim();
+      const fullName = `${lastName}, ${firstName} ${middleName} ${suffix}`.trim();
+
+      // Collect symptoms and exposures
+      const symps = [];
+      document.querySelectorAll('input[name="symp"]:checked').forEach(c => symps.push(c.value));
+      const comorbids = [];
+      document.querySelectorAll('input[name="comorbid"]:checked').forEach(c => comorbids.push(c.value));
+      const exposures = [];
+      document.querySelectorAll('input[name="exposureHist"]:checked').forEach(c => exposures.push(c.value));
 
       const payload = {
         epid_id: document.getElementById('epidId').value,
@@ -821,7 +891,7 @@
         dru_name: document.getElementById('druName').value,
         investigator: document.getElementById('investigator').value,
         report_date: document.getElementById('reportDate').value,
-        patient_name: document.getElementById('patientName').value,
+        patient_name: fullName,
         sex: document.getElementById('sex').value,
         dob: document.getElementById('dob').value,
         age: parseInt(document.getElementById('age').value, 10),
@@ -829,36 +899,43 @@
         barangay: document.getElementById('barangay').value,
         city: document.getElementById('city').value,
         date_onset: document.getElementById('dateOnset').value,
-        hospitalized: document.getElementById('hospitalized').value,
+        hospitalized: document.getElementById('hospitalBedType').value !== 'Outpatient / None' ? 'Yes' : 'No',
         case_classification: document.getElementById('caseClassification').value,
         outcome: document.getElementById('outcome').value,
-        disease_specific_data: dynamicPayload
+        disease_specific_data: {
+          druBarangay: document.getElementById('druBarangay').value,
+          druDistrict: document.getElementById('druDistrict').value,
+          streetAddress: document.getElementById('streetAddress').value,
+          symptoms: symps,
+          comorbidities: comorbids,
+          exposures: exposures,
+          specimenType: document.getElementById('specimenType').value,
+          labResult: document.getElementById('labResultOfficial').value,
+          vaccination: document.getElementById('vaccineHistory').value
+        }
       };
 
       try {
-        const response = await fetch(`${API_BASE}/cases`, {
+        const res = await fetch(`${API_BASE}/cases`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
 
-        const data = await response.json();
-
-        if (response.ok) {
-          alert(`✅ Case ${payload.epid_id} successfully saved to SQLite Database!`);
-          resetForm();
+        if (res.ok) {
+          alert(`✅ Questionnaire for ${fullName} (${payload.epid_id}) saved into Surveillance Registry!`);
           loadDashboardStats();
           switchTab('registryTab');
         } else {
-          alert(`❌ Error: ${data.error || 'Failed to save case.'}`);
+          const err = await res.json();
+          alert(`❌ Failed to save: ${err.error || 'Check fields'}`);
         }
       } catch (err) {
-        console.error(err);
-        alert('❌ Network error: Could not reach the backend server.');
+        alert('Network error saving to backend database.');
       }
     }
 
-    // 2. Fetch Registry Records with Search/Filter
+    // Load Cases to Registry Table
     async function fetchRegistryCases() {
       const search = encodeURIComponent(document.getElementById('searchRegistry')?.value || '');
       const disease = encodeURIComponent(document.getElementById('filterDiseaseRegistry')?.value || 'ALL');
@@ -866,18 +943,13 @@
       try {
         const res = await fetch(`${API_BASE}/cases?search=${search}&disease=${disease}`);
         const result = await res.json();
-        
-        if (result.success) {
-          renderRegistryTable(result.data);
-          document.getElementById('recordCountBadge').textContent = result.data.length;
-        }
+        if (result.success) renderRegistryRows(result.data);
       } catch (err) {
-        console.error('Error fetching cases:', err);
+        console.error(err);
       }
     }
 
-    // 3. Render Table Rows
-    function renderRegistryTable(cases) {
+    function renderRegistryRows(cases) {
       const tbody = document.getElementById('registryBody');
       const noData = document.getElementById('noDataState');
       tbody.innerHTML = '';
@@ -890,36 +962,24 @@
 
       cases.forEach(r => {
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
-
-        let badgeClass = 'bg-slate-100 text-slate-800';
-        if (r.case_classification === 'Confirmed') badgeClass = 'bg-emerald-100 text-emerald-800';
-        else if (r.case_classification === 'Suspected') badgeClass = 'bg-amber-100 text-amber-800';
-        else if (r.case_classification === 'Probable') badgeClass = 'bg-orange-100 text-orange-800';
-
-        let outcomeBadge = r.outcome.includes('Died')
-          ? '<span class="px-2 py-0.5 text-xs rounded-full font-bold bg-rose-100 text-rose-700">Died</span>'
-          : '<span class="px-2 py-0.5 text-xs rounded-full font-bold bg-teal-50 text-teal-700">Alive</span>';
-
+        tr.className = "hover:bg-slate-50 transition border-b border-slate-100 text-xs";
         tr.innerHTML = `
-          <td class="p-3 font-mono font-bold text-xs text-teal-700">${r.epid_id}</td>
-          <td class="p-3 text-xs">${r.report_date}</td>
+          <td class="p-3 font-mono font-bold text-teal-700">${r.epid_id}</td>
+          <td class="p-3">${r.report_date}</td>
           <td class="p-3 font-bold text-slate-900">${r.patient_name}</td>
-          <td class="p-3 text-xs">${r.age}y / ${r.sex}</td>
-          <td class="p-3 font-medium text-slate-800">${r.disease}</td>
-          <td class="p-3 text-xs text-slate-500">${r.barangay}, ${r.city}</td>
-          <td class="p-3"><span class="px-2 py-1 text-xs font-bold rounded ${badgeClass}">${r.case_classification}</span></td>
-          <td class="p-3">${outcomeBadge}</td>
-          <td class="p-3 text-center space-x-1">
-            <button onclick="viewCaseModal(${r.id})" class="p-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200" title="View & Print CIF"><i class="fa-solid fa-eye"></i></button>
-            <button onclick="deleteCaseRecord(${r.id})" class="p-1.5 bg-rose-50 text-rose-600 rounded hover:bg-rose-100" title="Delete Case"><i class="fa-solid fa-trash"></i></button>
+          <td class="p-3">${r.age}y / ${r.sex}</td>
+          <td class="p-3 font-semibold text-slate-800">${r.disease}</td>
+          <td class="p-3 text-slate-500">${r.barangay}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded font-bold ${r.case_classification === 'Confirmed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.case_classification}</span></td>
+          <td class="p-3 font-bold ${r.outcome.includes('Died') ? 'text-rose-600' : 'text-teal-700'}">${r.outcome}</td>
+          <td class="p-3 text-center">
+            <button onclick="window.print()" class="p-1.5 bg-slate-800 text-white rounded hover:bg-slate-700" title="Print Official Questionnaire"><i class="fa-solid fa-print"></i></button>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // 4. Load KPI Summary Stats
     async function loadDashboardStats() {
       try {
         const res = await fetch(`${API_BASE}/stats`);
@@ -930,78 +990,7 @@
           document.getElementById('statSuspected').textContent = result.data.suspected;
           document.getElementById('statDeaths').textContent = result.data.deaths;
         }
-      } catch (err) {
-        console.error('Error loading stats:', err);
-      }
-    }
-
-    // 5. Delete Case API Call
-    async function deleteCaseRecord(id) {
-      if (!confirm('Are you sure you want to permanently delete this case from the database?')) return;
-      try {
-        const res = await fetch(`${API_BASE}/cases/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-          fetchRegistryCases();
-          loadDashboardStats();
-        } else {
-          alert('Failed to delete case.');
-        }
-      } catch (err) {
-        alert('Network error deleting record.');
-      }
-    }
-
-    // 6. View Case CIF Modal
-    async function viewCaseModal(id) {
-      try {
-        const res = await fetch(`${API_BASE}/cases/${id}`);
-        const result = await res.json();
-        if (!result.success) return;
-        const c = result.data;
-
-        document.getElementById('modalDocTitle').textContent = `CASE INVESTIGATION FORM: ${c.disease.toUpperCase()}`;
-        document.getElementById('modalEpidSub').textContent = `EPID ID: ${c.epid_id} | REPORT DATE: ${c.report_date}`;
-
-        const modalBody = document.getElementById('modalDetailsBody');
-        modalBody.innerHTML = `
-          <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <div><p class="text-xs text-slate-500 font-bold uppercase">Reporting DRU / Facility</p><p class="font-medium">${c.dru_name}</p></div>
-            <div><p class="text-xs text-slate-500 font-bold uppercase">Surveillance Officer</p><p class="font-medium">${c.investigator}</p></div>
-          </div>
-
-          <div class="border p-3 rounded-lg space-y-1">
-            <p class="text-xs font-bold text-teal-700 uppercase">Patient Information</p>
-            <p><strong>Name:</strong> ${c.patient_name}</p>
-            <p><strong>Age / Sex:</strong> ${c.age} years old (${c.sex})</p>
-            <p><strong>Address:</strong> ${c.barangay}, ${c.city}</p>
-            <p><strong>Contact:</strong> ${c.contact || 'N/A'}</p>
-          </div>
-
-          <div class="border p-3 rounded-lg space-y-1">
-            <p class="text-xs font-bold text-teal-700 uppercase">Clinical & Classification</p>
-            <p><strong>Disease:</strong> ${c.disease}</p>
-            <p><strong>Date Onset:</strong> ${c.date_onset}</p>
-            <p><strong>Hospitalization:</strong> ${c.hospitalized}</p>
-            <p><strong>Classification:</strong> <span class="font-bold">${c.case_classification}</span></p>
-            <p><strong>Outcome:</strong> ${c.outcome}</p>
-          </div>
-        `;
-
-        document.getElementById('caseViewModal').classList.remove('hidden');
-      } catch (err) {
-        alert('Error loading case details.');
-      }
-    }
-
-    function closeCaseModal() {
-      document.getElementById('caseViewModal').classList.add('hidden');
-    }
-
-    function resetForm() {
-      document.getElementById('pdsForm').reset();
-      document.getElementById('reportDate').valueAsDate = new Date();
-      generateEpidNumber();
-      renderDynamicDiseaseFields();
+      } catch (err) {}
     }
 
     function exportSurveillanceCSV() {
