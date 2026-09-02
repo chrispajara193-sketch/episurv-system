@@ -12,7 +12,7 @@ const db = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN || ''
 });
 
-// Ensure Table Exists
+// Auto-create database table
 async function ensureTable() {
   try {
     await db.execute(`
@@ -39,7 +39,7 @@ async function ensureTable() {
       )
     `);
   } catch (err) {
-    console.error('Table check error:', err);
+    console.error('Table init error:', err);
   }
 }
 
@@ -120,9 +120,8 @@ app.post('/api/cases', async (req, res) => {
       ]
     });
 
-    res.status(201).json({ success: true, message: 'Case successfully saved to Turso!' });
+    res.status(201).json({ success: true, message: 'Case saved!' });
   } catch (err) {
-    console.error('Save error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
