@@ -234,7 +234,7 @@
             <div>
               
               <!-- OFFICIAL HEADER (LEFT-ALIGNED TEXT WITH 0.77" LOGOS) -->
-              <div class="border-b border-black pb-1.5 mb-1.5 flex items-center justify-between">
+              <div class="border-b border-black pb-1 mb-1.5 flex items-center justify-between">
                 <div class="flex items-center space-x-2.5">
                   <div class="flex items-center space-x-1.5 shrink-0">
                     <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="header-logo-img" />
@@ -243,8 +243,8 @@
                   </div>
 
                   <div class="text-left pl-1">
-                    <p class="text-[9.5px] font-serif uppercase tracking-wider text-slate-700 leading-tight">Republic of the Philippines</p>
-                    <h2 class="text-[13px] font-black uppercase text-slate-950 leading-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
+                    <p class="text-[9px] font-serif uppercase tracking-wider text-slate-700 leading-tight">Republic of the Philippines</p>
+                    <h2 class="text-[12.5px] font-black uppercase text-slate-950 leading-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
                     <p class="text-[10px] font-bold text-slate-800 leading-tight">Quezon City, Metro Manila</p>
                     <p class="text-[8px] text-slate-600 leading-tight">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel No. 8988-4242 loc 1607 | Email: cityhealth@quezoncity.gov.ph</p>
                   </div>
@@ -457,7 +457,6 @@
                     <label class="block"><input type="checkbox" name="symp" value="Headache" /> Headache</label>
                     <label class="block"><input type="checkbox" name="symp" value="Myalgia" /> Myalgia (severe muscle pain)</label>
                     <label class="block font-bold"><input type="checkbox" name="symp" value="Calf pain / tenderness" /> Calf pain / tenderness</label>
-                    <label class="block"><input type="checkbox" name="symp" value="Prostration" /> Prostration (severe tiredness/lack of energy)</label>
                     <label class="block"><input type="checkbox" name="symp" value="Conjunctival suffusion" /> Conjunctival suffusion (red eyes)</label>
                     <label class="block"><input type="checkbox" name="symp" value="Skin Rash" /> Skin Rash</label>
                     <label class="block"><input type="checkbox" name="symp" value="Abdominal pain" /> Abdominal pain</label>
@@ -972,6 +971,14 @@
                 </tr>
               </table>
 
+              <!-- MOVED FROM PAGE 5: Outcome & Date Confirmation Box on Page 4 -->
+              <table class="qc-table mt-1.5 bg-slate-50">
+                <tr>
+                  <td class="w-1/2 font-bold"><label class="flex items-center gap-1.5"><input type="checkbox" /> <span>Died, Date (MM/DD/YYYY):</span></label><input type="date" class="cell-input mt-0.5" /></td>
+                  <td class="w-1/2 font-bold"><label class="flex items-center gap-1.5"><input type="checkbox" checked /> <span>Recovered, Date (MM/DD/YYYY):</span></label><input type="date" class="cell-input mt-0.5" /></td>
+                </tr>
+              </table>
+
             </div>
 
             <!-- PAGE 4 FOOTER -->
@@ -1007,14 +1014,6 @@
                   <p class="font-bold">CESD (Page 5)</p>
                 </div>
               </div>
-
-              <!-- Top Confirmation Box (Died / Recovered Date) -->
-              <table class="qc-table mb-1.5">
-                <tr>
-                  <td class="w-1/2 font-bold"><label class="flex items-center gap-1.5"><input type="checkbox" /> <span>Died, Date (MM/DD/YYYY):</span></label><input type="date" class="cell-input mt-1" /></td>
-                  <td class="w-1/2 font-bold"><label class="flex items-center gap-1.5"><input type="checkbox" checked /> <span>Recovered, Date (MM/DD/YYYY):</span></label><input type="date" class="cell-input mt-1" /></td>
-                </tr>
-              </table>
 
               <!-- 5. INTERVENTIONS AND CONTROL MEASURE -->
               <div class="qc-banner">5. INTERVENTIONS AND CONTROL MEASURE</div>
