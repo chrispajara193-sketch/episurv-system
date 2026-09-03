@@ -2535,13 +2535,123 @@
   const API_BASE = '/api';
   const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjwJYd_PIteMW766Ev-JS7XHdxqxgpQSGhdeFeF1U-kV1-K92Q3if-V9sswZ8lmlDX/exec";
 
+  // 🔐 OFFICIAL CREDENTIALS DATABASE (All 15 Accounts)
+  const AUTH_CREDENTIALS = {
+    "nicxdumlao.qcesu@gmail.com": "Pinuno2026",
+    "qcesd.d2esu@quezoncity.gov.ph": "D2Core2026",
+    "qcesu.bagongsilangan@quezoncity.gov.ph": "BS2026",
+    "qcesu.batasanannex@quezoncity.gov.ph": "BHA2026",
+    "qcesu.batasanhills@quezoncity.gov.ph": "BHS2026",
+    "qcesu.bettygo@quezoncity.gov.ph": "BGB2026",
+    "qcesu.holyspirit@quezoncity.gov.ph": "HS2026",
+    "qcesu.veterans@quezoncity.gov.ph": "VET2026",
+    "republichealthcenter.qchd@quezoncity.gov.ph": "REP2026",
+    "qcesu.commonwealth@quezoncity.gov.ph": "COM2026",
+    "qcesu.natgov@quezoncity.gov.ph": "NGC2026",
+    "qcesu.lupangpangako@quezoncity.gov.ph": "LP2026",
+    "qcesu.payatas@quezoncity.gov.ph": "PA2026",
+    "qcesu.payatasb@quezoncity.gov.ph": "PB2026",
+    "qcesu.payatassuper@quezoncity.gov.ph": "PS2026"
+  };
+
+  // 🚪 LOGIN HANDLER
+  function handleLogin(e) {
+    if (e) e.preventDefault();
+
+    const cyberIdInput = document.getElementById('loginCyberId');
+    const passcodeInput = document.getElementById('loginPasscode');
+    const rememberCheckbox = document.getElementById('rememberAccount');
+    const errorNotice = document.getElementById('loginError');
+
+    const enteredId = (cyberIdInput?.value || '').trim().toLowerCase();
+    const enteredPass = (passcodeInput?.value || '').trim();
+
+    // Check credentials
+    if (AUTH_CREDENTIALS[enteredId] && AUTH_CREDENTIALS[enteredId] === enteredPass) {
+      // ✅ SUCCESSFUL LOGIN
+
+      // Handle "Remember my account"
+      if (rememberCheckbox?.checked) {
+        localStorage.setItem('EPISURV_REMEMBER_ID', cyberIdInput.value.trim());
+        localStorage.setItem('EPISURV_REMEMBER_PASS', enteredPass);
+        localStorage.setItem('EPISURV_REMEMBER_ACTIVE', 'true');
+      } else {
+        localStorage.removeItem('EPISURV_REMEMBER_ID');
+        localStorage.removeItem('EPISURV_REMEMBER_PASS');
+        localStorage.removeItem('EPISURV_REMEMBER_ACTIVE');
+      }
+
+      // Mark user as logged in for this browser session
+      sessionStorage.setItem('EPISURV_LOGGED_IN', 'true');
+      sessionStorage.setItem('EPISURV_USER_EMAIL', enteredId);
+
+      // Hide error
+      if (errorNotice) errorNotice.classList.add('hidden');
+
+      // 🔓 UNLOCK THE APPLICATION
+      document.getElementById('loginScreen')?.classList.add('hidden');
+      document.getElementById('protectedApp')?.classList.remove('hidden');
+
+      // Initialize forms, slides, and cases
+      changeQuestionnaireForm();
+      fetchRegistryCases();
+      initSlides();
+
+    } else {
+      // ❌ INVALID CREDENTIALS
+      if (errorNotice) errorNotice.classList.remove('hidden');
+      if (passcodeInput) passcodeInput.value = '';
+    }
+  }
+
+  // 🚪 LOGOUT HANDLER
+  function handleLogout() {
+    sessionStorage.removeItem('EPISURV_LOGGED_IN');
+    sessionStorage.removeItem('EPISURV_USER_EMAIL');
+
+    // Hide app, show login screen
+    document.getElementById('protectedApp')?.classList.add('hidden');
+    document.getElementById('loginScreen')?.classList.remove('hidden');
+
+    // Reload remembered credentials if any
+    loadRememberedCredentials();
+  }
+
+  // 💾 PRE-FILL SAVED ACCOUNT CREDENTIALS
+  function loadRememberedCredentials() {
+    const isRemembered = localStorage.getItem('EPISURV_REMEMBER_ACTIVE') === 'true';
+    const savedId = localStorage.getItem('EPISURV_REMEMBER_ID') || '';
+    const savedPass = localStorage.getItem('EPISURV_REMEMBER_PASS') || '';
+
+    const idInput = document.getElementById('loginCyberId');
+    const passInput = document.getElementById('loginPasscode');
+    const rememberBox = document.getElementById('rememberAccount');
+
+    if (idInput) idInput.value = savedId;
+    if (passInput) passInput.value = savedPass;
+    if (rememberBox) rememberBox.checked = isRemembered;
+  }
+
   // 🚀 RUNS AUTOMATICALLY ON PAGE LOAD
   window.addEventListener('DOMContentLoaded', () => {
+    // Set default dates
     if (document.getElementById('reportDate')) document.getElementById('reportDate').valueAsDate = new Date();
     if (document.getElementById('v_reportDate')) document.getElementById('v_reportDate').valueAsDate = new Date();
-    changeQuestionnaireForm();
-    fetchRegistryCases();
-    initSlides(); // Activates the slide view
+
+    // Check if user already logged in during this session
+    const isLoggedIn = sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true';
+
+    if (isLoggedIn) {
+      document.getElementById('loginScreen')?.classList.add('hidden');
+      document.getElementById('protectedApp')?.classList.remove('hidden');
+      changeQuestionnaireForm();
+      fetchRegistryCases();
+      initSlides();
+    } else {
+      document.getElementById('protectedApp')?.classList.add('hidden');
+      document.getElementById('loginScreen')?.classList.remove('hidden');
+      loadRememberedCredentials(); // Pre-fills Cyber ID & Passcode if Remembered
+    }
   });
 
   function autoCalcAgeBreakdown() {
