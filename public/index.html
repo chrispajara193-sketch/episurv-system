@@ -198,6 +198,19 @@
 
     <!-- TAB 1: OFFICIAL QUESTIONNAIRE FORM -->
     <section id="questionnaireTab" class="space-y-6">
+
+      <!-- GOOGLE SHEET CASE ID SEARCH BAR -->
+      <div class="bg-teal-950 p-3 rounded-lg border border-teal-400 flex flex-wrap items-center justify-between gap-3 mb-4 no-print">
+        <div class="flex items-center gap-2 flex-1 min-w-[280px]">
+          <i class="fa-solid fa-file-excel text-emerald-400 text-lg"></i>
+          <span class="text-xs font-bold text-white uppercase">Google Sheet Case Lookup:</span>
+        <input type="text" id="sheetSearchCaseId" placeholder="Enter Case ID (e.g., QC-2026-001)" class="bg-slate-800 text-white font-mono px-3 py-1.5 rounded border border-teal-500 text-xs flex-1 focus:outline-none" />
+      </div>
+      <button type="button" onclick="fetchAndAutofillFromSheet()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded shadow flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-bolt"></i> Lookup & Autofill Form
+        </button>
+      </div>
+
       <form id="masterEpiForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
 
         <!-- DISEASE SELECTOR BAR (Screen Only) -->
@@ -2345,6 +2358,15 @@
     function exportSurveillanceCSV() {
       window.location.href = `${API_BASE}/export-csv`;
     }
+
+        const API_BASE = '/api';
+    // 🟢 PASTE YOUR GOOGLE APPS SCRIPT URL HERE:
+    const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjwJYd_PIteMW766Ev-JS7XHdxqxgpQSGhdeFeF1U-kV1-K92Q3if-V9sswZ8lmlDX/exec";
+
+    async function fetchAndAutofillFromSheet(e) {
+      // (Autofill function code goes here...)
+    }
+
   </script>
 </body>
 </html>
