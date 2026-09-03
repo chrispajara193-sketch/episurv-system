@@ -356,9 +356,8 @@
       </div>
 
       <div class="text-center mb-8">
-        <h2 class="text-xs uppercase tracking-widest font-semibold text-teal-200">Republic of the Philippines</h2>
-        <h1 class="text-base font-black uppercase tracking-wide text-white mt-1">Quezon City Health Department</h1>
-        <p class="text-[11px] font-bold text-slate-200 mt-0.5">Epidemiology & Disease Surveillance Division</p>
+        <h1 class="text-base font-black uppercase tracking-wide text-white mt-1">Epidemiology & Disease Surveillance Division</h1>
+        <p class="text-[11px] font-bold text-slate-200 mt-0.5">District 2</p>
         <div class="inline-block mt-3 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-black/20 text-teal-200 border border-white/10">
           <i class="fa-solid fa-shield-halved mr-1"></i> Authorized Personnel Login
         </div>
@@ -396,6 +395,14 @@
               placeholder="Enter Security Passcode" 
               class="neumorph-input w-full px-4 py-3 text-xs font-semibold rounded-xl"
             />
+            <button 
+              type="button" 
+              onclick="togglePasscodeVisibility()" 
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-200 hover:text-white transition focus:outline-none p-1 cursor-pointer"
+              title="Show/Hide Passcode"
+            >
+              <i id="passcodeToggleIcon" class="fa-solid fa-eye text-xs"></i>
+            </button>
           </div>
         </div>
 
@@ -405,7 +412,6 @@
             <input type="checkbox" id="rememberAccount" class="neumorph-checkbox" />
             <span>Remember my account</span>
           </label>
-          <span class="text-[10px] font-bold text-teal-200 uppercase tracking-wide">District 2</span>
         </div>
 
         <!-- Login Error Notice -->
@@ -2601,6 +2607,23 @@
       // ❌ INVALID CREDENTIALS
       if (errorNotice) errorNotice.classList.remove('hidden');
       if (passcodeInput) passcodeInput.value = '';
+    }
+  }
+
+  // 👁️ TOGGLE PASSWORD VISIBILITY (SHOW / HIDE)
+  function togglePasscodeVisibility() {
+    const passInput = document.getElementById('loginPasscode');
+    const icon = document.getElementById('passcodeToggleIcon');
+    if (!passInput || !icon) return;
+
+    if (passInput.type === 'password') {
+      passInput.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      passInput.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
     }
   }
 
