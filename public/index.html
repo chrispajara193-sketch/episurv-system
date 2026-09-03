@@ -2360,6 +2360,50 @@
     }
   }
 
+  // 🎯 SPECIFIC SETTER: Fill DRU inside 2.2 Medical Consultation -> Place of Consultation (1st Row)
+  function fillConsultationPlace(druValue) {
+    if (!druValue) return;
+
+    // 1. Direct ID matches for the 1st consultation row
+    const targetIds = [
+      'consultPlace1', 'v_consultPlace1', 
+      'consultFacility1', 'v_consultFacility1', 
+      'placeOfConsultation1', 'v_placeOfConsultation1',
+      'consult1_place', 'v_consult1_place',
+      'placeOfConsultation', 'v_placeOfConsultation',
+      'consultPlace', 'v_consultPlace'
+    ];
+
+    let filled = false;
+    for (const id of targetIds) {
+      const el = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+      if (el) {
+        applyValToElement(el, druValue);
+        filled = true;
+      }
+    }
+
+    // 2. DOM-based table scanner for section 2.2
+    const tables = document.querySelectorAll('#printableQuestionnaire table, table');
+    for (const tbl of tables) {
+      const tblText = tbl.textContent.toLowerCase();
+      if (tblText.includes('place of consultation') && (tblText.includes('1st') || tblText.includes('admitted'))) {
+        const rows = tbl.querySelectorAll('tr');
+        for (const row of rows) {
+          if (row.textContent.toLowerCase().includes('1st')) {
+            // Target the first text input inside the '1st' row (Place of Consultation)
+            const input = row.querySelector('input[type="text"], input:not([type])');
+            if (input) {
+              applyValToElement(input, druValue);
+              filled = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
   // ⚡ GOOGLE SHEET CASE ID AUTOFILL FUNCTION
   async function fetchAndAutofillFromSheet() {
     const inputEl = document.getElementById('sheetSearchCaseId');
@@ -2409,7 +2453,7 @@
       const cleanStr = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
       const getField = (...keys) => {
-        // Direct key check
+        // Direct key match
         for (const k of keys) {
           if (d[k] !== undefined && d[k] !== null && String(d[k]).trim() !== '') return String(d[k]).trim();
         }
@@ -2439,7 +2483,6 @@
         return '';
       };
 
-      // Helper to set by multiple element IDs / name attributes
       const setVal = (targets, rawVal, isDate = false) => {
         if (rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
         const idList = Array.isArray(targets) ? targets : [targets];
@@ -2456,17 +2499,15 @@
         }
       };
 
-      // 🎯 STEP 3: EXTRACT VALUES USING YOUR EXACT GOOGLE SHEET HEADERS
+      // 🎯 STEP 3: EXTRACT VALUES FROM SHEET
       const caseIdVal = getField('CASE_ID', 'case_id', 'caseid', 'epid_id', 'case_no') || caseIdInput;
       const druVal = getField('DRU', 'dru', 'dru_name', 'health_center', 'facility');
       const firstNameVal = getField('FIRST_NAME', 'first_name', 'firstname', 'given_name');
       const lastNameVal = getField('LAST_NAME', 'last_name', 'lastname', 'surname', 'family_name');
       const middleNameVal = getField('MIDDLE_NAME', 'middle_name', 'middlename');
-      // Matches DATE_OF_BIRT (with or without 'H')
       const dobVal = getField('DATE_OF_BIRT', 'DATE_OF_BIRTH', 'date_of_birt', 'date_of_birth', 'dob', 'birthdate');
       const dateOnsetVal = getField('DATE_ONSET_OF_ILLNESS', 'DATE_ONSET', 'date_onset_of_illness', 'date_onset', 'onset');
       const dateAdmittedVal = getField('DATE_ADMITTED', 'date_admitted', 'admission_date');
-      const barangayVal = getField('BARANGAY', 'barangay', 'brgy');
       const sitioVal = getField('SITIO', 'sitio', 'purok', 'street');
       const cityVal = getField('CURRENT_ADDRESS_CITY_MUNICIPALITY', 'city', 'municipality') || 'Quezon City';
 
@@ -2476,25 +2517,13 @@
       setVal(['epidId', 'caseRefId', 'v_caseId', 'v_caseRefId', 'v_epidId', 'caseId', 'case_id', 'v_case_id'], caseIdVal);
       fillByLabelOrPlaceholder(['case id', 'case no'], caseIdVal);
 
-      // 2. Disease Reporting Unit (DRU)
-      setVal(['DiseaseReportingUnit', 'druName', 'v_druName', 'dru', 'v_dru', 'DRU', 'v_healthCenter'], druVal);
-      fillByLabelOrPlaceholder(['disease reporting unit', 'health center / hospital', 'health center/hospital'], druVal);
+      // 2. DRU -> Specifically placed inside 2.2 Medical Consultation (Place of Consultation 1st Row)
+      // (Autofill in Disease Reporting Unit header has been removed)
+      fillConsultationPlace(druVal);
 
-      // 🎯 3. "Place of Consultation" filled with DRU (Column C)
-      setVal([
-        'placeOfConsultation', 'v_placeOfConsultation', 'place_of_consultation', 'v_place_of_consultation',
-        'consultPlace', 'v_consultPlace', 'consultPlace1', 'v_consultPlace1',
-        'consultFacility', 'v_consultFacility', 'consultFacility1', 'v_consultFacility1',
-        'placeConsulted', 'v_placeConsulted', 'facilityConsulted', 'v_facilityConsulted',
-        'hospitalConsulted', 'v_hospitalConsulted', 'nameOfHospital', 'v_nameOfHospital',
-        'consultationPlace', 'v_consultationPlace'
-      ], druVal);
-      fillByLabelOrPlaceholder([
-        'place of consultation', 'consultation place', 'facility consulted', 
-        'hospital consulted', 'name of hospital / clinic', 'hospital / clinic consulted', 'place consulted'
-      ], druVal);
+      // (Autofill in Barangay has been removed)
 
-      // 4. Patient Demographics
+      // 3. Patient Profile: Last, First, Middle Name
       setVal(['patientLastName', 'v_patientLastName', 'lastName', 'v_lastName', 'lname', 'v_lname', 'LAST_NAME', 'last_name'], lastNameVal);
       fillByLabelOrPlaceholder(['last name', 'surname', 'family name'], lastNameVal);
 
@@ -2504,12 +2533,11 @@
       setVal(['patientMiddleName', 'v_patientMiddleName', 'middleName', 'v_middleName', 'mname', 'v_mname', 'MIDDLE_NAME', 'middle_name'], middleNameVal);
       fillByLabelOrPlaceholder(['middle name'], middleNameVal);
 
-      // 5. Date of Birth & Automatic Age Calculation
+      // 4. Date of Birth & Automatic Age Calculation
       setVal(['dob', 'v_dob', 'birthDate', 'v_birthDate', 'dateOfBirth', 'v_dateOfBirth', 'DATE_OF_BIRT', 'date_of_birth'], dobVal, true);
       fillByLabelOrPlaceholder(['date of birth', 'birth date'], dobVal, true);
       autoCalcAgeBreakdown();
 
-      // If Age input is still empty, calculate directly from dobVal
       if (dobVal) {
         const parsedDob = new Date(dobVal);
         if (!isNaN(parsedDob.getTime())) {
@@ -2524,7 +2552,7 @@
         }
       }
 
-      // Infer Sex if present or from Case ID suffix (e.g. ...M or ...F)
+      // Infer Sex if available
       let sexVal = getField('sex', 'gender', 'kasarian');
       if (!sexVal && caseIdVal) {
         if (caseIdVal.trim().toUpperCase().endsWith('M')) sexVal = 'Male';
@@ -2535,17 +2563,14 @@
         fillByLabelOrPlaceholder(['sex at birth', 'sex', 'gender'], sexVal);
       }
 
-      // 6. Address Information
-      setVal(['Barangay', 'druBarangay', 'v_druBarangay', 'patientBarangay', 'v_patientBarangay', 'barangay', 'v_barangay'], barangayVal);
-      fillByLabelOrPlaceholder(['barangay', 'brgy'], barangayVal);
-
+      // 5. Address Details (Sitio & City only - Barangay skipped as requested)
       setVal(['sitio', 'v_sitio', 'streetAddress', 'v_streetAddress', 'houseBldg', 'v_houseBldg', 'address', 'v_address'], sitioVal);
       fillByLabelOrPlaceholder(['sitio', 'purok', 'street address'], sitioVal);
 
       setVal(['city', 'v_city', 'municipality', 'v_municipality', 'patientCity'], cityVal);
       fillByLabelOrPlaceholder(['city', 'municipality'], cityVal);
 
-      // 7. Clinical Dates
+      // 6. Clinical Dates
       setVal(['dateOnset', 'v_dateOnset', 'date_onset', 'v_date_onset', 'dateOnsetOfIllness', 'v_dateOnsetOfIllness', 'DATE_ONSET_OF_ILLNESS'], dateOnsetVal, true);
       fillByLabelOrPlaceholder(['date of onset', 'date onset', 'onset of illness'], dateOnsetVal, true);
 
@@ -2554,12 +2579,11 @@
 
       console.log('✅ Extracted & Applied Data:', {
         caseId: caseIdVal,
-        dru: druVal,
-        placeOfConsultation: druVal,
+        consultationPlace_2_2: druVal,
         firstName: firstNameVal,
         lastName: lastNameVal,
         dob: dobVal,
-        barangay: barangayVal,
+        sitio: sitioVal,
         onset: dateOnsetVal,
         admitted: dateAdmittedVal
       });
