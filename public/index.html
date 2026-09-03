@@ -176,26 +176,6 @@
 
   <main class="max-w-7xl mx-auto px-2 sm:px-4 py-6">
 
-    <!-- KPI STATS (Screen Only) -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 no-print">
-      <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
-        <p class="text-[11px] font-bold text-slate-500 uppercase">Total Logged Cases</p>
-        <h3 id="statTotalCases" class="text-2xl font-black text-slate-900 mt-1">0</h3>
-      </div>
-      <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
-        <p class="text-[11px] font-bold text-emerald-600 uppercase">Confirmed Cases</p>
-        <h3 id="statConfirmed" class="text-2xl font-black text-emerald-600 mt-1">0</h3>
-      </div>
-      <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
-        <p class="text-[11px] font-bold text-amber-500 uppercase">Suspected / Probable</p>
-        <h3 id="statSuspected" class="text-2xl font-black text-amber-500 mt-1">0</h3>
-      </div>
-      <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
-        <p class="text-[11px] font-bold text-rose-600 uppercase">Deaths / Mortality</p>
-        <h3 id="statDeaths" class="text-2xl font-black text-rose-600 mt-1">0</h3>
-      </div>
-    </div>
-
     <!-- TAB 1: OFFICIAL QUESTIONNAIRE FORM -->
     <section id="questionnaireTab" class="space-y-6">
 
@@ -2183,15 +2163,6 @@
   const API_BASE = '/api';
   const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjwJYd_PIteMW766Ev-JS7XHdxqxgpQSGhdeFeF1U-kV1-K92Q3if-V9sswZ8lmlDX/exec";
 
-  window.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('reportDate')) document.getElementById('reportDate').valueAsDate = new Date();
-    if (document.getElementById('v_reportDate')) document.getElementById('v_reportDate').valueAsDate = new Date();
-    generateEpidNumber();
-    changeQuestionnaireForm();
-    loadDashboardStats();
-    fetchRegistryCases();
-  });
-
   function generateEpidNumber() {
     const yr = new Date().getFullYear();
     const rand = Math.floor(10000 + Math.random() * 90000);
@@ -2804,13 +2775,11 @@
 
       if (res.ok) {
         alert(`✅ Questionnaire for ${fullName} (${payload.epid_id}) saved to Cloud Database!`);
-        loadDashboardStats();
         fetchRegistryCases();
         switchTab('registryTab');
       } else {
         saveLocalBackup(payload);
         alert(`⚠️ Cloud notice: ${data.error || 'Saved locally in registry.'}`);
-        loadDashboardStats();
         fetchRegistryCases();
         switchTab('registryTab');
       }
@@ -2818,7 +2787,6 @@
       console.warn('Network issue, saved to local registry backup:', err);
       saveLocalBackup(payload);
       alert(`✅ Questionnaire for ${fullName} (${payload.epid_id}) saved to Local Registry Backup!`);
-      loadDashboardStats();
       fetchRegistryCases();
       switchTab('registryTab');
     }
@@ -2885,19 +2853,6 @@
       `;
       tbody.appendChild(tr);
     });
-  }
-
-  async function loadDashboardStats() {
-    try {
-      const res = await fetch(`${API_BASE}/stats`);
-      const result = await res.json();
-      if (result.success) {
-        if (document.getElementById('statTotalCases')) document.getElementById('statTotalCases').textContent = result.data.total;
-        if (document.getElementById('statConfirmed')) document.getElementById('statConfirmed').textContent = result.data.confirmed;
-        if (document.getElementById('statSuspected')) document.getElementById('statSuspected').textContent = result.data.suspected;
-        if (document.getElementById('statDeaths')) document.getElementById('statDeaths').textContent = result.data.deaths;
-      }
-    } catch (err) {}
   }
 
   function exportSurveillanceCSV() {
