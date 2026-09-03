@@ -327,8 +327,7 @@
         </button>
       </div>
 
-      <form id="masterEpiForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
-
+<form id="masterEpiForm" onsubmit="handleFormSubmit(event)" novalidate class="space-y-4">
         <!-- MINIMAL TOP BAR WITH 3-LINE SIDEBAR TOGGLE -->
         <div class="flex items-center justify-between gap-3 mb-4 no-print">
           <!-- 3-Lines Hamburger Button -->
@@ -2276,10 +2275,10 @@
           <button type="button" onclick="window.print()" class="px-6 py-2.5 rounded-lg border-2 border-slate-800 bg-slate-800 text-white font-bold text-xs hover:bg-slate-900 transition flex items-center gap-2 shadow">
             <i class="fa-solid fa-print"></i> Print Official Document
           </button>
-          <button type="submit" class="px-6 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-black text-xs shadow transition flex items-center gap-2">
-            <i class="fa-solid fa-floppy-disk"></i> Save & Log Case to Cloud Database
-          </button>
-        </div>
+            <button type="button" onclick="handleFormSubmit(event)" class="px-6 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-black text-xs shadow transition flex items-center gap-2 cursor-pointer">
+              <i class="fa-solid fa-floppy-disk"></i> Save & Log Case to Cloud Database
+          </button>  
+      </div>
 
       </form>
     </section>
@@ -2887,7 +2886,7 @@
 
   // FORM SUBMIT HANDLER
   async function handleFormSubmit(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
 
     const isVector = document.getElementById('diseaseSelect').value.includes('Vectorborne');
 
