@@ -2207,7 +2207,7 @@
   function detectAndSwitchDisease(d, caseIdInput) {
     let textPool = '';
 
-    const targetKeywords = ['disease', 'diagnosis', 'morbidity', 'condition', 'notifiable', 'category', 'syndrome', 'casedisease'];
+    const targetKeywords = ['disease', 'diagnosis', 'morbidity', 'condition', 'notifiable', 'category', 'syndrome', 'casedisease', 'diseasename'];
     for (let key in d) {
       const cleanKey = key.toLowerCase().replace(/[\s_\-\/\.]/g, '');
       if (targetKeywords.some(k => cleanKey.includes(k))) {
@@ -2223,31 +2223,36 @@
 
     textPool += ' ' + (caseIdInput || '').toLowerCase();
 
-    let matchedOption = '';
+    let matchedKeyword = '';
     if (textPool.includes('dengue') || textPool.includes('chikungunya') || textPool.includes('malaria') || textPool.includes('denv') || textPool.includes('vector')) {
-      matchedOption = 'Vectorborne - Dengue';
+      matchedKeyword = 'vector';
     } else if (textPool.includes('lepto') || textPool.includes('leptospirosis') || textPool.includes('weil')) {
-      matchedOption = 'Leptospirosis';
+      matchedKeyword = 'lepto';
     } else if (textPool.includes('diphtheria') || textPool.includes('diph')) {
-      matchedOption = 'Diphtheria';
+      matchedKeyword = 'diphtheria';
     } else if (textPool.includes('mpox') || textPool.includes('monkeypox')) {
-      matchedOption = 'Mpox';
+      matchedKeyword = 'mpox';
     } else if (textPool.includes('rabies') || textPool.includes('bite') || textPool.includes('hydrophobia')) {
-      matchedOption = 'Rabies';
+      matchedKeyword = 'rabies';
     } else if (textPool.includes('diarrhea') || textPool.includes('diarrhoea') || textPool.includes('abd') || textPool.includes('cholera') || textPool.includes('typhoid') || textPool.includes('fwbd')) {
-      matchedOption = 'FWBD - Acute Bloody Diarrhea';
+      matchedKeyword = 'bloody diarrhea';
     } else if (textPool.includes('measles') || textPool.includes('rubella') || textPool.includes('tigdas')) {
-      matchedOption = 'Measles_Rubella';
+      matchedKeyword = 'measles';
     } else if (textPool.includes('pertussis') || textPool.includes('whooping')) {
-      matchedOption = 'Pertussis';
+      matchedKeyword = 'pertussis';
     } else if (textPool.includes('covid') || textPool.includes('sari') || textPool.includes('ili') || textPool.includes('influenza') || textPool.includes('panrespi')) {
-      matchedOption = 'Panrespi';
+      matchedKeyword = 'panrespi';
     }
 
-    if (matchedOption) {
+    if (matchedKeyword) {
       const diseaseDropdown = document.getElementById('diseaseSelect');
       if (diseaseDropdown) {
-        diseaseDropdown.value = matchedOption;
+        for (let opt of diseaseDropdown.options) {
+          if (opt.value.toLowerCase().includes(matchedKeyword) || opt.text.toLowerCase().includes(matchedKeyword)) {
+            diseaseDropdown.value = opt.value;
+            break;
+          }
+        }
         changeQuestionnaireForm();
       }
     }
@@ -2256,9 +2261,14 @@
   // ⚡ HELPER: Converts Google Sheet / ISO date strings to YYYY-MM-DD for <input type="date">
   function formatDateForInput(dateVal) {
     if (!dateVal) return '';
-    if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateVal.trim())) {
-      return dateVal.trim();
+    const str = String(dateVal).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+
+    const mdy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (mdy) {
+      return `${mdy[3]}-${mdy[1].padStart(2, '0')}-${mdy[2].padStart(2, '0')}`;
     }
+
     const d = new Date(dateVal);
     if (!isNaN(d.getTime())) {
       const yr = d.getFullYear();
@@ -2266,7 +2276,88 @@
       const da = String(d.getDate()).padStart(2, '0');
       return `${yr}-${mo}-${da}`;
     }
-    return dateVal;
+    return str;
+  }
+
+  // Helper to apply values to inputs, selects, or radio/checkboxes
+  function applyValToElement(el, rawVal, isDate = false) {
+    if (!el || rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
+    const val = isDate ? formatDateForInput(rawVal) : String(rawVal).trim();
+
+    if (el.tagName === 'SELECT') {
+      const valStr = val.toLowerCase();
+      let matched = false;
+      for (const opt of el.options) {
+        const ov = opt.value.trim().toLowerCase();
+        const ot = opt.text.trim().toLowerCase();
+        if (ov === valStr || ot === valStr) {
+          el.value = opt.value;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        for (const opt of el.options) {
+          const ov = opt.value.trim().toLowerCase();
+          const ot = opt.text.trim().toLowerCase();
+          if (ov && (ov.includes(valStr) || valStr.includes(ov))) {
+            el.value = opt.value;
+            matched = true;
+            break;
+          }
+          if (ot && (ot.includes(valStr) || valStr.includes(ot))) {
+            el.value = opt.value;
+            matched = true;
+            break;
+          }
+        }
+      }
+    } else if (el.type === 'checkbox') {
+      el.checked = (val.toLowerCase() === 'yes' || val.toLowerCase() === 'true' || val === '1');
+    } else if (el.type === 'radio') {
+      if (el.value.toLowerCase() === val.toLowerCase()) el.checked = true;
+    } else {
+      el.value = val;
+    }
+
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  // 🎯 Search elements by visible label text or placeholder
+  function fillByLabelOrPlaceholder(searchTerms, rawVal, isDate = false) {
+    if (rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
+    const terms = (Array.isArray(searchTerms) ? searchTerms : [searchTerms]).map(t => String(t).toLowerCase().trim());
+
+    // 1. Placeholder check
+    for (const term of terms) {
+      const inputs = document.querySelectorAll(`input[placeholder*="${term}" i], textarea[placeholder*="${term}" i]`);
+      inputs.forEach(input => applyValToElement(input, rawVal, isDate));
+    }
+
+    // 2. Nearby label or header text check
+    const containers = document.querySelectorAll('label, th, td, div, span, p');
+    for (const el of containers) {
+      if (el.children.length > 2) continue;
+      const txt = el.textContent.trim().toLowerCase().replace(/[:\*\?]/g, '');
+      for (const term of terms) {
+        if (txt === term || txt.startsWith(term)) {
+          let input = el.querySelector('input, select, textarea');
+          if (!input && el.nextElementSibling) {
+            input = el.nextElementSibling.matches('input, select, textarea') ? 
+                    el.nextElementSibling : 
+                    el.nextElementSibling.querySelector('input, select, textarea');
+          }
+          if (!input && el.parentElement) {
+            input = el.parentElement.querySelector('input, select, textarea');
+          }
+          if (input && input !== el) {
+            applyValToElement(input, rawVal, isDate);
+            break;
+          }
+        }
+      }
+    }
   }
 
   // ⚡ GOOGLE SHEET CASE ID AUTOFILL FUNCTION
@@ -2293,11 +2384,10 @@
       const result = await res.json();
 
       if (!result.success) {
-        alert(`⚠️ ${result.message || 'Case ID not found in Google Sheet Column C.'}`);
+        alert(`⚠️ ${result.message || 'Case ID not found in Google Sheet.'}`);
         return;
       }
 
-      // Handle array or object data format from Google Apps Script
       let d = result.data;
       if (Array.isArray(d)) {
         if (d.length > 0 && typeof d[0] === 'object' && !Array.isArray(d[0])) {
@@ -2315,40 +2405,43 @@
       // 🎯 STEP 1: AUTO-DETECT AND SWITCH DISEASE FORM
       detectAndSwitchDisease(d, caseIdInput);
 
-      // 🎯 STEP 2: FLEXIBLE HEADER MATCHER
+      // 🎯 STEP 2: EXACT & FUZZY HEADER LOOKUP
       const cleanStr = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
       const getField = (...keys) => {
-        // Pass 1: Exact match on alphanumeric keys
+        // Direct key check
+        for (const k of keys) {
+          if (d[k] !== undefined && d[k] !== null && String(d[k]).trim() !== '') return String(d[k]).trim();
+        }
+        // Cleaned exact match
         for (const k of keys) {
           const ck = cleanStr(k);
           if (!ck) continue;
           for (const dataKey in d) {
             if (cleanStr(dataKey) === ck) {
               const val = d[dataKey];
-              if (val !== undefined && val !== null && String(val).trim() !== '') return val;
+              if (val !== undefined && val !== null && String(val).trim() !== '') return String(val).trim();
             }
           }
         }
-        // Pass 2: Loose partial match
+        // Partial includes match
         for (const k of keys) {
           const ck = cleanStr(k);
           if (ck.length < 3) continue;
           for (const dataKey in d) {
             const cd = cleanStr(dataKey);
-            if (cd.includes(ck) || ck.includes(cd)) {
+            if (cd && (cd.includes(ck) || ck.includes(cd))) {
               const val = d[dataKey];
-              if (val !== undefined && val !== null && String(val).trim() !== '') return val;
+              if (val !== undefined && val !== null && String(val).trim() !== '') return String(val).trim();
             }
           }
         }
         return '';
       };
 
-      // 🎯 STEP 3: SAFE VALUE SETTER ACROSS MULTIPLE ELEMENT IDS
+      // Helper to set by multiple element IDs / name attributes
       const setVal = (targets, rawVal, isDate = false) => {
         if (rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
-        const val = isDate ? formatDateForInput(rawVal) : String(rawVal).trim();
         const idList = Array.isArray(targets) ? targets : [targets];
 
         for (const target of idList) {
@@ -2358,155 +2451,120 @@
           ].filter((el, idx, self) => el && self.indexOf(el) === idx);
 
           for (const el of els) {
-            if (el.tagName === 'SELECT') {
-              const valStr = val.toLowerCase();
-              let matched = false;
-
-              // Exact option match
-              for (const opt of el.options) {
-                const ov = opt.value.trim().toLowerCase();
-                const ot = opt.text.trim().toLowerCase();
-                if (ov === valStr || ot === valStr) {
-                  el.value = opt.value;
-                  matched = true;
-                  break;
-                }
-              }
-              // Loose option match
-              if (!matched) {
-                for (const opt of el.options) {
-                  const ov = opt.value.trim().toLowerCase();
-                  const ot = opt.text.trim().toLowerCase();
-                  if (ov && (ov.includes(valStr) || valStr.includes(ov))) {
-                    el.value = opt.value;
-                    matched = true;
-                    break;
-                  }
-                  if (ot && (ot.includes(valStr) || valStr.includes(ot))) {
-                    el.value = opt.value;
-                    matched = true;
-                    break;
-                  }
-                }
-              }
-            } else if (el.type === 'checkbox') {
-              el.checked = (val.toLowerCase() === 'yes' || val.toLowerCase() === 'true' || val === '1');
-            } else if (el.type === 'radio') {
-              if (el.value.toLowerCase() === val.toLowerCase()) el.checked = true;
-            } else {
-              el.value = val;
-            }
-
-            el.dispatchEvent(new Event('input', { bubbles: true }));
-            el.dispatchEvent(new Event('change', { bubbles: true }));
+            applyValToElement(el, rawVal, isDate);
           }
         }
       };
 
-      // 1. Identification & Case ID
-      const foundCaseId = getField('case_id', 'caseid', 'epid_id', 'epidid', 'case_no', 'caseno', 'casenumber', 'id') || caseIdInput;
-      setVal(['epidId', 'caseRefId', 'v_caseId', 'v_caseRefId', 'v_epidId', 'caseId', 'case_id'], foundCaseId);
+      // 🎯 STEP 3: EXTRACT VALUES USING YOUR EXACT GOOGLE SHEET HEADERS
+      const caseIdVal = getField('CASE_ID', 'case_id', 'caseid', 'epid_id', 'case_no') || caseIdInput;
+      const druVal = getField('DRU', 'dru', 'dru_name', 'health_center', 'facility');
+      const firstNameVal = getField('FIRST_NAME', 'first_name', 'firstname', 'given_name');
+      const lastNameVal = getField('LAST_NAME', 'last_name', 'lastname', 'surname', 'family_name');
+      const middleNameVal = getField('MIDDLE_NAME', 'middle_name', 'middlename');
+      // Matches DATE_OF_BIRT (with or without 'H')
+      const dobVal = getField('DATE_OF_BIRT', 'DATE_OF_BIRTH', 'date_of_birt', 'date_of_birth', 'dob', 'birthdate');
+      const dateOnsetVal = getField('DATE_ONSET_OF_ILLNESS', 'DATE_ONSET', 'date_onset_of_illness', 'date_onset', 'onset');
+      const dateAdmittedVal = getField('DATE_ADMITTED', 'date_admitted', 'admission_date');
+      const barangayVal = getField('BARANGAY', 'barangay', 'brgy');
+      const sitioVal = getField('SITIO', 'sitio', 'purok', 'street');
+      const cityVal = getField('CURRENT_ADDRESS_CITY_MUNICIPALITY', 'city', 'municipality') || 'Quezon City';
 
-      // 2. Administrative / Health Center & DRU
-      const dru = getField('dru_name', 'druname', 'dru', 'health_center', 'healthcenter', 'facility', 'diseasereportingunit', 'hospital');
-      setVal(['DiseaseReportingUnit', 'druName', 'v_druName', 'dru', 'v_dru'], dru);
+      // 🎯 STEP 4: POPULATE FORM FIELDS
 
-      const druBrgy = getField('dru_barangay', 'drubarangay', 'health_center_barangay', 'barangay', 'brgy');
-      setVal(['druBarangay', 'v_druBarangay', 'Barangay'], druBrgy);
+      // 1. Case ID
+      setVal(['epidId', 'caseRefId', 'v_caseId', 'v_caseRefId', 'v_epidId', 'caseId', 'case_id', 'v_case_id'], caseIdVal);
+      fillByLabelOrPlaceholder(['case id', 'case no'], caseIdVal);
 
-      const district = getField('district', 'dru_district', 'drudistrict');
-      setVal(['district', 'v_district', 'druDistrict', 'v_druDistrict'], district);
+      // 2. Disease Reporting Unit (DRU)
+      setVal(['DiseaseReportingUnit', 'druName', 'v_druName', 'dru', 'v_dru', 'DRU', 'v_healthCenter'], druVal);
+      fillByLabelOrPlaceholder(['disease reporting unit', 'health center / hospital', 'health center/hospital'], druVal);
 
-      const inv = getField('investigator', 'investigator_name', 'dso', 'surveillance_officer', 'investigatorname');
-      setVal(['Investigator', 'investigator', 'v_investigator'], inv);
+      // 🎯 3. "Place of Consultation" filled with DRU (Column C)
+      setVal([
+        'placeOfConsultation', 'v_placeOfConsultation', 'place_of_consultation', 'v_place_of_consultation',
+        'consultPlace', 'v_consultPlace', 'consultPlace1', 'v_consultPlace1',
+        'consultFacility', 'v_consultFacility', 'consultFacility1', 'v_consultFacility1',
+        'placeConsulted', 'v_placeConsulted', 'facilityConsulted', 'v_facilityConsulted',
+        'hospitalConsulted', 'v_hospitalConsulted', 'nameOfHospital', 'v_nameOfHospital',
+        'consultationPlace', 'v_consultationPlace'
+      ], druVal);
+      fillByLabelOrPlaceholder([
+        'place of consultation', 'consultation place', 'facility consulted', 
+        'hospital consulted', 'name of hospital / clinic', 'hospital / clinic consulted', 'place consulted'
+      ], druVal);
 
-      const desig = getField('designation', 'position', 'investigator_designation', 'investigatordesignation');
-      setVal(['Designation', 'investigatorDesignation', 'v_investigatorDesignation'], desig);
+      // 4. Patient Demographics
+      setVal(['patientLastName', 'v_patientLastName', 'lastName', 'v_lastName', 'lname', 'v_lname', 'LAST_NAME', 'last_name'], lastNameVal);
+      fillByLabelOrPlaceholder(['last name', 'surname', 'family name'], lastNameVal);
 
-      const repDate = getField('report_date', 'reportdate', 'date_investigated', 'dateinvestigated', 'investigation_date');
-      setVal(['reportDate', 'v_reportDate', 'dateInvestigated', 'v_dateInvestigated'], repDate, true);
+      setVal(['patientFirstName', 'v_patientFirstName', 'firstName', 'v_firstName', 'fname', 'v_fname', 'FIRST_NAME', 'first_name'], firstNameVal);
+      fillByLabelOrPlaceholder(['first name', 'given name'], firstNameVal);
 
-      const dateEndorsed = getField('date_endorsed', 'dateendorsed', 'date_reported', 'datereported');
-      setVal(['dateEndorsed', 'v_dateEndorsed', 'dateReported', 'v_dateReported'], dateEndorsed, true);
+      setVal(['patientMiddleName', 'v_patientMiddleName', 'middleName', 'v_middleName', 'mname', 'v_mname', 'MIDDLE_NAME', 'middle_name'], middleNameVal);
+      fillByLabelOrPlaceholder(['middle name'], middleNameVal);
 
-      const fromEndorsement = getField('from_endorsement', 'fromendorsement', 'endorsed');
-      setVal(['fromEndorsement', 'v_fromEndorsement'], fromEndorsement);
+      // 5. Date of Birth & Automatic Age Calculation
+      setVal(['dob', 'v_dob', 'birthDate', 'v_birthDate', 'dateOfBirth', 'v_dateOfBirth', 'DATE_OF_BIRT', 'date_of_birth'], dobVal, true);
+      fillByLabelOrPlaceholder(['date of birth', 'birth date'], dobVal, true);
+      autoCalcAgeBreakdown();
 
-      const disposition = getField('disposition', 'patient_disposition', 'status_during_interview');
-      setVal(['disposition', 'v_disposition', 'patientDisposition', 'v_patientDisposition'], disposition);
-
-      // 3. Patient Demographics
-      const lname = getField('patient_last_name', 'patientlastname', 'last_name', 'lastname', 'lname', 'surname', 'family_name', 'apelyido');
-      setVal(['patientLastName', 'v_patientLastName', 'lastName', 'v_lastName', 'lname', 'v_lname'], lname);
-
-      const fname = getField('patient_first_name', 'patientfirstname', 'first_name', 'firstname', 'fname', 'given_name', 'pangalan');
-      setVal(['patientFirstName', 'v_patientFirstName', 'firstName', 'v_firstName', 'fname', 'v_fname'], fname);
-
-      const mname = getField('patient_middle_name', 'patientmiddlename', 'middle_name', 'middlename', 'mname');
-      setVal(['patientMiddleName', 'v_patientMiddleName', 'middleName', 'v_middleName', 'mname', 'v_mname'], mname);
-
-      const suffix = getField('suffix', 'ext', 'extension');
-      setVal(['patientSuffix', 'v_patientSuffix', 'suffix', 'v_suffix'], suffix);
-
-      const dob = getField('dob', 'date_of_birth', 'dateofbirth', 'birthdate', 'birth_date', 'bday');
-      setVal(['dob', 'v_dob', 'birthDate', 'v_birthDate'], dob, true);
-
-      const age = getField('age', 'years', 'edad', 'age_years', 'ageyears');
-      setVal(['age', 'v_age'], age);
-      if (dob) autoCalcAgeBreakdown();
-
-      const sex = getField('sex', 'gender', 'kasarian', 'sex_at_birth', 'sexatbirth');
-      setVal(['sex', 'v_sex', 'gender', 'v_gender'], sex);
-
-      const civil = getField('civil_status', 'civilstatus', 'marital_status');
-      setVal(['civilStatus', 'v_civilStatus'], civil);
-
-      const nation = getField('nationality', 'citizenship');
-      setVal(['nationality', 'v_nationality'], nation || 'Filipino');
-
-      // 4. Address & Contact
-      const street = getField('street_address', 'streetaddress', 'street', 'house_no', 'houseno', 'house_bldg', 'housebldg', 'address', 'tirahan');
-      setVal(['streetAddress', 'houseBldg', 'v_streetAddress', 'v_houseBldg', 'address', 'v_address'], street);
-
-      const ptBrgy = getField('patient_barangay', 'residence_barangay', 'barangay', 'brgy');
-      setVal(['patientBarangay', 'v_patientBarangay'], ptBrgy);
-
-      const contact = getField('contact', 'contact_number', 'contactnumber', 'contact_no', 'phone', 'mobile', 'cellphone');
-      setVal(['contact', 'v_contact', 'contactNo', 'v_contactNo', 'mobile', 'v_mobile'], contact);
-
-      const city = getField('city', 'municipality');
-      setVal(['city', 'v_city'], city || 'Quezon City');
-
-      const prov = getField('province');
-      setVal(['province', 'v_province'], prov || 'Metro Manila');
-
-      const lenRes = getField('length_residence', 'length_of_residence', 'lengthofresidence');
-      setVal(['lengthResidence', 'v_lengthResidence'], lenRes);
-
-      // 5. Clinical Info
-      const onset = getField('date_onset', 'dateonset', 'onset', 'symptom_onset', 'date_of_onset');
-      setVal(['dateOnset', 'v_dateOnset'], onset, true);
-
-      const firstSymp = getField('first_symptom', 'firstsymptom');
-      setVal(['firstSymptom', 'v_firstSymptom'], firstSymp);
-
-      const classification = getField('case_classification', 'caseclassification', 'classification', 'case_class');
-      setVal(['caseClassification', 'v_caseClassification'], classification);
-
-      const outcome = getField('outcome', 'patient_outcome', 'status');
-      setVal(['outcome', 'v_outcome'], outcome);
-
-      // Auto-check symptoms if present
-      const sympsString = getField('symptoms', 'manifestations', 'clinical_signs');
-      if (sympsString) {
-        const sList = String(sympsString).split(/[,;]/).map(s => s.trim().toLowerCase());
-        document.querySelectorAll('#printableQuestionnaire input[name="symp"], #printableQuestionnaire input[name="v_symp"]').forEach(cb => {
-          cb.checked = sList.some(s => cb.value.toLowerCase().includes(s) || s.includes(cb.value.toLowerCase()));
-        });
+      // If Age input is still empty, calculate directly from dobVal
+      if (dobVal) {
+        const parsedDob = new Date(dobVal);
+        if (!isNaN(parsedDob.getTime())) {
+          const today = new Date();
+          let calcAge = today.getFullYear() - parsedDob.getFullYear();
+          let m = today.getMonth() - parsedDob.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < parsedDob.getDate())) calcAge--;
+          if (calcAge >= 0) {
+            setVal(['age', 'v_age', 'patientAge', 'v_patientAge'], calcAge);
+            fillByLabelOrPlaceholder(['age', 'yrs'], calcAge);
+          }
+        }
       }
 
-      console.log('✅ Extracted Patient:', { fname, lname, foundCaseId, dob, age, sex, dru });
-      alert(`✅ Success! Detected "${document.getElementById('diseaseSelect').value}" for Case ID "${caseIdInput}" (${fname || ''} ${lname || ''}). Form loaded!`);
+      // Infer Sex if present or from Case ID suffix (e.g. ...M or ...F)
+      let sexVal = getField('sex', 'gender', 'kasarian');
+      if (!sexVal && caseIdVal) {
+        if (caseIdVal.trim().toUpperCase().endsWith('M')) sexVal = 'Male';
+        else if (caseIdVal.trim().toUpperCase().endsWith('F')) sexVal = 'Female';
+      }
+      if (sexVal) {
+        setVal(['sex', 'v_sex', 'gender', 'v_gender'], sexVal);
+        fillByLabelOrPlaceholder(['sex at birth', 'sex', 'gender'], sexVal);
+      }
+
+      // 6. Address Information
+      setVal(['Barangay', 'druBarangay', 'v_druBarangay', 'patientBarangay', 'v_patientBarangay', 'barangay', 'v_barangay'], barangayVal);
+      fillByLabelOrPlaceholder(['barangay', 'brgy'], barangayVal);
+
+      setVal(['sitio', 'v_sitio', 'streetAddress', 'v_streetAddress', 'houseBldg', 'v_houseBldg', 'address', 'v_address'], sitioVal);
+      fillByLabelOrPlaceholder(['sitio', 'purok', 'street address'], sitioVal);
+
+      setVal(['city', 'v_city', 'municipality', 'v_municipality', 'patientCity'], cityVal);
+      fillByLabelOrPlaceholder(['city', 'municipality'], cityVal);
+
+      // 7. Clinical Dates
+      setVal(['dateOnset', 'v_dateOnset', 'date_onset', 'v_date_onset', 'dateOnsetOfIllness', 'v_dateOnsetOfIllness', 'DATE_ONSET_OF_ILLNESS'], dateOnsetVal, true);
+      fillByLabelOrPlaceholder(['date of onset', 'date onset', 'onset of illness'], dateOnsetVal, true);
+
+      setVal(['dateAdmitted', 'v_dateAdmitted', 'date_admitted', 'v_date_admitted', 'admissionDate', 'v_admissionDate', 'dateOfAdmission', 'DATE_ADMITTED'], dateAdmittedVal, true);
+      fillByLabelOrPlaceholder(['date admitted', 'admission date', 'date of admission'], dateAdmittedVal, true);
+
+      console.log('✅ Extracted & Applied Data:', {
+        caseId: caseIdVal,
+        dru: druVal,
+        placeOfConsultation: druVal,
+        firstName: firstNameVal,
+        lastName: lastNameVal,
+        dob: dobVal,
+        barangay: barangayVal,
+        onset: dateOnsetVal,
+        admitted: dateAdmittedVal
+      });
+
+      alert(`✅ Form filled for Case ID "${caseIdVal}" (${firstNameVal || ''} ${lastNameVal || ''})!`);
 
     } catch (err) {
       console.error('Google Sheet error:', err);
