@@ -12,7 +12,7 @@
     /* Exact A4 Page Layout & Solid Government Grid Borders */
     @page {
       size: A4 portrait;
-      margin: 8mm 10mm 8mm 10mm;
+      margin: 4mm 6mm 4mm 6mm !important;
     }
 
     .qc-table {
@@ -31,26 +31,16 @@
     }
 
     .qc-banner {
-      background-color: #cbd5e1;
-      color: black;
-      font-weight: 800;
-      font-size: 9px;
-      padding: 2px 4px;
-      border: 1px solid black;
-      margin-top: 3px;
-      margin-bottom: 2px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+        margin-top: 1.5px !important;
+        margin-bottom: 1.5px !important;
+        padding: 1.5px 3px !important;
+        font-size: 8px !important;
+      }
 
     .cell-label {
-      display: block;
-      font-weight: 700;
-      font-size: 8px;
-      color: #1e293b;
-      text-transform: uppercase;
-      margin-bottom: 1px;
-    }
+        font-size: 7.5px !important;
+        margin-bottom: 0px !important;
+      }
 
     /* Exact Dimensions for Logos from Word Layout */
     .header-logo-img {
@@ -97,16 +87,22 @@
         to { opacity: 1; transform: translateY(0); }
       }
       .a4-page {
-        width: 100%;
-        max-width: 1180px; /* Maximized responsive container */
-        min-height: 297mm;
-        margin: 0 auto 30px auto;
-        background: white;
-        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.25);
-        padding: 12mm 16mm;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        width: 100% !important;
+        height: 282mm !important;
+        max-height: 282mm !important;
+        min-height: 282mm !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        margin: 0 !important;
+        padding: 2mm 3mm !important;
+        box-shadow: none !important;
+        border: none !important;
+        box-sizing: border-box !important;
       }
       .qc-table td, .qc-table th {
         font-size: 9.5px !important;
@@ -133,45 +129,90 @@
 
     /* 🖨️ PRESERVED A4 PRINT VIEW */
     @media print {
-      body {
+      html, body {
+        width: 210mm !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
         background: white !important;
         color: black !important;
         font-family: Arial, Helvetica, sans-serif !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       .no-print { display: none !important; }
-      #printableQuestionnaire { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+      
+      #printableQuestionnaire, .printable-slides {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }      
       .a4-page {
         page-break-after: always !important;
+        break-after: page !important;
         page-break-inside: avoid !important;
+        break-inside: avoid !important;
         width: 100% !important;
-        min-height: 275mm !important;
+        height: 282mm !important;
+        max-height: 282mm !important;
+        min-height: 282mm !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 2mm 3mm !important;
         box-shadow: none !important;
         border: none !important;
+        box-sizing: border-box !important;
       }
       .a4-page:last-child {
         page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .qc-table {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 1px !important;
+      }
+      .qc-table tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
       .qc-table td, .qc-table th {
-        font-size: 8.5px !important;
-        padding: 2px 3.5px !important;
+        font-size: 8px !important;
+        padding: 1.5px 2.5px !important; /* Compact padding keeps table rows slim */
+        line-height: 1.15 !important;
       }
-      .cell-label {
+
+      .qc-banner {
+        margin-top: 1.5px !important;
+        margin-bottom: 1.5px !important;
+        padding: 1.5px 3px !important;
         font-size: 8px !important;
       }
+
+      .cell-label {
+        font-size: 7.5px !important;
+        margin-bottom: 0px !important;
+      }
+
       .cell-input {
         border: none !important;
         background: transparent !important;
         font-weight: bold !important;
-        font-size: 8.5px !important;
+        font-size: 8px !important;
         color: black !important;
         padding: 0 !important;
-        appearance: none !important;
-        -webkit-appearance: none !important;
+        line-height: 1.1 !important;
+      }
+
+      /* Keep footer compact so it never gets kicked onto the next page */
+      .footer-tagline {
+        font-size: 11pt !important;
+      }
+      .footer-iso-img, .footer-bp-img {
+        height: 0.5in !important;
       }
     }
   </style>
