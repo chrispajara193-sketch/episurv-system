@@ -85,6 +85,17 @@
 
     /* 🖥️ MAXIMIZED SCREEN VIEW */
     @media screen {
+      .printable-slides .a4-page {
+        display: none !important; /* Hide all pages by default */
+        animation: fadeInSlide 0.25s ease-in-out;
+      }
+      .printable-slides .a4-page.active-slide {
+        display: flex !important; /* Only show the active slide */
+      }
+      @keyframes fadeInSlide {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
       .a4-page {
         width: 100%;
         max-width: 1180px; /* Maximized responsive container */
@@ -306,8 +317,30 @@
           <option value="Panrespi">Pan-Respiratory (COVID-19/ILI/SARI)</option>
         </select>
 
+        <!-- 🎞️ SLIDE DECK CONTROLLER (Screen Only) -->
+        <div class="sticky top-16 z-30 mb-4 bg-slate-900/95 backdrop-blur border border-teal-500/50 rounded-xl p-2.5 shadow-xl flex items-center justify-between gap-3 text-white no-print">
+          <!-- Previous Slide Button -->
+          <button type="button" onclick="changeSlide(-1)" id="btnPrevSlide" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs flex items-center gap-1.5 transition disabled:opacity-30 disabled:cursor-not-allowed">
+            <i class="fa-solid fa-chevron-left text-xs"></i> Prev Page
+          </button>
+
+          <!-- Current Slide Indicator & Page Pills -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-300">
+              Page <span id="currentSlideNum" class="text-teal-400 font-black text-sm">1</span> of <span id="totalSlideNum" class="text-white font-bold">6</span>
+            </span>
+            <!-- Clickable Page Pills -->
+            <div id="slidePillsContainer" class="hidden sm:flex items-center gap-1.5 ml-2"></div>
+          </div>
+
+          <!-- Next Slide Button -->
+          <button type="button" onclick="changeSlide(1)" id="btnNextSlide" class="px-3.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs flex items-center gap-1.5 transition disabled:opacity-30 disabled:cursor-not-allowed shadow">
+            Next Page <i class="fa-solid fa-chevron-right text-xs"></i>
+          </button>
+        </div>
+
         <!-- ==================== DYNAMIC QUESTIONNAIRE CONTAINER ==================== -->
-        <div id="printableQuestionnaire">
+        <div id="printableQuestionnaire" class="printable-slides">
 
           <!-- ========================================================================= -->
           <!-- FORM 1: COMPLETE 6-PAGE LEPTOSPIROSIS QUESTIONNAIRE                       -->
@@ -2250,6 +2283,15 @@
   const API_BASE = '/api';
   const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjwJYd_PIteMW766Ev-JS7XHdxqxgpQSGhdeFeF1U-kV1-K92Q3if-V9sswZ8lmlDX/exec";
 
+  // 🚀 RUNS AUTOMATICALLY ON PAGE LOAD
+  window.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('reportDate')) document.getElementById('reportDate').valueAsDate = new Date();
+    if (document.getElementById('v_reportDate')) document.getElementById('v_reportDate').valueAsDate = new Date();
+    changeQuestionnaireForm();
+    fetchRegistryCases();
+    initSlides(); // Activates the slide view
+  });
+
   function autoCalcAgeBreakdown() {
     const dobVal = document.getElementById('dob')?.value || document.getElementById('v_dob')?.value;
     if (!dobVal) return;
@@ -2287,6 +2329,9 @@
     // Keep the 3-line hamburger button label in sync
     const opt = diseaseSelect.options[diseaseSelect.selectedIndex];
     syncSidebarUI(disease, opt ? opt.text : disease);
+
+    currentSlideIndex = 0;
+    initSlides();
   }  
 
   function switchTab(tabId) {
@@ -2986,6 +3031,81 @@
         if (checkIcon) checkIcon.classList.add('hidden');
       }
     });
+  }
+
+// 🎞️ SLIDE DECK LOGIC
+  let currentSlideIndex = 0;
+
+  function getActiveFormPages() {
+    const isVector = document.getElementById('diseaseSelect')?.value.includes('Vectorborne');
+    const containerId = isVector ? 'vectorborneForm' : 'leptospirosisForm';
+    const container = document.getElementById(containerId);
+    return container ? container.querySelectorAll('.a4-page') : [];
+  }
+
+  function initSlides() {
+    const pages = getActiveFormPages();
+    if (!pages.length) return;
+
+    if (currentSlideIndex >= pages.length) currentSlideIndex = 0;
+
+    // Show only the active slide
+    pages.forEach((page, idx) => {
+      if (idx === currentSlideIndex) {
+        page.classList.add('active-slide');
+      } else {
+        page.classList.remove('active-slide');
+      }
+    });
+
+    // Update Page Numbers
+    const numEl = document.getElementById('currentSlideNum');
+    const totalEl = document.getElementById('totalSlideNum');
+    if (numEl) numEl.textContent = currentSlideIndex + 1;
+    if (totalEl) totalEl.textContent = pages.length;
+
+    // Update Prev / Next Buttons
+    const prevBtn = document.getElementById('btnPrevSlide');
+    const nextBtn = document.getElementById('btnNextSlide');
+    if (prevBtn) prevBtn.disabled = (currentSlideIndex === 0);
+    if (nextBtn) nextBtn.disabled = (currentSlideIndex === pages.length - 1);
+
+    // Build clickable page pill buttons (1, 2, 3, etc.)
+    const pillsContainer = document.getElementById('slidePillsContainer');
+    if (pillsContainer) {
+      pillsContainer.innerHTML = '';
+      pages.forEach((_, idx) => {
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.textContent = idx + 1;
+        const isActive = idx === currentSlideIndex;
+        pill.className = isActive 
+          ? "w-6 h-6 rounded-md bg-teal-500 text-slate-950 font-black text-xs shadow flex items-center justify-center transition"
+          : "w-6 h-6 rounded-md bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 font-bold text-xs flex items-center justify-center transition";
+        pill.onclick = () => goToSlide(idx);
+        pillsContainer.appendChild(pill);
+      });
+    }
+  }
+
+  function changeSlide(direction) {
+    const pages = getActiveFormPages();
+    const nextIndex = currentSlideIndex + direction;
+    if (nextIndex >= 0 && nextIndex < pages.length) {
+      currentSlideIndex = nextIndex;
+      initSlides();
+      // Scroll smoothly to top of questionnaire
+      document.getElementById('printableQuestionnaire')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function goToSlide(index) {
+    const pages = getActiveFormPages();
+    if (index >= 0 && index < pages.length) {
+      currentSlideIndex = index;
+      initSlides();
+      document.getElementById('printableQuestionnaire')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
 </script>
