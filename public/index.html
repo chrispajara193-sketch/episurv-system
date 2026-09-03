@@ -2129,7 +2129,8 @@
   </main>
 
   <!-- JAVASCRIPT LOGIC (INTACT & ENHANCED) -->
-   <script>
+<!-- JAVASCRIPT LOGIC -->
+  <script>
     const API_BASE = '/api';
     const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjwJYd_PIteMW766Ev-JS7XHdxqxgpQSGhdeFeF1U-kV1-K92Q3if-V9sswZ8lmlDX/exec";
 
@@ -2164,6 +2165,7 @@
       }
     }
 
+    // Dynamic Form Switcher between Leptospirosis and Vectorborne
     function changeQuestionnaireForm() {
       const disease = document.getElementById('diseaseSelect').value;
       const leptoDiv = document.getElementById('leptospirosisForm');
@@ -2175,7 +2177,8 @@
       } else {
         vectorDiv.classList.add('hidden');
         leptoDiv.classList.remove('hidden');
-        document.getElementById('pageDiseaseTitle').textContent = disease.toUpperCase();
+        const titleEl = document.getElementById('pageDiseaseTitle');
+        if (titleEl) titleEl.textContent = disease.toUpperCase();
       }
     }
 
@@ -2197,10 +2200,65 @@
       }
     }
 
+    // 🧠 SMART DISEASE DETECTOR & AUTO-SWITCHER
+    function detectAndSwitchDisease(d, caseIdInput) {
+      let textPool = '';
+
+      // 1. Gather all values from columns related to disease / diagnosis / morbidity
+      const targetKeywords = ['disease', 'diagnosis', 'morbidity', 'condition', 'notifiable', 'category', 'syndrome', 'casedisease'];
+      for (let key in d) {
+        const cleanKey = key.toLowerCase().replace(/[\s_\-\/\.]/g, '');
+        if (targetKeywords.some(k => cleanKey.includes(k))) {
+          textPool += ' ' + String(d[key]).toLowerCase();
+        }
+      }
+
+      // If no specific header matched, search all text across the entire row
+      if (!textPool.trim()) {
+        for (let key in d) {
+          textPool += ' ' + String(d[key]).toLowerCase();
+        }
+      }
+
+      // Also include the Case ID string in case it contains codes like "DENG", "LEP", etc.
+      textPool += ' ' + (caseIdInput || '').toLowerCase();
+
+      // 2. Identify the target disease category
+      let matchedOption = '';
+      if (textPool.includes('dengue') || textPool.includes('chikungunya') || textPool.includes('malaria') || textPool.includes('denv') || textPool.includes('vector')) {
+        matchedOption = 'Vectorborne - Dengue';
+      } else if (textPool.includes('lepto') || textPool.includes('leptospirosis') || textPool.includes('weil')) {
+        matchedOption = 'Leptospirosis';
+      } else if (textPool.includes('diphtheria') || textPool.includes('diph')) {
+        matchedOption = 'Diphtheria';
+      } else if (textPool.includes('mpox') || textPool.includes('monkeypox')) {
+        matchedOption = 'Mpox';
+      } else if (textPool.includes('rabies') || textPool.includes('bite') || textPool.includes('hydrophobia')) {
+        matchedOption = 'Rabies';
+      } else if (textPool.includes('diarrhea') || textPool.includes('diarrhoea') || textPool.includes('abd') || textPool.includes('cholera') || textPool.includes('typhoid') || textPool.includes('fwbd')) {
+        matchedOption = 'FWBD - Acute Bloody Diarrhea';
+      } else if (textPool.includes('measles') || textPool.includes('rubella') || textPool.includes('tigdas')) {
+        matchedOption = 'Measles_Rubella';
+      } else if (textPool.includes('pertussis') || textPool.includes('whooping')) {
+        matchedOption = 'Pertussis';
+      } else if (textPool.includes('covid') || textPool.includes('sari') || textPool.includes('ili') || textPool.includes('influenza') || textPool.includes('panrespi')) {
+        matchedOption = 'Panrespi';
+      }
+
+      // 3. Switch dropdown and trigger UI form swap
+      if (matchedOption) {
+        const diseaseDropdown = document.getElementById('diseaseSelect');
+        if (diseaseDropdown) {
+          diseaseDropdown.value = matchedOption;
+          changeQuestionnaireForm(); // Flips the active form immediately!
+        }
+      }
+    }
+
     // ⚡ GOOGLE SHEET CASE ID AUTOFILL FUNCTION
     async function fetchAndAutofillFromSheet() {
       const inputEl = document.getElementById('sheetSearchCaseId');
-      const btn = document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]') || document.getElementById('btnLookupSheet');
+      const btn = document.getElementById('btnLookupSheet') || document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]');
       
       if (!inputEl || !inputEl.value.trim()) {
         alert('Please enter a Case ID to search.');
@@ -2226,13 +2284,17 @@
         }
 
         const d = result.data;
+
+        // 🎯 STEP 1: AUTO-DETECT AND SWITCH DISEASE FORM (LEPTO vs DENGUE)
+        detectAndSwitchDisease(d, caseIdInput);
+
         const isVector = document.getElementById('diseaseSelect').value.includes('Vectorborne');
 
         // Helper to match headers case-insensitively
         const getField = (...keys) => {
           for (let k of keys) {
             for (let dataKey in d) {
-              if (dataKey.trim().toLowerCase().replace(/[\s_-]/g, '') === k.toLowerCase().replace(/[\s_-]/g, '')) {
+              if (dataKey.trim().toLowerCase().replace(/[\s_\-\/\.]/g, '') === k.toLowerCase().replace(/[\s_\-\/\.]/g, '')) {
                 return d[dataKey];
               }
             }
@@ -2247,7 +2309,7 @@
           if (el.tagName === 'SELECT') {
             const valStr = String(val).trim().toLowerCase();
             for (let opt of el.options) {
-              if (opt.value.trim().toLowerCase() === valStr || opt.text.trim().toLowerCase() === valStr) {
+              if (opt.value.trim().toLowerCase() === valStr || opt.text.trim().toLowerCase() === valStr || opt.value.toLowerCase().includes(valStr) || valStr.includes(opt.value.toLowerCase())) {
                 el.value = opt.value;
                 return;
               }
@@ -2261,20 +2323,7 @@
         setVal('epidId', foundCaseId);
         setVal('caseRefId', foundCaseId);
 
-        // 2. Disease Selector
-        const diseaseVal = getField('disease', 'condition', 'notifiable_disease', 'notifiable');
-        if (diseaseVal) {
-          const diseaseDropdown = document.getElementById('diseaseSelect');
-          for (let opt of diseaseDropdown.options) {
-            if (opt.value.toLowerCase().includes(diseaseVal.toLowerCase()) || diseaseVal.toLowerCase().includes(opt.value.toLowerCase())) {
-              diseaseDropdown.value = opt.value;
-              changeQuestionnaireForm();
-              break;
-            }
-          }
-        }
-
-        // 3. Administrative / Health Center & DRU
+        // 2. Administrative / Health Center & DRU
         const dru = getField('dru_name', 'druname', 'dru', 'health_center', 'healthcenter', 'facility', 'diseasereportingunit');
         setVal('DiseaseReportingUnit', dru);
         setVal('druName', dru);
@@ -2299,7 +2348,7 @@
         setVal('reportDate', repDate);
         setVal('v_reportDate', repDate);
 
-        // 4. Patient Demographics
+        // 3. Patient Demographics
         const lname = getField('last_name', 'lastname', 'lname', 'surname', 'family_name');
         setVal('patientLastName', lname);
         setVal('v_patientLastName', lname);
@@ -2335,7 +2384,7 @@
         const nation = getField('nationality', 'citizenship');
         setVal('nationality', nation || 'Filipino');
 
-        // 5. Address & Contact
+        // 4. Address & Contact
         const street = getField('street_address', 'street', 'house_no', 'house_bldg', 'address', 'tirahan');
         setVal('streetAddress', street);
         setVal('houseBldg', street);
@@ -2355,7 +2404,7 @@
         const lenRes = getField('length_residence', 'length_of_residence');
         setVal('lengthResidence', lenRes);
 
-        // 6. Clinical & Medical Info
+        // 5. Clinical Info
         const onset = getField('date_onset', 'dateonset', 'onset', 'symptom_onset');
         setVal('dateOnset', onset);
         setVal('v_dateOnset', onset);
@@ -2369,7 +2418,7 @@
         const outcome = getField('outcome', 'patient_outcome', 'status');
         setVal('outcome', outcome);
 
-        // 7. Check symptoms if provided in a comma-separated list
+        // Auto-check symptoms if present
         const sympsString = getField('symptoms', 'manifestations', 'clinical_signs');
         if (sympsString) {
           const sList = String(sympsString).split(/[,;]/).map(s => s.trim().toLowerCase());
@@ -2378,11 +2427,11 @@
           });
         }
 
-        alert(`✅ Success! Data for Case ID "${caseIdInput}" (${fname} ${lname}) loaded into form!`);
+        alert(`✅ Success! Detected "${document.getElementById('diseaseSelect').value}" for Case ID "${caseIdInput}" (${fname} ${lname}). Form loaded!`);
 
       } catch (err) {
         console.error('Google Sheet error:', err);
-        alert('❌ Error connecting to Google Sheet. Please ensure your Google Apps Script has been deployed with access set to "Anyone".');
+        alert('❌ Error connecting to Google Sheet. Please verify your Apps Script permissions.');
       } finally {
         if (btn && origHtml) {
           btn.innerHTML = origHtml;
@@ -2550,5 +2599,5 @@
       window.location.href = `${API_BASE}/export-csv`;
     }
   </script>
-</body>
+ </body>
 </html>
