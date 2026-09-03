@@ -131,7 +131,6 @@
     @media print {
       html, body {
         width: 210mm !important;
-        height: auto !important;
         margin: 0 !important;
         padding: 0 !important;
         background: white !important;
@@ -142,85 +141,101 @@
       }
       .no-print { display: none !important; }
 
-      /* 🖨️ Always show the questionnaire during print even if coming from Registry tab */
-      #questionnaireTab {
-        display: block !important;
-      }
-      #registryTab {
-        display: none !important;
-      }
-      
+      #questionnaireTab { display: block !important; }
+      #registryTab { display: none !important; }
+
       #printableQuestionnaire, .printable-slides {
         display: block !important;
         width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
       }
+
+      /* 📄 Matches Word's Exact A4 Page Distribution */
       .a4-page {
         page-break-after: always !important;
         break-after: page !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         width: 100% !important;
-        height: 282mm !important;
-        max-height: 282mm !important;
-        min-height: 282mm !important;
+        min-height: 275mm !important;
+        height: auto !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
         margin: 0 !important;
-        padding: 2mm 3mm !important;
+        padding: 6mm 8mm !important; /* Gives the clean border margins seen in Word */
         box-shadow: none !important;
         border: none !important;
         box-sizing: border-box !important;
       }
+
       .a4-page:last-child {
         page-break-after: avoid !important;
         break-after: avoid !important;
       }
+
+      /* 📐 Balanced Table Dimensions (Fills page from top to bottom) */
       .qc-table {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
-        margin-bottom: 1px !important;
+        margin-bottom: 3.5px !important;
+        border: 1px solid black !important;
       }
       .qc-table tr {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
       .qc-table td, .qc-table th {
-        font-size: 8px !important;
-        padding: 1.5px 2.5px !important; /* Compact padding keeps table rows slim */
-        line-height: 1.15 !important;
+        font-size: 8.5pt !important; /* Word standard reading size */
+        padding: 3px 4.5px !important; /* Comfortable vertical cell height */
+        line-height: 1.25 !important;
+        vertical-align: top !important;
       }
 
+      /* Gray Banners like Word */
       .qc-banner {
-        margin-top: 1.5px !important;
-        margin-bottom: 1.5px !important;
-        padding: 1.5px 3px !important;
-        font-size: 8px !important;
+        font-size: 8.5pt !important;
+        padding: 2.5px 5px !important;
+        margin-top: 4px !important;
+        margin-bottom: 3px !important;
+        background-color: #cbd5e1 !important;
+        border: 1px solid black !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
 
       .cell-label {
-        font-size: 7.5px !important;
-        margin-bottom: 0px !important;
+        font-size: 7.5pt !important;
+        margin-bottom: 2px !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
       }
 
-      .cell-input {
+      /* 🚫 Removes browser dropdown arrows & date icons so it looks like a clean Word document */
+      .cell-input, select, input {
         border: none !important;
         background: transparent !important;
         font-weight: bold !important;
-        font-size: 8px !important;
+        font-size: 8.5pt !important;
         color: black !important;
-        padding: 0 !important;
-        line-height: 1.1 !important;
+        padding: 1px 2px !important;
+        line-height: 1.2 !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        background-image: none !important;
       }
 
-      /* Keep footer compact so it never gets kicked onto the next page */
+      input[type="date"]::-webkit-calendar-picker-indicator {
+        display: none !important;
+      }
+
       .footer-tagline {
-        font-size: 11pt !important;
+        font-size: 13pt !important;
       }
       .footer-iso-img, .footer-bp-img {
-        height: 0.5in !important;
+        height: 0.6in !important;
       }
     }
   </style>
@@ -563,34 +578,6 @@
                     <td class="w-1/3"><span class="cell-label">Work Arrangement / Last Day Attended:</span><div class="flex gap-1"><select class="cell-input w-1/2"><option>Fixed on-site (Office)</option><option>Fully Remote (WFH)</option><option>Hybrid</option><option>Field-based</option></select><input type="date" class="cell-input w-1/2" /></div></td>
                   </tr>
                 </table>
-                <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">Address of Workplace (if fixed on-site, WFH, & Hybrid):</p>
-                <table class="qc-table">
-                  <tr>
-                    <td class="w-1/3"><span class="cell-label">House No./Lot/Bldg:</span><input type="text" class="cell-input" /></td>
-                    <td class="w-1/3"><span class="cell-label">Street/Purok/Sitio:</span><input type="text" class="cell-input" /></td>
-                    <td class="w-1/3"><span class="cell-label">Barangay:</span><input type="text" class="cell-input" /></td>
-                  </tr>
-                  <tr>
-                    <td><span class="cell-label">Municipality/City:</span><input type="text" class="cell-input" /></td>
-                    <td><span class="cell-label">Province:</span><input type="text" class="cell-input" /></td>
-                    <td><span class="cell-label">Region / Field Details:</span><input type="text" class="cell-input" /></td>
-                  </tr>
-                </table>
-
-                <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">1.5.2. Educational Details (if student)</p>
-                <table class="qc-table">
-                  <tr>
-                    <td class="w-1/5"><span class="cell-label">Year Level:</span><input type="text" class="cell-input" /></td>
-                    <td class="w-1/5"><span class="cell-label">Section:</span><input type="text" class="cell-input" /></td>
-                    <td class="w-1/5"><span class="cell-label">No. of students in class:</span><input type="text" class="cell-input" /></td>
-                    <td class="w-1/5"><span class="cell-label">Schedule (days - time):</span><input type="text" class="cell-input" /></td>
-                    <td class="w-1/5"><span class="cell-label">Last day attended:</span><input type="date" class="cell-input" /></td>
-                  </tr>
-                  <tr>
-                    <td colspan="2"><span class="cell-label">Name of School:</span><input type="text" class="cell-input" /></td>
-                    <td colspan="3"><span class="cell-label">Address of School (House No/Street/Barangay/City/Province):</span><input type="text" class="cell-input" /></td>
-                  </tr>
-                </table>
               </div>
 
               <!-- FOOTER (LEPTO P1) -->
@@ -622,6 +609,35 @@
                   </div>
                   <div class="text-right text-[9px] shrink-0"><p class="font-bold">CESD (Page 2)</p></div>
                 </div>
+
+                  <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">Address of Workplace (if fixed on-site, WFH, & Hybrid):</p>
+                <table class="qc-table">
+                  <tr>
+                    <td class="w-1/3"><span class="cell-label">House No./Lot/Bldg:</span><input type="text" class="cell-input" /></td>
+                    <td class="w-1/3"><span class="cell-label">Street/Purok/Sitio:</span><input type="text" class="cell-input" /></td>
+                    <td class="w-1/3"><span class="cell-label">Barangay:</span><input type="text" class="cell-input" /></td>
+                  </tr>
+                  <tr>
+                    <td><span class="cell-label">Municipality/City:</span><input type="text" class="cell-input" /></td>
+                    <td><span class="cell-label">Province:</span><input type="text" class="cell-input" /></td>
+                    <td><span class="cell-label">Region / Field Details:</span><input type="text" class="cell-input" /></td>
+                  </tr>
+                </table>
+
+                <p class="font-bold text-[9px] uppercase mt-1 mb-0.5">1.5.2. Educational Details (if student)</p>
+                <table class="qc-table">
+                  <tr>
+                    <td class="w-1/5"><span class="cell-label">Year Level:</span><input type="text" class="cell-input" /></td>
+                    <td class="w-1/5"><span class="cell-label">Section:</span><input type="text" class="cell-input" /></td>
+                    <td class="w-1/5"><span class="cell-label">No. of students in class:</span><input type="text" class="cell-input" /></td>
+                    <td class="w-1/5"><span class="cell-label">Schedule (days - time):</span><input type="text" class="cell-input" /></td>
+                    <td class="w-1/5"><span class="cell-label">Last day attended:</span><input type="date" class="cell-input" /></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"><span class="cell-label">Name of School:</span><input type="text" class="cell-input" /></td>
+                    <td colspan="3"><span class="cell-label">Address of School (House No/Street/Barangay/City/Province):</span><input type="text" class="cell-input" /></td>
+                  </tr>
+                </table>
 
                 <div class="qc-banner">2. MEDICAL INFORMATION</div>
                 <p class="font-bold text-[9px] uppercase mb-0.5">2.1 Clinical Information</p>
@@ -740,7 +756,39 @@
                   </tr>
                 </table>
 
-                                <p class="text-[8px] italic mb-0.5">If more than 5, write on the back</p>
+              </div>
+
+              <!-- FOOTER (LEPTO P2) -->
+              <div class="border-t border-black pt-1.5 flex justify-between items-center mt-2">
+                <span class="footer-tagline">“Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan”</span>
+                <div class="flex items-center space-x-3">
+                  <img src="bagong pilipinas.png" onerror="this.onerror=null; this.src='bagong pilipinas.jpg';" alt="Bagong Pilipinas" class="footer-bp-img" />
+                  <img src="iso.png" onerror="this.onerror=null; this.src='iso.jpg';" alt="ISO Certified" class="footer-iso-img" />
+                </div>
+              </div>
+            </div>
+
+            <!-- PAGE 3 (LEPTO - LAB, MEDS, & PRIMARY EXPOSURE) -->
+            <div class="a4-page">
+              <div>
+                <div class="border-b border-black pb-1.5 mb-1.5 flex items-center justify-between">
+                  <div class="flex items-center space-x-2.5">
+                    <div class="flex items-center space-x-1.5 shrink-0">
+                      <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="header-logo-img" />
+                      <img src="qchd.png" onerror="this.onerror=null; this.src='qchd.jpg';" alt="QCHD Logo" class="header-logo-img" />
+                      <img src="qcesd.png" onerror="this.onerror=null; this.src='qcesd.jpg';" alt="QCESD Logo" class="header-logo-img" />
+                    </div>
+                    <div class="text-left pl-1">
+                      <p class="text-[9.5px] font-serif uppercase tracking-wider text-slate-700 leading-tight">Republic of the Philippines</p>
+                      <h2 class="text-[13px] font-black uppercase text-slate-950 leading-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
+                      <p class="text-[10px] font-bold text-slate-800 leading-tight">Quezon City, Metro Manila</p>
+                      <p class="text-[8px] text-slate-600 leading-tight">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel No. 8988-4242 loc 1607</p>
+                    </div>
+                  </div>
+                  <div class="text-right text-[9px] shrink-0"><p class="font-bold">CESD (Page 3)</p></div>
+                </div>
+
+                  <p class="text-[8px] italic mb-0.5">If more than 5, write on the back</p>
                 <table class="qc-table">
                   <tr>
                     <td><span class="cell-label">Health status at consultation:</span><div class="flex gap-4 text-[8.5px] font-bold"><label><input type="radio" name="healthStat" value="Asymptomatic" /> Asymptomatic</label><label><input type="radio" name="healthStat" value="Mild"  /> Mild</label><label><input type="radio" name="healthStat" value="Moderate" /> Moderate</label><label><input type="radio" name="healthStat" value="Severe" /> Severe</label><label><input type="radio" name="healthStat" value="Critical" /> Critical</label></div></td>
@@ -838,38 +886,6 @@
                     </td>
                   </tr>
                 </table>
-
-              </div>
-
-              <!-- FOOTER (LEPTO P2) -->
-              <div class="border-t border-black pt-1.5 flex justify-between items-center mt-2">
-                <span class="footer-tagline">“Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan”</span>
-                <div class="flex items-center space-x-3">
-                  <img src="bagong pilipinas.png" onerror="this.onerror=null; this.src='bagong pilipinas.jpg';" alt="Bagong Pilipinas" class="footer-bp-img" />
-                  <img src="iso.png" onerror="this.onerror=null; this.src='iso.jpg';" alt="ISO Certified" class="footer-iso-img" />
-                </div>
-              </div>
-            </div>
-
-            <!-- PAGE 3 (LEPTO - LAB, MEDS, & PRIMARY EXPOSURE) -->
-            <div class="a4-page">
-              <div>
-                <div class="border-b border-black pb-1.5 mb-1.5 flex items-center justify-between">
-                  <div class="flex items-center space-x-2.5">
-                    <div class="flex items-center space-x-1.5 shrink-0">
-                      <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="header-logo-img" />
-                      <img src="qchd.png" onerror="this.onerror=null; this.src='qchd.jpg';" alt="QCHD Logo" class="header-logo-img" />
-                      <img src="qcesd.png" onerror="this.onerror=null; this.src='qcesd.jpg';" alt="QCESD Logo" class="header-logo-img" />
-                    </div>
-                    <div class="text-left pl-1">
-                      <p class="text-[9.5px] font-serif uppercase tracking-wider text-slate-700 leading-tight">Republic of the Philippines</p>
-                      <h2 class="text-[13px] font-black uppercase text-slate-950 leading-tight">QUEZON CITY HEALTH DEPARTMENT</h2>
-                      <p class="text-[10px] font-bold text-slate-800 leading-tight">Quezon City, Metro Manila</p>
-                      <p class="text-[8px] text-slate-600 leading-tight">QC Hall Compound, Mayaman St., corner Kalayaan Ave., Gate 4, Quezon City | Tel No. 8988-4242 loc 1607</p>
-                    </div>
-                  </div>
-                  <div class="text-right text-[9px] shrink-0"><p class="font-bold">CESD (Page 3)</p></div>
-                </div>
 
                 <div class="qc-banner">3. EXPOSURE</div>
                 <table class="qc-table">
