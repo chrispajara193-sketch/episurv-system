@@ -1431,7 +1431,7 @@
                 <table class="qc-table">
                   <tr>
                     <td class="w-1/5"><span class="cell-label">Disease Reporting Unit:</span>
-                       <select id="DiseaseReportingUnit" class="cell-input font-bold">
+                       <select id="v_DiseaseReportingUnit" class="cell-input font-bold">
                         <option value="Batasan Hills Super Health Center">BATASAN HILLS SUPER HEALTH CENTER</option>
                         <option value="Batasan Hills Annex Health Center">BATASAN HILLS ANNEX HEALTH CENTER</option>
                         <option value="Bagong Silangan Health Center">BAGONG SILANGAN HEALTH CENTER</option>
@@ -1448,7 +1448,7 @@
                        </select> 
                     </td>
                     <td class="w-1/5"><span class="cell-label">Barangay:</span>
-                       <select id="Barangay" class="cell-input font-bold">
+                       <select id="v_Barangay" class="cell-input font-bold">
                         <option value="COMMONWEALTH">COMMONWEALTH</option>
                         <option value="BATASAN HILLS">BATASAN HILLS</option>
                         <option value="BAGONG SILANGAN">BAGONG SILANGAN</option>
@@ -1457,14 +1457,14 @@
                       </select>
                     </td>
                     <td class="w-1/5"><span class="cell-label">District:</span>
-                      <select id="District" class="cell-input font-bold">
+                      <select id="v_District" class="cell-input font-bold">
                         <option value="DISTRICT 2">DISTRICT 2</option>
                       </select>
                     </td>
                   </tr>
                   <tr>
                     <td class="w1/5"><span class="cell-label">Investigator:</span>
-                      <select id="Investigator" class="cell-input font-bold">
+                      <select id="v_Investigator" class="cell-input font-bold">
                         <option value="MARICEL UDJAN">MARICEL UDJAN</option>
                         <option value="DIANE MANSALAY">DIANE MANSALAY</option>
                         <option value="SHERRIE MAY JADIE">SHERRIE MAY JADIE</option>
@@ -1482,18 +1482,18 @@
                       </select>
                     </td>
                     <td><span class="cell-label">Designation:</span>
-                      <select id="Designation" class="cell-input font-bold">
+                      <select id="v_Designation" class="cell-input font-bold">
                         <option value="DISEASE SURVEILLANCE OFFICER">DISEASE SURVEILLANCE OFFICER</option>
                       </select>
                     </td>
-                    <td><span class="cell-label">Date Investigated (MM/DD/YYYY):</span><input type="date" class="cell-input font-bold" /></td>
+                    <td><span class="cell-label">Date Investigated (MM/DD/YYYY):</span><input type="date" id="v_reportDate" class="cell-input font-bold" /></td>
                   </tr>
                 </table>
 
                 <table class="qc-table">
                   <tr>
                     <td class="w-1/5"><span class="cell-label">From Endorsement?</span><select class="cell-input font-bold"><option>No</option><option>Yes</option></select></td>
-                    <td class="w-1/5"><span class="cell-label">Case ID:</span><input type="text" placeholder="Case ID" class="cell-input" /></td>
+                    <td class="w-1/5"><span class="cell-label">Case ID:</span><input type="text" id="v_caseId" placeholder="Case ID" class="cell-input" /></td>
                     <td class="w-1/4"><span class="cell-label">Date Endorsed/Reported:</span><input type="date" class="cell-input" /></td>
                     <td class="w-1/3"><span class="cell-label">Disposition of patient during interview:</span><select class="cell-input font-bold"><option>Still Admitted</option><option>At home</option><option>Died</option></select></td>
                   </tr>
@@ -1503,15 +1503,15 @@
                 <p class="font-bold text-[9px] uppercase mb-0.5">1.1. Patient Profile</p>
                 <table class="qc-table">
                   <tr>
-                    <td class="w-1/4"><span class="cell-label">Last Name:</span><input type="text" class="cell-input font-bold" /></td>
-                    <td class="w-1/4"><span class="cell-label">First Name:</span><input type="text" class="cell-input font-bold" /></td>
-                    <td class="w-1/4"><span class="cell-label">Middle Name:</span><input type="text" class="cell-input" /></td>
-                    <td class="w-1/4"><span class="cell-label">Suffix:</span><input type="text" placeholder="Jr/Sr" class="cell-input" /></td>
+                    <td class="w-1/4"><span class="cell-label">Last Name:</span><input type="text" id="v_patientLastName" class="cell-input font-bold" /></td>
+                    <td class="w-1/4"><span class="cell-label">First Name:</span><input type="text" id="v_patientFirstName" class="cell-input font-bold" /></td>
+                    <td class="w-1/4"><span class="cell-label">Middle Name:</span><input type="text" id="v_patientMiddleName" class="cell-input" /></td>
+                    <td class="w-1/4"><span class="cell-label">Suffix:</span><input type="text" id="v_patientSuffix" placeholder="Jr/Sr" class="cell-input" /></td>
                   </tr>
                   <tr>
-                    <td><span class="cell-label">Date of Birth:</span><input type="date" class="cell-input" /></td>
-                    <td><span class="cell-label">Age:</span><div class="flex items-center gap-1"><input type="number" class="cell-input font-bold w-14" /> <span>yrs</span></div></td>
-                    <td><span class="cell-label">Sex at birth:</span><select class="cell-input font-bold"><option>Male</option><option>Female</option></select></td>
+                    <td><span class="cell-label">Date of Birth:</span><input type="date" id="v_dob" onchange="autoCalcAgeBreakdown()" class="cell-input" /></td>
+                    <td><span class="cell-label">Age:</span><div class="flex items-center gap-1"><input type="number" id="v_age" class="cell-input font-bold w-14" /> <span>yrs</span></div></td>
+                    <td><span class="cell-label">Sex at birth:</span><select id="v_sex" class="cell-input font-bold"><option>Male</option><option>Female</option></select></td>
                     <td><span class="cell-label">Civil Status / Nationality:</span><div class="flex gap-1"><select class="cell-input w-1/2"><option>Single</option><option>Married</option><option>Widowed</option></select><input type="text" value="Filipino" class="cell-input w-1/2" /></div></td>
                   </tr>
                 </table>
@@ -1523,15 +1523,15 @@
                     <td class="w-1/2"><span class="cell-label">Name of Institution:</span><input type="text" class="cell-input" /></td>
                   </tr>
                   <tr>
-                    <td><span class="cell-label">House No./Lot/Bldg:</span><input type="text" class="cell-input" /></td>
-                    <td><span class="cell-label">Street/Purok/Sitio:</span><input type="text" class="cell-input font-bold" /></td>
+                    <td><span class="cell-label">House No./Lot/Bldg:</span><input type="text" id="v_houseBldg" class="cell-input" /></td>
+                    <td><span class="cell-label">Street/Purok/Sitio:</span><input type="text" id="v_streetAddress" class="cell-input font-bold" /></td>
                   </tr>
                   <tr>
                     <td><span class="cell-label">Barangay:</span><input type="text" class="cell-input font-bold" /></td>
                     <td><span class="cell-label">Latitude / Longitude:</span><div class="flex gap-1"><input type="text" placeholder="Lat" class="cell-input w-1/2" /><input type="text" placeholder="Long" class="cell-input w-1/2" /></div></td>
                   </tr>
                   <tr>
-                    <td><span class="cell-label">Municipality/City:</span><input type="text" value="Quezon City" class="cell-input font-bold" /></td>
+                    <td><span class="cell-label">Municipality/City:</span><input type="text" id="v_city" value="Quezon City" class="cell-input font-bold" /></td>
                     <td><span class="cell-label">Province / Region:</span><div class="flex gap-1"><input type="text" value="Metro Manila" class="cell-input w-1/2" /><input type="text" value="NCR" class="cell-input w-1/2" /></div></td>
                   </tr>
                   <tr>
@@ -1728,9 +1728,9 @@
                   </tr>
                   <tr>
                     <td class="text-center font-bold">1st</td>
-                    <td><input type="text" class="cell-input" /></td>
-                    <td class="text-center"><select class="cell-input"><option>Yes</option><option>No</option></select></td>
-                    <td><input type="text" class="cell-input" /></td>
+                    <td><input type="text" id="v_consultPlace1" class="cell-input" /></td>
+                    <td class="text-center"><select id="v_consultAdmitted1" class="cell-input"><option>Yes</option><option>No</option></select></td>
+                    <td><input type="text" id="v_consultDiagnosis1" class="cell-input" /></td>
                     <td><input type="datetime-local" class="cell-input" /></td>
                     <td><input type="datetime-local" class="cell-input" /></td>
                     <td><input type="text" class="cell-input" /></td>
@@ -2178,8 +2178,7 @@
 
   </main>
 
-  <!-- JAVASCRIPT LOGIC (INTACT & ENHANCED) -->
-<!-- JAVASCRIPT LOGIC -->
+  <!-- JAVASCRIPT LOGIC -->
 <script>
   const API_BASE = '/api';
   const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjwJYd_PIteMW766Ev-JS7XHdxqxgpQSGhdeFeF1U-kV1-K92Q3if-V9sswZ8lmlDX/exec";
@@ -2399,7 +2398,6 @@
           }
           if (input && input !== el) {
             applyValToElement(input, rawVal, isDate);
-            break;
           }
         }
       }
@@ -2411,8 +2409,8 @@
     if (!druValue) return;
 
     const targetIds = [
+      'v_consultPlace1', 'consultFacility1',
       'consultPlace1', 'v_consultPlace1', 
-      'consultFacility1', 'v_consultFacility1', 
       'placeOfConsultation1', 'v_placeOfConsultation1',
       'consult1_place', 'v_consult1_place',
       'placeOfConsultation', 'v_placeOfConsultation',
@@ -2434,7 +2432,6 @@
             const input = row.querySelector('input[type="text"], input:not([type])');
             if (input) {
               applyValToElement(input, druValue);
-              break;
             }
           }
         }
@@ -2442,28 +2439,38 @@
     }
   }
 
-  // 🎯 MULTI-STRATEGY LOCATOR: Finds the input corresponding to a given visible label
-  function findInputByLabelText(keywords) {
+  // 🎯 MULTI-ELEMENT LOCATOR: Finds and populates all inputs corresponding to a given label
+  function fillAllInputsByLabel(keywords, value) {
+    if (!value) return;
     const termList = (Array.isArray(keywords) ? keywords : [keywords]).map(k => k.toLowerCase().replace(/[\s_\-\/\:]/g, ''));
     const allElements = document.querySelectorAll('label, th, td, div, span, p');
 
     for (const el of allElements) {
       const txt = el.textContent.trim().toLowerCase().replace(/[\s_\-\/\:]/g, '');
-      if (!txt || txt.length > 60) continue; // Skip large wrapping sections
+      if (!txt || txt.length > 50) continue;
 
       const isMatch = termList.some(term => txt === term || txt.includes(term));
       if (!isMatch) continue;
 
       // 1. Direct input inside
       let input = el.querySelector('input[type="text"], input:not([type]), textarea');
-      if (input) return input;
+      if (input) {
+        applyValToElement(input, value);
+        continue;
+      }
 
       // 2. Next sibling elements
       let sib = el.nextElementSibling;
       while (sib) {
-        if (sib.matches('input[type="text"], input:not([type]), textarea')) return sib;
+        if (sib.matches('input[type="text"], input:not([type]), textarea')) {
+          applyValToElement(sib, value);
+          break;
+        }
         const childInp = sib.querySelector('input[type="text"], input:not([type]), textarea');
-        if (childInp) return childInp;
+        if (childInp) {
+          applyValToElement(childInp, value);
+          break;
+        }
         sib = sib.nextElementSibling;
       }
 
@@ -2472,31 +2479,17 @@
         const pInputs = el.parentElement.querySelectorAll('input[type="text"], input:not([type]), textarea');
         for (const pInp of pInputs) {
           if (el.compareDocumentPosition(pInp) & Node.DOCUMENT_POSITION_FOLLOWING) {
-            return pInp;
+            applyValToElement(pInp, value);
+            break;
           }
         }
       }
-
-      // 4. Table cell lookup: check matching column in the row beneath
-      const td = el.closest('td, th');
-      if (td && td.parentElement) {
-        const colIdx = Array.from(td.parentElement.children).indexOf(td);
-        const nextTr = td.parentElement.nextElementSibling;
-        if (nextTr && nextTr.children[colIdx]) {
-          const rowInput = nextTr.children[colIdx].querySelector('input[type="text"], input:not([type]), textarea') ||
-                           (nextTr.children[colIdx].matches('input') ? nextTr.children[colIdx] : null);
-          if (rowInput) return rowInput;
-        }
-      }
     }
-    return null;
   }
 
   // 🎯 SETTER: Fill SITIO specifically inside "STREET/PUROK/SITIO:"
   function fillStreetPurokSitio(sitioValue) {
     if (!sitioValue) return;
-
-    let applied = false;
 
     // 1. All standard and vector-prefixed IDs for Street/Purok/Sitio
     const targetIds = [
@@ -2517,25 +2510,19 @@
       const el = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
       if (el) {
         applyValToElement(el, sitioValue);
-        applied = true;
       }
     }
 
-    // 2. Intelligent DOM Locator targeting label "STREET/PUROK/SITIO:"
-    const inputEl = findInputByLabelText(['streetpuroksitio', 'puroksitio', 'streetsitio']);
-    if (inputEl) {
-      applyValToElement(inputEl, sitioValue);
-      applied = true;
-    }
+    // 2. Scan and fill both forms by label without early return
+    fillAllInputsByLabel(['streetpuroksitio', 'puroksitio', 'streetsitio'], sitioValue);
 
     // 3. Fallback placeholder search
     const placeholderInputs = document.querySelectorAll('input[placeholder*="sitio" i], input[placeholder*="purok" i], input[placeholder*="street" i]');
     placeholderInputs.forEach(inp => {
       applyValToElement(inp, sitioValue);
-      applied = true;
     });
 
-    console.log('📍 fillStreetPurokSitio executed. Applied:', applied, 'Value:', sitioValue);
+    console.log('📍 fillStreetPurokSitio executed with value:', sitioValue);
   }
 
   // ⚡ GOOGLE SHEET CASE ID AUTOFILL FUNCTION
@@ -2643,7 +2630,7 @@
       const dateOnsetVal = getField('DATE_ONSET_OF_ILLNESS', 'DATE_ONSET', 'date_onset_of_illness', 'date_onset', 'onset');
       const dateAdmittedVal = getField('DATE_ADMITTED', 'date_admitted', 'admission_date');
 
-      // Robust Sitio Extraction with automatic column scanning
+      // Robust Sitio Extraction
       let sitioVal = getField(
         'SITIO', 'sitio',
         'STREET_PUROK_SITIO', 'street_purok_sitio', 'streetpuroksitio',
@@ -2784,15 +2771,15 @@
     const payload = {
       epid_id: document.getElementById('epidId')?.value || `QC-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`,
       disease: document.getElementById('diseaseSelect')?.value,
-      dru_name: getVal('DiseaseReportingUnit', 'v_druName', 'BATASAN HILLS SUPER HEALTH CENTER'),
-      investigator: getVal('Investigator', 'v_investigator', 'MARICEL UDJAN'),
+      dru_name: getVal('DiseaseReportingUnit', 'v_DiseaseReportingUnit', 'BATASAN HILLS SUPER HEALTH CENTER'),
+      investigator: getVal('Investigator', 'v_Investigator', 'MARICEL UDJAN'),
       report_date: getVal('reportDate', 'v_reportDate', new Date().toISOString().slice(0, 10)),
       patient_name: fullName,
       sex: getVal('sex', 'v_sex', 'Male'),
       dob: getVal('dob', 'v_dob', ''),
       age: parseInt(getVal('age', 'v_age', '25'), 10) || 0,
       contact: getVal('contact', 'v_contact', 'N/A'),
-      barangay: getVal('Barangay', 'v_druBarangay', 'COMMONWEALTH'),
+      barangay: getVal('Barangay', 'v_Barangay', 'COMMONWEALTH'),
       city: getVal('city', 'v_city', 'Quezon City'),
       date_onset: getVal('dateOnset', 'v_dateOnset', new Date().toISOString().slice(0, 10)),
       hospitalized: (document.getElementById('consultAdmitted1')?.value === 'Yes' || document.getElementById('hospitalBedType')?.value !== 'Outpatient / None') ? 'Yes' : 'No',
@@ -2916,6 +2903,6 @@
   function exportSurveillanceCSV() {
     window.location.href = `${API_BASE}/export-csv`;
   }
-  </script>
- </body>
+</script>
+</body>
 </html>
