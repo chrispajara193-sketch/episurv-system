@@ -141,13 +141,21 @@
         print-color-adjust: exact !important;
       }
       .no-print { display: none !important; }
+
+      /* 🖨️ Always show the questionnaire during print even if coming from Registry tab */
+      #questionnaireTab {
+        display: block !important;
+      }
+      #registryTab {
+        display: none !important;
+      }
       
       #printableQuestionnaire, .printable-slides {
         display: block !important;
         width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
-      }      
+      }
       .a4-page {
         page-break-after: always !important;
         break-after: page !important;
@@ -2994,6 +3002,63 @@
     renderRegistryRows(cases);
   }
 
+// 🖨️ Prints the official form for a specific case from the Registry
+  function printRegistryCase(epidId) {
+    // 1. Switch back to the questionnaire tab so it's not hidden
+    switchTab('questionnaireTab');
+
+    // 2. Look up the saved case data
+    const local = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
+    const found = local.find(c => c.epid_id === epidId);
+
+    if (found) {
+      // Set the disease form
+      const diseaseSelect = document.getElementById('diseaseSelect');
+      if (diseaseSelect && found.disease) {
+        diseaseSelect.value = found.disease;
+        changeQuestionnaireForm();
+      }
+
+      const isVector = (found.disease || '').includes('Vectorborne');
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val !== undefined) el.value = val;
+      };
+
+      // Set identification
+      setVal('caseRefId', found.epid_id);
+      setVal('v_caseId', found.epid_id);
+      setVal(isVector ? 'v_DiseaseReportingUnit' : 'DiseaseReportingUnit', found.dru_name);
+      setVal(isVector ? 'v_Investigator' : 'Investigator', found.investigator);
+      setVal(isVector ? 'v_reportDate' : 'reportDate', found.report_date);
+
+      // Split patient name (LastName, FirstName MiddleName)
+      if (found.patient_name) {
+        const parts = found.patient_name.split(',');
+        const lName = parts[0] ? parts[0].trim() : '';
+        const rest = parts[1] ? parts[1].trim().split(' ') : [];
+        const fName = rest[0] || '';
+        const mName = rest.slice(1).join(' ') || '';
+
+        setVal(isVector ? 'v_patientLastName' : 'patientLastName', lName);
+        setVal(isVector ? 'v_patientFirstName' : 'patientFirstName', fName);
+        setVal(isVector ? 'v_patientMiddleName' : 'patientMiddleName', mName);
+      }
+
+      setVal(isVector ? 'v_dob' : 'dob', found.dob);
+      setVal(isVector ? 'v_age' : 'age', found.age);
+      setVal(isVector ? 'v_sex' : 'sex', found.sex);
+      setVal(isVector ? 'v_streetAddress' : 'streetAddress', found.barangay);
+      setVal(isVector ? 'v_city' : 'city', found.city);
+      setVal(isVector ? 'v_dateOnset' : 'dateOnset', found.date_onset);
+    }
+
+    // 3. Small timeout to let the DOM display the form before triggering the print window
+    setTimeout(() => {
+      window.print();
+    }, 250);
+  }
+
   function renderRegistryRows(cases) {
     const tbody = document.getElementById('registryBody');
     if (!tbody) return;
@@ -3017,13 +3082,15 @@
         <td class="p-3"><span class="px-2 py-0.5 rounded font-bold ${r.case_classification === 'Confirmed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.case_classification}</span></td>
         <td class="p-3 font-bold ${r.outcome.includes('Died') ? 'text-rose-600' : 'text-teal-700'}">${r.outcome}</td>
         <td class="p-3 text-center">
-          <button onclick="window.print()" class="p-1.5 bg-slate-800 text-white rounded hover:bg-slate-700" title="Print Official Form"><i class="fa-solid fa-print"></i></button>
+          <!-- Calls printRegistryCase instead of window.print() directly -->
+          <button type="button" onclick="printRegistryCase('${r.epid_id}')" class="p-1.5 bg-slate-800 text-white rounded hover:bg-slate-700 transition" title="Print Official Form">
+            <i class="fa-solid fa-print"></i>
+          </button>
         </td>
       `;
       tbody.appendChild(tr);
     });
   }
-
   function exportSurveillanceCSV() {
     window.location.href = `${API_BASE}/export-csv`;
   }
