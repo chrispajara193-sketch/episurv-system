@@ -2130,474 +2130,554 @@
 
   <!-- JAVASCRIPT LOGIC (INTACT & ENHANCED) -->
 <!-- JAVASCRIPT LOGIC -->
-  <script>
-    const API_BASE = '/api';
-    const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjwJYd_PIteMW766Ev-JS7XHdxqxgpQSGhdeFeF1U-kV1-K92Q3if-V9sswZ8lmlDX/exec";
+<script>
+  const API_BASE = '/api';
+  const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjwJYd_PIteMW766Ev-JS7XHdxqxgpQSGhdeFeF1U-kV1-K92Q3if-V9sswZ8lmlDX/exec";
 
-    window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('reportDate').valueAsDate = new Date();
-      if (document.getElementById('v_reportDate')) document.getElementById('v_reportDate').valueAsDate = new Date();
-      generateEpidNumber();
-      changeQuestionnaireForm();
-      loadDashboardStats();
+  window.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('reportDate')) document.getElementById('reportDate').valueAsDate = new Date();
+    if (document.getElementById('v_reportDate')) document.getElementById('v_reportDate').valueAsDate = new Date();
+    generateEpidNumber();
+    changeQuestionnaireForm();
+    loadDashboardStats();
+    fetchRegistryCases();
+  });
+
+  function generateEpidNumber() {
+    const yr = new Date().getFullYear();
+    const rand = Math.floor(10000 + Math.random() * 90000);
+    const epidEl = document.getElementById('epidId');
+    if (epidEl) epidEl.value = `QC-${yr}-${rand}`;
+  }
+
+  function autoCalcAgeBreakdown() {
+    const dobVal = document.getElementById('dob')?.value || document.getElementById('v_dob')?.value;
+    if (!dobVal) return;
+    const dob = new Date(dobVal);
+    const today = new Date();
+    let years = today.getFullYear() - dob.getFullYear();
+    let months = today.getMonth() - dob.getMonth();
+    if (months < 0 || (months === 0 && today.getDate() < dob.getDate())) {
+      years--;
+    }
+    if (years >= 0) {
+      if (document.getElementById('age')) document.getElementById('age').value = years;
+      if (document.getElementById('v_age')) document.getElementById('v_age').value = years;
+    }
+  }
+
+  // Dynamic Form Switcher between Leptospirosis and Vectorborne
+  function changeQuestionnaireForm() {
+    const diseaseSelect = document.getElementById('diseaseSelect');
+    if (!diseaseSelect) return;
+    const disease = diseaseSelect.value;
+    const leptoDiv = document.getElementById('leptospirosisForm');
+    const vectorDiv = document.getElementById('vectorborneForm');
+
+    if (disease.includes('Vectorborne')) {
+      if (leptoDiv) leptoDiv.classList.add('hidden');
+      if (vectorDiv) vectorDiv.classList.remove('hidden');
+    } else {
+      if (vectorDiv) vectorDiv.classList.add('hidden');
+      if (leptoDiv) leptoDiv.classList.remove('hidden');
+      const titleEl = document.getElementById('pageDiseaseTitle');
+      if (titleEl) titleEl.textContent = disease.toUpperCase();
+    }
+  }
+
+  function switchTab(tabId) {
+    document.getElementById('questionnaireTab')?.classList.add('hidden');
+    document.getElementById('registryTab')?.classList.add('hidden');
+    document.getElementById(tabId)?.classList.remove('hidden');
+
+    const btnQ = document.getElementById('btn-questionnaireTab');
+    const btnReg = document.getElementById('btn-registryTab');
+
+    if (tabId === 'questionnaireTab') {
+      if (btnQ) btnQ.className = "px-3.5 py-2 rounded-lg font-semibold text-xs transition bg-teal-600 text-white shadow flex items-center gap-2";
+      if (btnReg) btnReg.className = "px-3.5 py-2 rounded-lg font-semibold text-xs transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2";
+    } else {
+      if (btnReg) btnReg.className = "px-3.5 py-2 rounded-lg font-semibold text-xs transition bg-teal-600 text-white shadow flex items-center gap-2";
+      if (btnQ) btnQ.className = "px-3.5 py-2 rounded-lg font-semibold text-xs transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2";
       fetchRegistryCases();
-    });
-
-    function generateEpidNumber() {
-      const yr = new Date().getFullYear();
-      const rand = Math.floor(10000 + Math.random() * 90000);
-      document.getElementById('epidId').value = `QC-${yr}-${rand}`;
     }
+  }
 
-    function autoCalcAgeBreakdown() {
-      const dobVal = document.getElementById('dob')?.value || document.getElementById('v_dob')?.value;
-      if (!dobVal) return;
-      const dob = new Date(dobVal);
-      const today = new Date();
-      let years = today.getFullYear() - dob.getFullYear();
-      let months = today.getMonth() - dob.getMonth();
-      if (months < 0 || (months === 0 && today.getDate() < dob.getDate())) {
-        years--;
-      }
-      if (years >= 0) {
-        if (document.getElementById('age')) document.getElementById('age').value = years;
-        if (document.getElementById('v_age')) document.getElementById('v_age').value = years;
+  // 🧠 SMART DISEASE DETECTOR & AUTO-SWITCHER
+  function detectAndSwitchDisease(d, caseIdInput) {
+    let textPool = '';
+
+    const targetKeywords = ['disease', 'diagnosis', 'morbidity', 'condition', 'notifiable', 'category', 'syndrome', 'casedisease'];
+    for (let key in d) {
+      const cleanKey = key.toLowerCase().replace(/[\s_\-\/\.]/g, '');
+      if (targetKeywords.some(k => cleanKey.includes(k))) {
+        textPool += ' ' + String(d[key]).toLowerCase();
       }
     }
 
-    // Dynamic Form Switcher between Leptospirosis and Vectorborne
-    function changeQuestionnaireForm() {
-      const disease = document.getElementById('diseaseSelect').value;
-      const leptoDiv = document.getElementById('leptospirosisForm');
-      const vectorDiv = document.getElementById('vectorborneForm');
-
-      if (disease.includes('Vectorborne')) {
-        leptoDiv.classList.add('hidden');
-        vectorDiv.classList.remove('hidden');
-      } else {
-        vectorDiv.classList.add('hidden');
-        leptoDiv.classList.remove('hidden');
-        const titleEl = document.getElementById('pageDiseaseTitle');
-        if (titleEl) titleEl.textContent = disease.toUpperCase();
-      }
-    }
-
-    function switchTab(tabId) {
-      document.getElementById('questionnaireTab').classList.add('hidden');
-      document.getElementById('registryTab').classList.add('hidden');
-      document.getElementById(tabId).classList.remove('hidden');
-
-      const btnQ = document.getElementById('btn-questionnaireTab');
-      const btnReg = document.getElementById('btn-registryTab');
-
-      if (tabId === 'questionnaireTab') {
-        btnQ.className = "px-3.5 py-2 rounded-lg font-semibold text-xs transition bg-teal-600 text-white shadow flex items-center gap-2";
-        btnReg.className = "px-3.5 py-2 rounded-lg font-semibold text-xs transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2";
-      } else {
-        btnReg.className = "px-3.5 py-2 rounded-lg font-semibold text-xs transition bg-teal-600 text-white shadow flex items-center gap-2";
-        btnQ.className = "px-3.5 py-2 rounded-lg font-semibold text-xs transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-2";
-        fetchRegistryCases();
-      }
-    }
-
-    // 🧠 SMART DISEASE DETECTOR & AUTO-SWITCHER
-    function detectAndSwitchDisease(d, caseIdInput) {
-      let textPool = '';
-
-      // 1. Gather all values from columns related to disease / diagnosis / morbidity
-      const targetKeywords = ['disease', 'diagnosis', 'morbidity', 'condition', 'notifiable', 'category', 'syndrome', 'casedisease'];
+    if (!textPool.trim()) {
       for (let key in d) {
-        const cleanKey = key.toLowerCase().replace(/[\s_\-\/\.]/g, '');
-        if (targetKeywords.some(k => cleanKey.includes(k))) {
-          textPool += ' ' + String(d[key]).toLowerCase();
-        }
-      }
-
-      // If no specific header matched, search all text across the entire row
-      if (!textPool.trim()) {
-        for (let key in d) {
-          textPool += ' ' + String(d[key]).toLowerCase();
-        }
-      }
-
-      // Also include the Case ID string in case it contains codes like "DENG", "LEP", etc.
-      textPool += ' ' + (caseIdInput || '').toLowerCase();
-
-      // 2. Identify the target disease category
-      let matchedOption = '';
-      if (textPool.includes('dengue') || textPool.includes('chikungunya') || textPool.includes('malaria') || textPool.includes('denv') || textPool.includes('vector')) {
-        matchedOption = 'Vectorborne - Dengue';
-      } else if (textPool.includes('lepto') || textPool.includes('leptospirosis') || textPool.includes('weil')) {
-        matchedOption = 'Leptospirosis';
-      } else if (textPool.includes('diphtheria') || textPool.includes('diph')) {
-        matchedOption = 'Diphtheria';
-      } else if (textPool.includes('mpox') || textPool.includes('monkeypox')) {
-        matchedOption = 'Mpox';
-      } else if (textPool.includes('rabies') || textPool.includes('bite') || textPool.includes('hydrophobia')) {
-        matchedOption = 'Rabies';
-      } else if (textPool.includes('diarrhea') || textPool.includes('diarrhoea') || textPool.includes('abd') || textPool.includes('cholera') || textPool.includes('typhoid') || textPool.includes('fwbd')) {
-        matchedOption = 'FWBD - Acute Bloody Diarrhea';
-      } else if (textPool.includes('measles') || textPool.includes('rubella') || textPool.includes('tigdas')) {
-        matchedOption = 'Measles_Rubella';
-      } else if (textPool.includes('pertussis') || textPool.includes('whooping')) {
-        matchedOption = 'Pertussis';
-      } else if (textPool.includes('covid') || textPool.includes('sari') || textPool.includes('ili') || textPool.includes('influenza') || textPool.includes('panrespi')) {
-        matchedOption = 'Panrespi';
-      }
-
-      // 3. Switch dropdown and trigger UI form swap
-      if (matchedOption) {
-        const diseaseDropdown = document.getElementById('diseaseSelect');
-        if (diseaseDropdown) {
-          diseaseDropdown.value = matchedOption;
-          changeQuestionnaireForm(); // Flips the active form immediately!
-        }
+        textPool += ' ' + String(d[key]).toLowerCase();
       }
     }
 
-    // ⚡ GOOGLE SHEET CASE ID AUTOFILL FUNCTION
-    async function fetchAndAutofillFromSheet() {
-      const inputEl = document.getElementById('sheetSearchCaseId');
-      const btn = document.getElementById('btnLookupSheet') || document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]');
-      
-      if (!inputEl || !inputEl.value.trim()) {
-        alert('Please enter a Case ID to search.');
+    textPool += ' ' + (caseIdInput || '').toLowerCase();
+
+    let matchedOption = '';
+    if (textPool.includes('dengue') || textPool.includes('chikungunya') || textPool.includes('malaria') || textPool.includes('denv') || textPool.includes('vector')) {
+      matchedOption = 'Vectorborne - Dengue';
+    } else if (textPool.includes('lepto') || textPool.includes('leptospirosis') || textPool.includes('weil')) {
+      matchedOption = 'Leptospirosis';
+    } else if (textPool.includes('diphtheria') || textPool.includes('diph')) {
+      matchedOption = 'Diphtheria';
+    } else if (textPool.includes('mpox') || textPool.includes('monkeypox')) {
+      matchedOption = 'Mpox';
+    } else if (textPool.includes('rabies') || textPool.includes('bite') || textPool.includes('hydrophobia')) {
+      matchedOption = 'Rabies';
+    } else if (textPool.includes('diarrhea') || textPool.includes('diarrhoea') || textPool.includes('abd') || textPool.includes('cholera') || textPool.includes('typhoid') || textPool.includes('fwbd')) {
+      matchedOption = 'FWBD - Acute Bloody Diarrhea';
+    } else if (textPool.includes('measles') || textPool.includes('rubella') || textPool.includes('tigdas')) {
+      matchedOption = 'Measles_Rubella';
+    } else if (textPool.includes('pertussis') || textPool.includes('whooping')) {
+      matchedOption = 'Pertussis';
+    } else if (textPool.includes('covid') || textPool.includes('sari') || textPool.includes('ili') || textPool.includes('influenza') || textPool.includes('panrespi')) {
+      matchedOption = 'Panrespi';
+    }
+
+    if (matchedOption) {
+      const diseaseDropdown = document.getElementById('diseaseSelect');
+      if (diseaseDropdown) {
+        diseaseDropdown.value = matchedOption;
+        changeQuestionnaireForm();
+      }
+    }
+  }
+
+  // ⚡ HELPER: Converts Google Sheet / ISO date strings to YYYY-MM-DD for <input type="date">
+  function formatDateForInput(dateVal) {
+    if (!dateVal) return '';
+    if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateVal.trim())) {
+      return dateVal.trim();
+    }
+    const d = new Date(dateVal);
+    if (!isNaN(d.getTime())) {
+      const yr = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const da = String(d.getDate()).padStart(2, '0');
+      return `${yr}-${mo}-${da}`;
+    }
+    return dateVal;
+  }
+
+  // ⚡ GOOGLE SHEET CASE ID AUTOFILL FUNCTION
+  async function fetchAndAutofillFromSheet() {
+    const inputEl = document.getElementById('sheetSearchCaseId');
+    const btn = document.getElementById('btnLookupSheet') || document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]');
+    
+    if (!inputEl || !inputEl.value.trim()) {
+      alert('Please enter a Case ID to search.');
+      return;
+    }
+
+    const caseIdInput = inputEl.value.trim();
+    let origHtml = '';
+    if (btn) {
+      origHtml = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching...';
+      btn.disabled = true;
+    }
+
+    try {
+      const fetchUrl = `${GOOGLE_SHEET_API_URL}?caseId=${encodeURIComponent(caseIdInput)}`;
+      const res = await fetch(fetchUrl);
+      const result = await res.json();
+
+      if (!result.success) {
+        alert(`⚠️ ${result.message || 'Case ID not found in Google Sheet Column C.'}`);
         return;
       }
 
-      const caseIdInput = inputEl.value.trim();
-      let origHtml = '';
-      if (btn) {
-        origHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching...';
-        btn.disabled = true;
+      // Handle array or object data format from Google Apps Script
+      let d = result.data;
+      if (Array.isArray(d)) {
+        if (d.length > 0 && typeof d[0] === 'object' && !Array.isArray(d[0])) {
+          d = d[0];
+        } else if (d.length >= 2 && Array.isArray(d[0]) && Array.isArray(d[1])) {
+          const headers = d[0];
+          const vals = d[1];
+          d = {};
+          headers.forEach((h, i) => d[h] = vals[i]);
+        }
       }
 
-      try {
-        const fetchUrl = `${GOOGLE_SHEET_API_URL}?caseId=${encodeURIComponent(caseIdInput)}`;
-        const res = await fetch(fetchUrl);
-        const result = await res.json();
+      console.log('📄 Sheet Data Received:', d);
 
-        if (!result.success) {
-          alert(`⚠️ ${result.message || 'Case ID not found in Google Sheet Column C.'}`);
-          return;
-        }
+      // 🎯 STEP 1: AUTO-DETECT AND SWITCH DISEASE FORM
+      detectAndSwitchDisease(d, caseIdInput);
 
-        const d = result.data;
+      // 🎯 STEP 2: FLEXIBLE HEADER MATCHER
+      const cleanStr = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
-        // 🎯 STEP 1: AUTO-DETECT AND SWITCH DISEASE FORM (LEPTO vs DENGUE)
-        detectAndSwitchDisease(d, caseIdInput);
-
-        const isVector = document.getElementById('diseaseSelect').value.includes('Vectorborne');
-
-        // Helper to match headers case-insensitively
-        const getField = (...keys) => {
-          for (let k of keys) {
-            for (let dataKey in d) {
-              if (dataKey.trim().toLowerCase().replace(/[\s_\-\/\.]/g, '') === k.toLowerCase().replace(/[\s_\-\/\.]/g, '')) {
-                return d[dataKey];
-              }
+      const getField = (...keys) => {
+        // Pass 1: Exact match on alphanumeric keys
+        for (const k of keys) {
+          const ck = cleanStr(k);
+          if (!ck) continue;
+          for (const dataKey in d) {
+            if (cleanStr(dataKey) === ck) {
+              const val = d[dataKey];
+              if (val !== undefined && val !== null && String(val).trim() !== '') return val;
             }
           }
-          return '';
-        };
-
-        const setVal = (elId, val) => {
-          if (!val) return;
-          const el = document.getElementById(elId);
-          if (!el) return;
-          if (el.tagName === 'SELECT') {
-            const valStr = String(val).trim().toLowerCase();
-            for (let opt of el.options) {
-              if (opt.value.trim().toLowerCase() === valStr || opt.text.trim().toLowerCase() === valStr || opt.value.toLowerCase().includes(valStr) || valStr.includes(opt.value.toLowerCase())) {
-                el.value = opt.value;
-                return;
-              }
+        }
+        // Pass 2: Loose partial match
+        for (const k of keys) {
+          const ck = cleanStr(k);
+          if (ck.length < 3) continue;
+          for (const dataKey in d) {
+            const cd = cleanStr(dataKey);
+            if (cd.includes(ck) || ck.includes(cd)) {
+              const val = d[dataKey];
+              if (val !== undefined && val !== null && String(val).trim() !== '') return val;
             }
           }
-          el.value = val;
-        };
-
-        // 1. Identification & Case ID
-        const foundCaseId = getField('case_id', 'caseid', 'epid_id', 'epidid', 'case_no', 'caseno') || caseIdInput;
-        setVal('epidId', foundCaseId);
-        setVal('caseRefId', foundCaseId);
-
-        // 2. Administrative / Health Center & DRU
-        const dru = getField('dru_name', 'druname', 'dru', 'health_center', 'healthcenter', 'facility', 'diseasereportingunit');
-        setVal('DiseaseReportingUnit', dru);
-        setVal('druName', dru);
-        setVal('v_druName', dru);
-
-        const brgy = getField('barangay', 'brgy', 'dru_barangay', 'drubarangay');
-        setVal('Barangay', brgy);
-        setVal('druBarangay', brgy);
-        setVal('v_druBarangay', brgy);
-
-        const inv = getField('investigator', 'investigator_name', 'dso', 'surveillance_officer');
-        setVal('Investigator', inv);
-        setVal('investigator', inv);
-        setVal('v_investigator', inv);
-
-        const desig = getField('designation', 'position', 'investigator_designation');
-        setVal('Designation', desig);
-        setVal('investigatorDesignation', desig);
-        setVal('v_investigatorDesignation', desig);
-
-        const repDate = getField('report_date', 'reportdate', 'date_investigated', 'dateinvestigated');
-        setVal('reportDate', repDate);
-        setVal('v_reportDate', repDate);
-
-        // 3. Patient Demographics
-        const lname = getField('last_name', 'lastname', 'lname', 'surname', 'family_name');
-        setVal('patientLastName', lname);
-        setVal('v_patientLastName', lname);
-
-        const fname = getField('first_name', 'firstname', 'fname', 'given_name');
-        setVal('patientFirstName', fname);
-        setVal('v_patientFirstName', fname);
-
-        const mname = getField('middle_name', 'middlename', 'mname');
-        setVal('patientMiddleName', mname);
-        setVal('v_patientMiddleName', mname);
-
-        const suffix = getField('suffix', 'ext');
-        setVal('patientSuffix', suffix);
-        setVal('v_patientSuffix', suffix);
-
-        const dob = getField('dob', 'date_of_birth', 'birthdate', 'birth_date');
-        setVal('dob', dob);
-        setVal('v_dob', dob);
-        if (dob) autoCalcAgeBreakdown();
-
-        const age = getField('age', 'years', 'edad');
-        setVal('age', age);
-        setVal('v_age', age);
-
-        const sex = getField('sex', 'gender', 'kasarian');
-        setVal('sex', sex);
-        setVal('v_sex', sex);
-
-        const civil = getField('civil_status', 'civilstatus', 'status');
-        setVal('civilStatus', civil);
-
-        const nation = getField('nationality', 'citizenship');
-        setVal('nationality', nation || 'Filipino');
-
-        // 4. Address & Contact
-        const street = getField('street_address', 'street', 'house_no', 'house_bldg', 'address', 'tirahan');
-        setVal('streetAddress', street);
-        setVal('houseBldg', street);
-        setVal('v_streetAddress', street);
-
-        const contact = getField('contact', 'contact_number', 'contact_no', 'phone', 'mobile', 'cellphone');
-        setVal('contact', contact);
-        setVal('v_contact', contact);
-
-        const city = getField('city', 'municipality');
-        setVal('city', city || 'Quezon City');
-        setVal('v_city', city || 'Quezon City');
-
-        const prov = getField('province');
-        setVal('province', prov || 'Metro Manila');
-
-        const lenRes = getField('length_residence', 'length_of_residence');
-        setVal('lengthResidence', lenRes);
-
-        // 5. Clinical Info
-        const onset = getField('date_onset', 'dateonset', 'onset', 'symptom_onset');
-        setVal('dateOnset', onset);
-        setVal('v_dateOnset', onset);
-
-        const firstSymp = getField('first_symptom', 'firstsymptom');
-        setVal('firstSymptom', firstSymp);
-
-        const classification = getField('case_classification', 'classification', 'case_class');
-        setVal('caseClassification', classification);
-
-        const outcome = getField('outcome', 'patient_outcome', 'status');
-        setVal('outcome', outcome);
-
-        // Auto-check symptoms if present
-        const sympsString = getField('symptoms', 'manifestations', 'clinical_signs');
-        if (sympsString) {
-          const sList = String(sympsString).split(/[,;]/).map(s => s.trim().toLowerCase());
-          document.querySelectorAll('#printableQuestionnaire input[name="symp"]').forEach(cb => {
-            cb.checked = sList.some(s => cb.value.toLowerCase().includes(s) || s.includes(cb.value.toLowerCase()));
-          });
         }
+        return '';
+      };
 
-        alert(`✅ Success! Detected "${document.getElementById('diseaseSelect').value}" for Case ID "${caseIdInput}" (${fname} ${lname}). Form loaded!`);
+      // 🎯 STEP 3: SAFE VALUE SETTER ACROSS MULTIPLE ELEMENT IDS
+      const setVal = (targets, rawVal, isDate = false) => {
+        if (rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
+        const val = isDate ? formatDateForInput(rawVal) : String(rawVal).trim();
+        const idList = Array.isArray(targets) ? targets : [targets];
 
-      } catch (err) {
-        console.error('Google Sheet error:', err);
-        alert('❌ Error connecting to Google Sheet. Please verify your Apps Script permissions.');
-      } finally {
-        if (btn && origHtml) {
-          btn.innerHTML = origHtml;
-          btn.disabled = false;
+        for (const target of idList) {
+          const els = [
+            document.getElementById(target),
+            ...document.querySelectorAll(`[name="${target}"]`)
+          ].filter((el, idx, self) => el && self.indexOf(el) === idx);
+
+          for (const el of els) {
+            if (el.tagName === 'SELECT') {
+              const valStr = val.toLowerCase();
+              let matched = false;
+
+              // Exact option match
+              for (const opt of el.options) {
+                const ov = opt.value.trim().toLowerCase();
+                const ot = opt.text.trim().toLowerCase();
+                if (ov === valStr || ot === valStr) {
+                  el.value = opt.value;
+                  matched = true;
+                  break;
+                }
+              }
+              // Loose option match
+              if (!matched) {
+                for (const opt of el.options) {
+                  const ov = opt.value.trim().toLowerCase();
+                  const ot = opt.text.trim().toLowerCase();
+                  if (ov && (ov.includes(valStr) || valStr.includes(ov))) {
+                    el.value = opt.value;
+                    matched = true;
+                    break;
+                  }
+                  if (ot && (ot.includes(valStr) || valStr.includes(ot))) {
+                    el.value = opt.value;
+                    matched = true;
+                    break;
+                  }
+                }
+              }
+            } else if (el.type === 'checkbox') {
+              el.checked = (val.toLowerCase() === 'yes' || val.toLowerCase() === 'true' || val === '1');
+            } else if (el.type === 'radio') {
+              if (el.value.toLowerCase() === val.toLowerCase()) el.checked = true;
+            } else {
+              el.value = val;
+            }
+
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          }
         }
+      };
+
+      // 1. Identification & Case ID
+      const foundCaseId = getField('case_id', 'caseid', 'epid_id', 'epidid', 'case_no', 'caseno', 'casenumber', 'id') || caseIdInput;
+      setVal(['epidId', 'caseRefId', 'v_caseId', 'v_caseRefId', 'v_epidId', 'caseId', 'case_id'], foundCaseId);
+
+      // 2. Administrative / Health Center & DRU
+      const dru = getField('dru_name', 'druname', 'dru', 'health_center', 'healthcenter', 'facility', 'diseasereportingunit', 'hospital');
+      setVal(['DiseaseReportingUnit', 'druName', 'v_druName', 'dru', 'v_dru'], dru);
+
+      const druBrgy = getField('dru_barangay', 'drubarangay', 'health_center_barangay', 'barangay', 'brgy');
+      setVal(['druBarangay', 'v_druBarangay', 'Barangay'], druBrgy);
+
+      const district = getField('district', 'dru_district', 'drudistrict');
+      setVal(['district', 'v_district', 'druDistrict', 'v_druDistrict'], district);
+
+      const inv = getField('investigator', 'investigator_name', 'dso', 'surveillance_officer', 'investigatorname');
+      setVal(['Investigator', 'investigator', 'v_investigator'], inv);
+
+      const desig = getField('designation', 'position', 'investigator_designation', 'investigatordesignation');
+      setVal(['Designation', 'investigatorDesignation', 'v_investigatorDesignation'], desig);
+
+      const repDate = getField('report_date', 'reportdate', 'date_investigated', 'dateinvestigated', 'investigation_date');
+      setVal(['reportDate', 'v_reportDate', 'dateInvestigated', 'v_dateInvestigated'], repDate, true);
+
+      const dateEndorsed = getField('date_endorsed', 'dateendorsed', 'date_reported', 'datereported');
+      setVal(['dateEndorsed', 'v_dateEndorsed', 'dateReported', 'v_dateReported'], dateEndorsed, true);
+
+      const fromEndorsement = getField('from_endorsement', 'fromendorsement', 'endorsed');
+      setVal(['fromEndorsement', 'v_fromEndorsement'], fromEndorsement);
+
+      const disposition = getField('disposition', 'patient_disposition', 'status_during_interview');
+      setVal(['disposition', 'v_disposition', 'patientDisposition', 'v_patientDisposition'], disposition);
+
+      // 3. Patient Demographics
+      const lname = getField('patient_last_name', 'patientlastname', 'last_name', 'lastname', 'lname', 'surname', 'family_name', 'apelyido');
+      setVal(['patientLastName', 'v_patientLastName', 'lastName', 'v_lastName', 'lname', 'v_lname'], lname);
+
+      const fname = getField('patient_first_name', 'patientfirstname', 'first_name', 'firstname', 'fname', 'given_name', 'pangalan');
+      setVal(['patientFirstName', 'v_patientFirstName', 'firstName', 'v_firstName', 'fname', 'v_fname'], fname);
+
+      const mname = getField('patient_middle_name', 'patientmiddlename', 'middle_name', 'middlename', 'mname');
+      setVal(['patientMiddleName', 'v_patientMiddleName', 'middleName', 'v_middleName', 'mname', 'v_mname'], mname);
+
+      const suffix = getField('suffix', 'ext', 'extension');
+      setVal(['patientSuffix', 'v_patientSuffix', 'suffix', 'v_suffix'], suffix);
+
+      const dob = getField('dob', 'date_of_birth', 'dateofbirth', 'birthdate', 'birth_date', 'bday');
+      setVal(['dob', 'v_dob', 'birthDate', 'v_birthDate'], dob, true);
+
+      const age = getField('age', 'years', 'edad', 'age_years', 'ageyears');
+      setVal(['age', 'v_age'], age);
+      if (dob) autoCalcAgeBreakdown();
+
+      const sex = getField('sex', 'gender', 'kasarian', 'sex_at_birth', 'sexatbirth');
+      setVal(['sex', 'v_sex', 'gender', 'v_gender'], sex);
+
+      const civil = getField('civil_status', 'civilstatus', 'marital_status');
+      setVal(['civilStatus', 'v_civilStatus'], civil);
+
+      const nation = getField('nationality', 'citizenship');
+      setVal(['nationality', 'v_nationality'], nation || 'Filipino');
+
+      // 4. Address & Contact
+      const street = getField('street_address', 'streetaddress', 'street', 'house_no', 'houseno', 'house_bldg', 'housebldg', 'address', 'tirahan');
+      setVal(['streetAddress', 'houseBldg', 'v_streetAddress', 'v_houseBldg', 'address', 'v_address'], street);
+
+      const ptBrgy = getField('patient_barangay', 'residence_barangay', 'barangay', 'brgy');
+      setVal(['patientBarangay', 'v_patientBarangay'], ptBrgy);
+
+      const contact = getField('contact', 'contact_number', 'contactnumber', 'contact_no', 'phone', 'mobile', 'cellphone');
+      setVal(['contact', 'v_contact', 'contactNo', 'v_contactNo', 'mobile', 'v_mobile'], contact);
+
+      const city = getField('city', 'municipality');
+      setVal(['city', 'v_city'], city || 'Quezon City');
+
+      const prov = getField('province');
+      setVal(['province', 'v_province'], prov || 'Metro Manila');
+
+      const lenRes = getField('length_residence', 'length_of_residence', 'lengthofresidence');
+      setVal(['lengthResidence', 'v_lengthResidence'], lenRes);
+
+      // 5. Clinical Info
+      const onset = getField('date_onset', 'dateonset', 'onset', 'symptom_onset', 'date_of_onset');
+      setVal(['dateOnset', 'v_dateOnset'], onset, true);
+
+      const firstSymp = getField('first_symptom', 'firstsymptom');
+      setVal(['firstSymptom', 'v_firstSymptom'], firstSymp);
+
+      const classification = getField('case_classification', 'caseclassification', 'classification', 'case_class');
+      setVal(['caseClassification', 'v_caseClassification'], classification);
+
+      const outcome = getField('outcome', 'patient_outcome', 'status');
+      setVal(['outcome', 'v_outcome'], outcome);
+
+      // Auto-check symptoms if present
+      const sympsString = getField('symptoms', 'manifestations', 'clinical_signs');
+      if (sympsString) {
+        const sList = String(sympsString).split(/[,;]/).map(s => s.trim().toLowerCase());
+        document.querySelectorAll('#printableQuestionnaire input[name="symp"], #printableQuestionnaire input[name="v_symp"]').forEach(cb => {
+          cb.checked = sList.some(s => cb.value.toLowerCase().includes(s) || s.includes(cb.value.toLowerCase()));
+        });
+      }
+
+      console.log('✅ Extracted Patient:', { fname, lname, foundCaseId, dob, age, sex, dru });
+      alert(`✅ Success! Detected "${document.getElementById('diseaseSelect').value}" for Case ID "${caseIdInput}" (${fname || ''} ${lname || ''}). Form loaded!`);
+
+    } catch (err) {
+      console.error('Google Sheet error:', err);
+      alert('❌ Error connecting to Google Sheet. Please verify your Apps Script permissions.');
+    } finally {
+      if (btn && origHtml) {
+        btn.innerHTML = origHtml;
+        btn.disabled = false;
       }
     }
+  }
 
-    // FORM SUBMIT HANDLER
-    async function handleFormSubmit(e) {
-      e.preventDefault();
+  // FORM SUBMIT HANDLER
+  async function handleFormSubmit(e) {
+    e.preventDefault();
 
-      const isVector = document.getElementById('diseaseSelect').value.includes('Vectorborne');
+    const isVector = document.getElementById('diseaseSelect').value.includes('Vectorborne');
 
-      const getVal = (stdId, vecId, fallback = '') => {
-        const id = (isVector && vecId) ? vecId : stdId;
-        const el = document.getElementById(id) || document.getElementById(stdId);
-        return el && el.value ? el.value.trim() : fallback;
-      };
+    const getVal = (stdId, vecId, fallback = '') => {
+      const id = (isVector && vecId) ? vecId : stdId;
+      const el = document.getElementById(id) || document.getElementById(stdId);
+      return el && el.value ? el.value.trim() : fallback;
+    };
 
-      const lastName = getVal('patientLastName', 'v_patientLastName', 'Dela Cruz');
-      const firstName = getVal('patientFirstName', 'v_patientFirstName', 'Juan');
-      const middleName = getVal('patientMiddleName', 'v_patientMiddleName', '');
-      const suffix = getVal('patientSuffix', 'v_patientSuffix', '');
-      const fullName = `${lastName}, ${firstName} ${middleName} ${suffix}`.replace(/\s+/g, ' ').trim();
+    const lastName = getVal('patientLastName', 'v_patientLastName', 'Dela Cruz');
+    const firstName = getVal('patientFirstName', 'v_patientFirstName', 'Juan');
+    const middleName = getVal('patientMiddleName', 'v_patientMiddleName', '');
+    const suffix = getVal('patientSuffix', 'v_patientSuffix', '');
+    const fullName = `${lastName}, ${firstName} ${middleName} ${suffix}`.replace(/\s+/g, ' ').trim();
 
-      const symps = [];
-      document.querySelectorAll('#printableQuestionnaire input[name="symp"]:checked, #printableQuestionnaire input[name="v_symp"]:checked').forEach(c => symps.push(c.value));
+    const symps = [];
+    document.querySelectorAll('#printableQuestionnaire input[name="symp"]:checked, #printableQuestionnaire input[name="v_symp"]:checked').forEach(c => symps.push(c.value));
 
-      const exposures = [];
-      document.querySelectorAll('#printableQuestionnaire input[name="exposureHist"]:checked').forEach(c => exposures.push(c.value));
+    const exposures = [];
+    document.querySelectorAll('#printableQuestionnaire input[name="exposureHist"]:checked').forEach(c => exposures.push(c.value));
 
-      const payload = {
-        epid_id: document.getElementById('epidId').value || `QC-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`,
-        disease: document.getElementById('diseaseSelect').value,
-        dru_name: getVal('DiseaseReportingUnit', 'v_druName', 'BATASAN HILLS SUPER HEALTH CENTER'),
-        investigator: getVal('Investigator', 'v_investigator', 'MARICEL UDJAN'),
-        report_date: getVal('reportDate', 'v_reportDate', new Date().toISOString().slice(0, 10)),
-        patient_name: fullName,
-        sex: getVal('sex', 'v_sex', 'Male'),
-        dob: getVal('dob', 'v_dob', ''),
-        age: parseInt(getVal('age', 'v_age', '25'), 10) || 0,
-        contact: getVal('contact', 'v_contact', 'N/A'),
-        barangay: getVal('Barangay', 'v_druBarangay', 'COMMONWEALTH'),
-        city: getVal('city', 'v_city', 'Quezon City'),
-        date_onset: getVal('dateOnset', 'v_dateOnset', new Date().toISOString().slice(0, 10)),
-        hospitalized: (document.getElementById('consultAdmitted1')?.value === 'Yes' || document.getElementById('hospitalBedType')?.value !== 'Outpatient / None') ? 'Yes' : 'No',
-        case_classification: document.getElementById('caseClassification')?.value || 'Suspected',
-        outcome: document.getElementById('outcome')?.value || 'Alive',
-        disease_specific_data: {
-          symptoms: symps,
-          exposures: exposures,
-          timestamp: new Date().toISOString()
-        }
-      };
+    const payload = {
+      epid_id: document.getElementById('epidId')?.value || `QC-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`,
+      disease: document.getElementById('diseaseSelect')?.value,
+      dru_name: getVal('DiseaseReportingUnit', 'v_druName', 'BATASAN HILLS SUPER HEALTH CENTER'),
+      investigator: getVal('Investigator', 'v_investigator', 'MARICEL UDJAN'),
+      report_date: getVal('reportDate', 'v_reportDate', new Date().toISOString().slice(0, 10)),
+      patient_name: fullName,
+      sex: getVal('sex', 'v_sex', 'Male'),
+      dob: getVal('dob', 'v_dob', ''),
+      age: parseInt(getVal('age', 'v_age', '25'), 10) || 0,
+      contact: getVal('contact', 'v_contact', 'N/A'),
+      barangay: getVal('Barangay', 'v_druBarangay', 'COMMONWEALTH'),
+      city: getVal('city', 'v_city', 'Quezon City'),
+      date_onset: getVal('dateOnset', 'v_dateOnset', new Date().toISOString().slice(0, 10)),
+      hospitalized: (document.getElementById('consultAdmitted1')?.value === 'Yes' || document.getElementById('hospitalBedType')?.value !== 'Outpatient / None') ? 'Yes' : 'No',
+      case_classification: document.getElementById('caseClassification')?.value || 'Suspected',
+      outcome: document.getElementById('outcome')?.value || 'Alive',
+      disease_specific_data: {
+        symptoms: symps,
+        exposures: exposures,
+        timestamp: new Date().toISOString()
+      }
+    };
 
-      try {
-        const res = await fetch(`${API_BASE}/cases`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+    try {
+      const res = await fetch(`${API_BASE}/cases`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-        let data = {};
-        try { data = await res.json(); } catch (err) {}
+      let data = {};
+      try { data = await res.json(); } catch (err) {}
 
-        if (res.ok) {
-          alert(`✅ Questionnaire for ${fullName} (${payload.epid_id}) saved to Cloud Database!`);
-          loadDashboardStats();
-          fetchRegistryCases();
-          switchTab('registryTab');
-        } else {
-          saveLocalBackup(payload);
-          alert(`⚠️ Cloud notice: ${data.error || 'Saved locally in registry.'}`);
-          loadDashboardStats();
-          fetchRegistryCases();
-          switchTab('registryTab');
-        }
-      } catch (err) {
-        console.warn('Network issue, saved to local registry backup:', err);
+      if (res.ok) {
+        alert(`✅ Questionnaire for ${fullName} (${payload.epid_id}) saved to Cloud Database!`);
+        loadDashboardStats();
+        fetchRegistryCases();
+        switchTab('registryTab');
+      } else {
         saveLocalBackup(payload);
-        alert(`✅ Questionnaire for ${fullName} (${payload.epid_id}) saved to Local Registry Backup!`);
+        alert(`⚠️ Cloud notice: ${data.error || 'Saved locally in registry.'}`);
         loadDashboardStats();
         fetchRegistryCases();
         switchTab('registryTab');
       }
+    } catch (err) {
+      console.warn('Network issue, saved to local registry backup:', err);
+      saveLocalBackup(payload);
+      alert(`✅ Questionnaire for ${fullName} (${payload.epid_id}) saved to Local Registry Backup!`);
+      loadDashboardStats();
+      fetchRegistryCases();
+      switchTab('registryTab');
     }
+  }
 
-    function saveLocalBackup(record) {
-      try {
-        const local = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
-        local.unshift({ ...record, id: Date.now() });
-        localStorage.setItem('EPISURV_LOCAL_BACKUP', JSON.stringify(local));
-      } catch (e) {}
-    }
+  function saveLocalBackup(record) {
+    try {
+      const local = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
+      local.unshift({ ...record, id: Date.now() });
+      localStorage.setItem('EPISURV_LOCAL_BACKUP', JSON.stringify(local));
+    } catch (e) {}
+  }
 
-    async function fetchRegistryCases() {
-      const search = encodeURIComponent(document.getElementById('searchRegistry')?.value || '');
-      let cases = [];
+  async function fetchRegistryCases() {
+    const search = encodeURIComponent(document.getElementById('searchRegistry')?.value || '');
+    let cases = [];
 
-      try {
-        const res = await fetch(`${API_BASE}/cases?search=${search}`);
-        if (res.ok) {
-          const result = await res.json();
-          if (result.success) cases = result.data || [];
-        }
-      } catch (err) {
-        console.warn('Using local storage registry backup:', err);
-      }
-
-      try {
-        const local = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
-        const existingIds = new Set(cases.map(c => c.epid_id));
-        local.forEach(l => {
-          if (!existingIds.has(l.epid_id)) cases.unshift(l);
-        });
-      } catch (e) {}
-
-      renderRegistryRows(cases);
-    }
-
-    function renderRegistryRows(cases) {
-      const tbody = document.getElementById('registryBody');
-      tbody.innerHTML = '';
-
-      if (!cases || cases.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-400">No cases recorded.</td></tr>`;
-        return;
-      }
-
-      cases.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
-        tr.innerHTML = `
-          <td class="p-3 font-mono font-bold text-teal-700">${r.epid_id}</td>
-          <td class="p-3">${r.report_date}</td>
-          <td class="p-3 font-bold text-slate-900">${r.patient_name}</td>
-          <td class="p-3">${r.age}y / ${r.sex}</td>
-          <td class="p-3 font-semibold text-slate-800">${r.disease}</td>
-          <td class="p-3 text-slate-500">${r.barangay}</td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded font-bold ${r.case_classification === 'Confirmed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.case_classification}</span></td>
-          <td class="p-3 font-bold ${r.outcome.includes('Died') ? 'text-rose-600' : 'text-teal-700'}">${r.outcome}</td>
-          <td class="p-3 text-center">
-            <button onclick="window.print()" class="p-1.5 bg-slate-800 text-white rounded hover:bg-slate-700" title="Print Official Form"><i class="fa-solid fa-print"></i></button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    async function loadDashboardStats() {
-      try {
-        const res = await fetch(`${API_BASE}/stats`);
+    try {
+      const res = await fetch(`${API_BASE}/cases?search=${search}`);
+      if (res.ok) {
         const result = await res.json();
-        if (result.success) {
-          document.getElementById('statTotalCases').textContent = result.data.total;
-          document.getElementById('statConfirmed').textContent = result.data.confirmed;
-          document.getElementById('statSuspected').textContent = result.data.suspected;
-          document.getElementById('statDeaths').textContent = result.data.deaths;
-        }
-      } catch (err) {}
+        if (result.success) cases = result.data || [];
+      }
+    } catch (err) {
+      console.warn('Using local storage registry backup:', err);
     }
 
-    function exportSurveillanceCSV() {
-      window.location.href = `${API_BASE}/export-csv`;
+    try {
+      const local = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
+      const existingIds = new Set(cases.map(c => c.epid_id));
+      local.forEach(l => {
+        if (!existingIds.has(l.epid_id)) cases.unshift(l);
+      });
+    } catch (e) {}
+
+    renderRegistryRows(cases);
+  }
+
+  function renderRegistryRows(cases) {
+    const tbody = document.getElementById('registryBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (!cases || cases.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-400">No cases recorded.</td></tr>`;
+      return;
     }
+
+    cases.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+      tr.innerHTML = `
+        <td class="p-3 font-mono font-bold text-teal-700">${r.epid_id}</td>
+        <td class="p-3">${r.report_date}</td>
+        <td class="p-3 font-bold text-slate-900">${r.patient_name}</td>
+        <td class="p-3">${r.age}y / ${r.sex}</td>
+        <td class="p-3 font-semibold text-slate-800">${r.disease}</td>
+        <td class="p-3 text-slate-500">${r.barangay}</td>
+        <td class="p-3"><span class="px-2 py-0.5 rounded font-bold ${r.case_classification === 'Confirmed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.case_classification}</span></td>
+        <td class="p-3 font-bold ${r.outcome.includes('Died') ? 'text-rose-600' : 'text-teal-700'}">${r.outcome}</td>
+        <td class="p-3 text-center">
+          <button onclick="window.print()" class="p-1.5 bg-slate-800 text-white rounded hover:bg-slate-700" title="Print Official Form"><i class="fa-solid fa-print"></i></button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function loadDashboardStats() {
+    try {
+      const res = await fetch(`${API_BASE}/stats`);
+      const result = await res.json();
+      if (result.success) {
+        if (document.getElementById('statTotalCases')) document.getElementById('statTotalCases').textContent = result.data.total;
+        if (document.getElementById('statConfirmed')) document.getElementById('statConfirmed').textContent = result.data.confirmed;
+        if (document.getElementById('statSuspected')) document.getElementById('statSuspected').textContent = result.data.suspected;
+        if (document.getElementById('statDeaths')) document.getElementById('statDeaths').textContent = result.data.deaths;
+      }
+    } catch (err) {}
+  }
+
+  function exportSurveillanceCSV() {
+    window.location.href = `${API_BASE}/export-csv`;
+  }
   </script>
  </body>
 </html>
