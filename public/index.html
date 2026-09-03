@@ -2442,48 +2442,100 @@
     }
   }
 
+  // 🎯 MULTI-STRATEGY LOCATOR: Finds the input corresponding to a given visible label
+  function findInputByLabelText(keywords) {
+    const termList = (Array.isArray(keywords) ? keywords : [keywords]).map(k => k.toLowerCase().replace(/[\s_\-\/\:]/g, ''));
+    const allElements = document.querySelectorAll('label, th, td, div, span, p');
+
+    for (const el of allElements) {
+      const txt = el.textContent.trim().toLowerCase().replace(/[\s_\-\/\:]/g, '');
+      if (!txt || txt.length > 60) continue; // Skip large wrapping sections
+
+      const isMatch = termList.some(term => txt === term || txt.includes(term));
+      if (!isMatch) continue;
+
+      // 1. Direct input inside
+      let input = el.querySelector('input[type="text"], input:not([type]), textarea');
+      if (input) return input;
+
+      // 2. Next sibling elements
+      let sib = el.nextElementSibling;
+      while (sib) {
+        if (sib.matches('input[type="text"], input:not([type]), textarea')) return sib;
+        const childInp = sib.querySelector('input[type="text"], input:not([type]), textarea');
+        if (childInp) return childInp;
+        sib = sib.nextElementSibling;
+      }
+
+      // 3. Parent container lookup (following element)
+      if (el.parentElement) {
+        const pInputs = el.parentElement.querySelectorAll('input[type="text"], input:not([type]), textarea');
+        for (const pInp of pInputs) {
+          if (el.compareDocumentPosition(pInp) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            return pInp;
+          }
+        }
+      }
+
+      // 4. Table cell lookup: check matching column in the row beneath
+      const td = el.closest('td, th');
+      if (td && td.parentElement) {
+        const colIdx = Array.from(td.parentElement.children).indexOf(td);
+        const nextTr = td.parentElement.nextElementSibling;
+        if (nextTr && nextTr.children[colIdx]) {
+          const rowInput = nextTr.children[colIdx].querySelector('input[type="text"], input:not([type]), textarea') ||
+                           (nextTr.children[colIdx].matches('input') ? nextTr.children[colIdx] : null);
+          if (rowInput) return rowInput;
+        }
+      }
+    }
+    return null;
+  }
+
   // 🎯 SETTER: Fill SITIO specifically inside "STREET/PUROK/SITIO:"
   function fillStreetPurokSitio(sitioValue) {
     if (!sitioValue) return;
 
-    // 1. Direct ID matches for address/street/sitio
+    let applied = false;
+
+    // 1. All standard and vector-prefixed IDs for Street/Purok/Sitio
     const targetIds = [
-      'streetPurokSitio', 'v_streetPurokSitio',
-      'street_purok_sitio', 'v_street_purok_sitio',
-      'streetAddress', 'v_streetAddress',
-      'street', 'v_street',
-      'sitio', 'v_sitio',
-      'purok', 'v_purok',
-      'houseBldg', 'v_houseBldg',
-      'address', 'v_address'
+      'v_streetAddress', 'streetAddress',
+      'v_street', 'street',
+      'v_sitio', 'sitio',
+      'v_purok', 'purok',
+      'v_streetPurokSitio', 'streetPurokSitio',
+      'v_street_purok_sitio', 'street_purok_sitio',
+      'v_purokSitio', 'purokSitio',
+      'v_purok_sitio', 'purok_sitio',
+      'v_addressStreet', 'addressStreet',
+      'v_currentStreet', 'currentStreet',
+      'v_address', 'address'
     ];
 
     for (const id of targetIds) {
       const el = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
-      if (el) applyValToElement(el, sitioValue);
-    }
-
-    // 2. DOM match specifically for label "STREET/PUROK/SITIO:"
-    const allLabels = document.querySelectorAll('label, div, span, p, th, td');
-    for (const el of allLabels) {
-      if (el.children.length > 2) continue;
-      const cleanLabel = el.textContent.trim().toLowerCase().replace(/[\s_\-\/\:]/g, '');
-      if (cleanLabel.includes('streetpuroksitio') || cleanLabel.includes('puroksitio') || cleanLabel === 'sitio') {
-        let input = el.querySelector('input[type="text"], input:not([type]), textarea');
-        if (!input && el.nextElementSibling) {
-          input = el.nextElementSibling.matches('input, textarea') ?
-                  el.nextElementSibling :
-                  el.nextElementSibling.querySelector('input[type="text"], input:not([type]), textarea');
-        }
-        if (!input && el.parentElement) {
-          input = el.parentElement.querySelector('input[type="text"], input:not([type]), textarea');
-        }
-        if (input && input !== el) {
-          applyValToElement(input, sitioValue);
-          break;
-        }
+      if (el) {
+        applyValToElement(el, sitioValue);
+        applied = true;
       }
     }
+
+    // 2. Intelligent DOM Locator targeting label "STREET/PUROK/SITIO:"
+    const inputEl = findInputByLabelText(['streetpuroksitio', 'puroksitio', 'streetsitio']);
+    if (inputEl) {
+      applyValToElement(inputEl, sitioValue);
+      applied = true;
+    }
+
+    // 3. Fallback placeholder search
+    const placeholderInputs = document.querySelectorAll('input[placeholder*="sitio" i], input[placeholder*="purok" i], input[placeholder*="street" i]');
+    placeholderInputs.forEach(inp => {
+      applyValToElement(inp, sitioValue);
+      applied = true;
+    });
+
+    console.log('📍 fillStreetPurokSitio executed. Applied:', applied, 'Value:', sitioValue);
   }
 
   // ⚡ GOOGLE SHEET CASE ID AUTOFILL FUNCTION
@@ -2531,7 +2583,7 @@
       // 🎯 STEP 1: AUTO-DETECT AND SWITCH DISEASE FORM
       detectAndSwitchDisease(d, caseIdInput);
 
-      // 🎯 STEP 2: EXACT & FUZZY HEADER LOOKUP (Strictly prevents false substring matches)
+      // 🎯 STEP 2: EXACT & FUZZY HEADER LOOKUP
       const cleanStr = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
       const getField = (...keys) => {
@@ -2550,7 +2602,7 @@
             }
           }
         }
-        // Partial includes match: ONLY checks if sheet header includes our keyword (not reverse)
+        // Partial includes match (Sheet header includes keyword)
         for (const k of keys) {
           const ck = cleanStr(k);
           if (ck.length < 3) continue;
@@ -2590,7 +2642,32 @@
       const dobVal = getField('DATE_OF_BIRT', 'DATE_OF_BIRTH', 'date_of_birt', 'date_of_birth', 'dob', 'birthdate');
       const dateOnsetVal = getField('DATE_ONSET_OF_ILLNESS', 'DATE_ONSET', 'date_onset_of_illness', 'date_onset', 'onset');
       const dateAdmittedVal = getField('DATE_ADMITTED', 'date_admitted', 'admission_date');
-      const sitioVal = getField('SITIO', 'sitio');
+
+      // Robust Sitio Extraction with automatic column scanning
+      let sitioVal = getField(
+        'SITIO', 'sitio',
+        'STREET_PUROK_SITIO', 'street_purok_sitio', 'streetpuroksitio',
+        'PUROK_SITIO', 'purok_sitio', 'puroksitio',
+        'PUROK', 'purok',
+        'STREET', 'street',
+        'STREET_ADDRESS', 'street_address'
+      );
+
+      // Extra safety: scan any column header containing 'sitio' or 'purok'
+      if (!sitioVal) {
+        for (const k in d) {
+          const cleanK = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (cleanK.includes('sitio') || cleanK.includes('purok')) {
+            if (d[k] !== undefined && d[k] !== null && String(d[k]).trim() !== '') {
+              sitioVal = String(d[k]).trim();
+              break;
+            }
+          }
+        }
+      }
+
+      console.log('📍 Sitio Value Found:', sitioVal);
+
       const cityVal = getField('CURRENT_ADDRESS_CITY_MUNICIPALITY', 'city', 'municipality') || 'Quezon City';
 
       // 🎯 STEP 4: POPULATE FORM FIELDS
@@ -2599,7 +2676,7 @@
       setVal(['epidId', 'caseRefId', 'v_caseId', 'v_caseRefId', 'v_epidId', 'caseId', 'case_id', 'v_case_id'], caseIdVal);
       fillByLabelOrPlaceholder(['case id', 'case no'], caseIdVal);
 
-      // 2. DRU -> Specifically placed in 2.2 Medical Consultation (Place of Consultation 1st Row)
+      // 2. DRU -> 2.2 Medical Consultation (Place of Consultation 1st Row)
       fillConsultationPlace(druVal);
 
       // 3. Patient Profile: Last, First, Middle Name
@@ -2642,7 +2719,7 @@
         fillByLabelOrPlaceholder(['sex at birth', 'sex', 'gender'], sexVal);
       }
 
-      // 🎯 5. SITIO -> Strictly into STREET/PUROK/SITIO (never into Designation)
+      // 🎯 5. SITIO -> Target STREET/PUROK/SITIO:
       fillStreetPurokSitio(sitioVal);
 
       // 6. City / Municipality
@@ -2662,7 +2739,7 @@
         firstName: firstNameVal,
         lastName: lastNameVal,
         dob: dobVal,
-        streetPurokSitio: sitioVal,
+        sitio: sitioVal,
         onset: dateOnsetVal,
         admitted: dateAdmittedVal
       });
