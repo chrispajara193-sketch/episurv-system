@@ -12,7 +12,7 @@
     /* Exact A4 Page Layout & Solid Government Grid Borders */
     @page {
       size: A4 portrait;
-      margin: 4mm 6mm 4mm 6mm !important;
+      margin: 6mm 8mm 6mm 8mm !important;
     }
 
     .qc-table {
@@ -31,18 +31,26 @@
     }
 
     .qc-banner {
-        margin-top: 1.5px !important;
-        margin-bottom: 1.5px !important;
-        padding: 1.5px 3px !important;
-        font-size: 8px !important;
-      }
+      margin-top: 1.5px !important;
+      margin-bottom: 1.5px !important;
+      padding: 1.5px 3px !important;
+      font-size: 8px !important;
+      background-color: #cbd5e1;
+      color: black;
+      font-weight: 800;
+      border: 1px solid black;
+      text-transform: uppercase;
+    }
 
     .cell-label {
-        font-size: 7.5px !important;
-        margin-bottom: 0px !important;
-      }
+      display: block;
+      font-weight: 700;
+      font-size: 7.5px !important;
+      color: #1e293b;
+      text-transform: uppercase;
+      margin-bottom: 0px !important;
+    }
 
-    /* Exact Dimensions for Logos from Word Layout */
     .header-logo-img {
       height: 0.77in !important;
       width: auto !important;
@@ -62,7 +70,6 @@
       object-fit: contain !important;
     }
 
-    /* Exact 14pt Bold Italic Calibri Footer Tagline */
     .footer-tagline {
       font-family: 'Calibri', 'Segoe UI', Arial, sans-serif !important;
       font-size: 14pt !important;
@@ -73,36 +80,30 @@
       line-height: 1.1 !important;
     }
 
-    /* 🖥️ MAXIMIZED SCREEN VIEW */
+    /* 🖥️ SCREEN VIEW */
     @media screen {
       .printable-slides .a4-page {
-        display: none !important; /* Hide all pages by default */
+        display: none !important;
         animation: fadeInSlide 0.25s ease-in-out;
       }
       .printable-slides .a4-page.active-slide {
-        display: flex !important; /* Only show the active slide */
+        display: flex !important;
       }
       @keyframes fadeInSlide {
         from { opacity: 0; transform: translateY(6px); }
         to { opacity: 1; transform: translateY(0); }
       }
       .a4-page {
-        page-break-after: always !important;
-        break-after: page !important;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-        width: 100% !important;
-        height: 282mm !important;
-        max-height: 282mm !important;
-        min-height: 282mm !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: space-between !important;
-        margin: 0 !important;
-        padding: 2mm 3mm !important;
-        box-shadow: none !important;
-        border: none !important;
-        box-sizing: border-box !important;
+        width: 100%;
+        max-width: 1180px;
+        min-height: 297mm;
+        margin: 0 auto 30px auto;
+        background: white;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.25);
+        padding: 12mm 16mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
       }
       .qc-table td, .qc-table th {
         font-size: 9.5px !important;
@@ -127,7 +128,7 @@
       }
     }
 
-    /* 🖨️ PRESERVED A4 PRINT VIEW */
+    /* 🖨️ CALIBRATED PRINT VIEW: STRICTLY 6 PAGES */
     @media print {
       html, body {
         width: 210mm !important;
@@ -151,20 +152,21 @@
         padding: 0 !important;
       }
 
-      /* 📄 Matches Word's Exact A4 Page Distribution */
+      /* 🔒 Exactly 1 Sheet per Page */
       .a4-page {
         page-break-after: always !important;
         break-after: page !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
         width: 100% !important;
-        min-height: 275mm !important;
-        height: auto !important;
+        height: 278mm !important;
+        max-height: 278mm !important;
+        min-height: 278mm !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
         margin: 0 !important;
-        padding: 6mm 8mm !important; /* Gives the clean border margins seen in Word */
+        padding: 2mm 3mm !important;
         box-shadow: none !important;
         border: none !important;
         box-sizing: border-box !important;
@@ -175,11 +177,11 @@
         break-after: avoid !important;
       }
 
-      /* 📐 Balanced Table Dimensions (Fills page from top to bottom) */
+      /* 📐 BASE COMPACT SETTINGS: Keeps Pages 2 to 6 slim so they NEVER create a 7th page */
       .qc-table {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
-        margin-bottom: 3.5px !important;
+        margin-bottom: 1.5px !important;
         border: 1px solid black !important;
       }
       .qc-table tr {
@@ -187,44 +189,65 @@
         break-inside: avoid !important;
       }
       .qc-table td, .qc-table th {
-        font-size: 8.5pt !important; /* Word standard reading size */
-        padding: 3px 4.5px !important; /* Comfortable vertical cell height */
-        line-height: 1.25 !important;
+        font-size: 8px !important;
+        padding: 1.5px 2.5px !important;
+        line-height: 1.15 !important;
         vertical-align: top !important;
       }
-
-      /* Gray Banners like Word */
       .qc-banner {
-        font-size: 8.5pt !important;
-        padding: 2.5px 5px !important;
-        margin-top: 4px !important;
-        margin-bottom: 3px !important;
+        font-size: 8px !important;
+        padding: 1.5px 3px !important;
+        margin-top: 2px !important;
+        margin-bottom: 1.5px !important;
         background-color: #cbd5e1 !important;
         border: 1px solid black !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
       }
 
-      .cell-label {
-        font-size: 7.5pt !important;
+      /* 🌟 PAGE 1 SPECIAL EXPANSION: Fills out Page 1 to eliminate the empty gap */
+      .a4-page:first-child .qc-table td,
+      .a4-page:first-child .qc-table th {
+        font-size: 9pt !important;
+        padding: 3.5px 4.5px !important;
+        line-height: 1.25 !important;
+      }
+      .a4-page:first-child .cell-label {
+        font-size: 8pt !important;
         margin-bottom: 2px !important;
-        font-weight: 700 !important;
-        color: #1e293b !important;
+      }
+      .a4-page:first-child .cell-input,
+      .a4-page:first-child select,
+      .a4-page:first-child input {
+        min-height: 18px !important;
+        font-size: 9pt !important;
+        line-height: 1.25 !important;
+      }
+      .a4-page:first-child .qc-table {
+        margin-bottom: 5px !important;
+      }
+      .a4-page:first-child .qc-banner {
+        font-size: 9pt !important;
+        padding: 3px 5px !important;
+        margin-top: 5px !important;
+        margin-bottom: 3px !important;
+      }
+      .a4-page:first-child p {
+        margin-top: 4px !important;
+        margin-bottom: 2px !important;
+        font-size: 8.5pt !important;
       }
 
-      /* 🚫 Removes browser dropdown arrows & date icons so it looks like a clean Word document */
+      /* 🚫 Remove browser dropdown arrows & date icons */
       .cell-input, select, input {
         border: none !important;
         background: transparent !important;
         font-weight: bold !important;
-        font-size: 8.5pt !important;
+        font-size: 8px !important;
         color: black !important;
-        padding: 1px 2px !important;
-        line-height: 1.2 !important;
+        padding: 0 !important;
+        line-height: 1.15 !important;
         appearance: none !important;
         -webkit-appearance: none !important;
         -moz-appearance: none !important;
-        background-image: none !important;
       }
 
       input[type="date"]::-webkit-calendar-picker-indicator {
@@ -232,10 +255,10 @@
       }
 
       .footer-tagline {
-        font-size: 13pt !important;
+        font-size: 12pt !important;
       }
       .footer-iso-img, .footer-bp-img {
-        height: 0.6in !important;
+        height: 0.55in !important;
       }
     }
   </style>
