@@ -228,19 +228,39 @@
         box-sizing: border-box !important;
         white-space: normal !important;
       }
-      
-      /* Clean flat text without dropdown arrows or calendar icons */
-      .cell-input, select, input {
+
+      /* ✅ Flat text ONLY for text inputs & dropdowns (Excludes checkboxes & radios) */
+      .cell-input, select, input:not([type="checkbox"]):not([type="radio"]) {
         border: none !important;
         background: transparent !important;
         font-weight: bold !important;
-        font-size: 7.5pt !important;
+        font-size: 8px !important;
         color: black !important;
         padding: 0 !important;
-        line-height: 1.12 !important;
+        line-height: 1.15 !important;
         appearance: none !important;
         -webkit-appearance: none !important;
         -moz-appearance: none !important;
+      }
+
+      /* ☑️ FORCE CHECKBOXES & RADIO BUTTONS TO PRINT SHARP & VISIBLE */
+      input[type="checkbox"], input[type="radio"] {
+        appearance: auto !important;
+        -webkit-appearance: checkbox !important;
+        -moz-appearance: checkbox !important;
+        display: inline-block !important;
+        width: 10px !important;
+        height: 10px !important;
+        margin-right: 3px !important;
+        vertical-align: middle !important;
+        accent-color: #000000 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      input[type="radio"] {
+        -webkit-appearance: radio !important;
+        -moz-appearance: radio !important;
       }
 
       input[type="date"]::-webkit-calendar-picker-indicator {
