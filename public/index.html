@@ -2969,12 +2969,26 @@
     }
   }
 
+  // 💾 UPDATES EXISTING RECORD OR ADDS NEW ONE
   function saveLocalBackup(record) {
     try {
-      const local = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
-      local.unshift({ ...record, id: Date.now() });
+      let local = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
+      
+      // Check if this Case ID already exists in the registry
+      const existingIndex = local.findIndex(c => c.epid_id === record.epid_id);
+      
+      if (existingIndex !== -1) {
+        // Update the existing record with your edited values
+        local[existingIndex] = { ...local[existingIndex], ...record, updatedAt: new Date().toISOString() };
+      } else {
+        // Add new record if it didn't exist before
+        local.unshift({ ...record, id: Date.now() });
+      }
+
       localStorage.setItem('EPISURV_LOCAL_BACKUP', JSON.stringify(local));
-    } catch (e) {}
+    } catch (e) {
+      console.error('Error saving local registry backup:', e);
+    }
   }
 
   async function fetchRegistryCases() {
@@ -3059,6 +3073,85 @@
     }, 250);
   }
 
+  // ✏️ LOAD & EDIT PATIENT CASE IN THE QUESTIONNAIRE
+  function editRegistryCase(epidId) {
+    // 1. Switch back to the Questionnaire Form tab
+    switchTab('questionnaireTab');
+
+    // 2. Locate the record in local backup
+    const local = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
+    const found = local.find(c => c.epid_id === epidId);
+
+    if (!found) {
+      alert(`⚠️ Could not find details for Case ID: ${epidId}`);
+      return;
+    }
+
+    // 3. Switch to the correct disease form
+    const diseaseSelect = document.getElementById('diseaseSelect');
+    if (diseaseSelect && found.disease) {
+      diseaseSelect.value = found.disease;
+      changeQuestionnaireForm();
+    }
+
+    const isVector = (found.disease || '').includes('Vectorborne');
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val !== undefined && val !== null) {
+        el.value = val;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    };
+
+    // 4. Populate Identification & Administrative details
+    setVal('epidId', found.epid_id);
+    setVal('caseRefId', found.epid_id);
+    setVal('v_caseId', found.epid_id);
+
+    setVal(isVector ? 'v_DiseaseReportingUnit' : 'DiseaseReportingUnit', found.dru_name);
+    setVal(isVector ? 'v_Barangay' : 'Barangay', found.barangay);
+    setVal(isVector ? 'v_Investigator' : 'Investigator', found.investigator);
+    setVal(isVector ? 'v_reportDate' : 'reportDate', found.report_date);
+
+    // 5. Parse and populate Patient Name (Last, First, Middle)
+    if (found.patient_name) {
+      const parts = found.patient_name.split(',');
+      const lName = parts[0] ? parts[0].trim() : '';
+      const rest = parts[1] ? parts[1].trim().split(' ') : [];
+      const fName = rest[0] || '';
+      const mName = rest.slice(1).join(' ') || '';
+
+      setVal(isVector ? 'v_patientLastName' : 'patientLastName', lName);
+      setVal(isVector ? 'v_patientFirstName' : 'patientFirstName', fName);
+      setVal(isVector ? 'v_patientMiddleName' : 'patientMiddleName', mName);
+    }
+
+    // 6. Demographics & Address
+    setVal(isVector ? 'v_dob' : 'dob', found.dob);
+    setVal(isVector ? 'v_age' : 'age', found.age);
+    setVal(isVector ? 'v_sex' : 'sex', found.sex);
+    setVal(isVector ? 'v_streetAddress' : 'streetAddress', found.street_address || found.barangay);
+    setVal(isVector ? 'v_city' : 'city', found.city);
+    setVal('contact', found.contact);
+
+    // 7. Clinical Information
+    setVal(isVector ? 'v_dateOnset' : 'dateOnset', found.date_onset);
+    setVal('caseClassification', found.case_classification);
+    setVal('outcome', found.outcome);
+
+    // 8. Restore Checked Symptoms (if stored)
+    if (found.disease_specific_data?.symptoms && Array.isArray(found.disease_specific_data.symptoms)) {
+      document.querySelectorAll('#printableQuestionnaire input[name="symp"], #printableQuestionnaire input[name="v_symp"]').forEach(cb => {
+        cb.checked = found.disease_specific_data.symptoms.includes(cb.value);
+      });
+    }
+
+    // Scroll to the top of the form smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    alert(`📝 Loaded Case "${found.epid_id}" (${found.patient_name}).\nMake your changes and click "Save & Log Case" to update!`);
+  }
   function renderRegistryRows(cases) {
     const tbody = document.getElementById('registryBody');
     if (!tbody) return;
@@ -3074,18 +3167,24 @@
       tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
       tr.innerHTML = `
         <td class="p-3 font-mono font-bold text-teal-700">${r.epid_id}</td>
-        <td class="p-3">${r.report_date}</td>
-        <td class="p-3 font-bold text-slate-900">${r.patient_name}</td>
-        <td class="p-3">${r.age}y / ${r.sex}</td>
-        <td class="p-3 font-semibold text-slate-800">${r.disease}</td>
-        <td class="p-3 text-slate-500">${r.barangay}</td>
-        <td class="p-3"><span class="px-2 py-0.5 rounded font-bold ${r.case_classification === 'Confirmed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.case_classification}</span></td>
-        <td class="p-3 font-bold ${r.outcome.includes('Died') ? 'text-rose-600' : 'text-teal-700'}">${r.outcome}</td>
+        <td class="p-3">${r.report_date || ''}</td>
+        <td class="p-3 font-bold text-slate-900">${r.patient_name || ''}</td>
+        <td class="p-3">${r.age || 0}y / ${r.sex || 'N/A'}</td>
+        <td class="p-3 font-semibold text-slate-800">${r.disease || ''}</td>
+        <td class="p-3 text-slate-500">${r.barangay || ''}</td>
+        <td class="p-3"><span class="px-2 py-0.5 rounded font-bold ${r.case_classification === 'Confirmed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.case_classification || 'Suspected'}</span></td>
+        <td class="p-3 font-bold ${r.outcome && r.outcome.includes('Died') ? 'text-rose-600' : 'text-teal-700'}">${r.outcome || 'Alive'}</td>
         <td class="p-3 text-center">
-          <!-- Calls printRegistryCase instead of window.print() directly -->
-          <button type="button" onclick="printRegistryCase('${r.epid_id}')" class="p-1.5 bg-slate-800 text-white rounded hover:bg-slate-700 transition" title="Print Official Form">
-            <i class="fa-solid fa-print"></i>
-          </button>
+          <div class="flex items-center justify-center gap-1.5">
+            <!-- ✏️ EDIT PATIENT BUTTON -->
+            <button type="button" onclick="editRegistryCase('${r.epid_id}')" class="p-1.5 bg-teal-600 text-white rounded hover:bg-teal-500 transition shadow-sm" title="Edit Patient Information">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <!-- 🖨️ PRINT OFFICIAL FORM BUTTON -->
+            <button type="button" onclick="printRegistryCase('${r.epid_id}')" class="p-1.5 bg-slate-800 text-white rounded hover:bg-slate-700 transition shadow-sm" title="Print Official Form">
+              <i class="fa-solid fa-print"></i>
+            </button>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
