@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Spline 3D Viewer CDN -->
+  <script type="module" src="https://unpkg.com/@splinetool/viewer/build/spline-viewer.js"></script>
   <style>
     /* 🎨 NEUMORPHISM LOGIN STYLES (#4e79a7 Palette) */
     .neumorph-bg {
@@ -72,6 +74,13 @@
       color: #ffffff;
       font-size: 12px;
       font-weight: 900;
+    }
+
+    /* 🧊 Inset Frame for the 3D Spline Canvas */
+    .neumorph-inset {
+      background: #4e79a7;
+      box-shadow: inset 8px 8px 18px #375677, inset -8px -8px 18px #659dd8;
+      border-radius: 20px;
     }
 
     /* 📄 Standard Clean A4 Margins */
@@ -342,96 +351,117 @@
 </head>
 <body class="bg-slate-300 text-slate-800 font-sans min-h-screen">
 
+<!-- ========================================================================= -->
+  <!-- 🎨 NEUMORPHISM + SPLINE 3D LOGIN PORTAL                                   -->
   <!-- ========================================================================= -->
-  <!-- 🔐 NEUMORPHISM LOGIN PORTAL (Displayed Before Accessing Form/Registry)    -->
-  <!-- ========================================================================= -->
-  <div id="loginScreen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 neumorph-bg no-print">
-    <div class="neumorph-card w-full max-w-md p-8 sm:p-10 text-white relative">
+  <div id="loginScreen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 neumorph-bg overflow-y-auto no-print">
+    <div class="neumorph-card w-full max-w-4xl p-6 sm:p-8 text-white relative flex flex-col md:flex-row items-center gap-8 my-auto">
       
-      <!-- Seal Header -->
-      <div class="flex justify-center items-center gap-3 mb-6">
-        <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="w-14 h-14 object-contain drop-shadow" />
-        <img src="qchd.png" onerror="this.onerror=null; this.src='qchd.jpg';" alt="QCHD Logo" class="w-14 h-14 object-contain drop-shadow" />
-        <img src="qcesd.png" onerror="this.onerror=null; this.src='qcesd.jpg';" alt="QCESD Logo" class="w-14 h-14 object-contain drop-shadow" />
-      </div>
-
-      <div class="text-center mb-8">
-        <h1 class="text-base font-black uppercase tracking-wide text-white mt-1">Epidemiology & Disease Surveillance Division</h1>
-        <p class="text-[11px] font-bold text-slate-200 mt-0.5">District 2</p>
-        <div class="inline-block mt-3 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-black/20 text-teal-200 border border-white/10">
-          <i class="fa-solid fa-shield-halved mr-1"></i> Authorized Personnel Login
+      <!-- 🪐 LEFT: INTERACTIVE 3D SPLINE CANVAS -->
+      <div class="w-full md:w-1/2 h-72 md:h-[480px] rounded-2xl overflow-hidden relative neumorph-inset flex items-center justify-center">
+        <!-- 💡 You can replace this URL with your own .splinecode export from spline.design -->
+        <spline-viewer 
+          url="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode" 
+          class="w-full h-full"
+        ></spline-viewer>
+        
+        <!-- Subtle Neumorphic Overlay Badges -->
+        <div class="absolute top-3 left-3 bg-black/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider text-teal-200 border border-white/10 pointer-events-none">
+          <i class="fa-solid fa-cube mr-1"></i> Interactive 3D Portal
+        </div>
+        <div class="absolute bottom-3 right-3 bg-black/20 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-bold text-slate-200 border border-white/10 pointer-events-none">
+          Move cursor to rotate 3D
         </div>
       </div>
 
-      <!-- Login Form -->
-      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5">
+      <!-- 🔐 RIGHT: NEUMORPHIC LOGIN FORM -->
+      <div class="w-full md:w-1/2 flex flex-col justify-center">
         
-        <!-- Cyber ID -->
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-100 flex items-center gap-2">
-            <i class="fa-solid fa-id-badge text-teal-300"></i> Cyber ID
-          </label>
-          <div class="relative">
+        <!-- QC Seals -->
+        <div class="flex justify-center items-center gap-3 mb-4">
+          <img src="qc.png" onerror="this.onerror=null; this.src='qc.jpg';" alt="QC Seal" class="w-12 h-12 object-contain drop-shadow" />
+          <img src="qchd.png" onerror="this.onerror=null; this.src='qchd.jpg';" alt="QCHD Logo" class="w-12 h-12 object-contain drop-shadow" />
+          <img src="qcesd.png" onerror="this.onerror=null; this.src='qcesd.jpg';" alt="QCESD Logo" class="w-12 h-12 object-contain drop-shadow" />
+        </div>
+
+        <div class="text-center mb-6">
+          <h2 class="text-[10px] uppercase tracking-widest font-bold text-teal-200">Republic of the Philippines</h2>
+          <h1 class="text-sm sm:text-base font-black uppercase tracking-wide text-white mt-0.5">Quezon City Health Department</h1>
+          <p class="text-[10px] font-bold text-slate-200">Epidemiology & Disease Surveillance Division</p>
+          <div class="inline-block mt-2 px-3 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-black/20 text-teal-200 border border-white/10">
+            <i class="fa-solid fa-shield-halved mr-1"></i> Authorized Personnel Login
+          </div>
+        </div>
+
+        <!-- Form -->
+        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+          
+          <!-- Cyber ID -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider mb-1.5 text-slate-100 flex items-center gap-2">
+              <i class="fa-solid fa-id-badge text-teal-300"></i> Cyber ID
+            </label>
             <input 
               type="text" 
               id="loginCyberId" 
               required 
               placeholder="e.g., qcesd.d2esu@quezoncity.gov.ph" 
-              class="neumorph-input w-full px-4 py-3 text-xs font-semibold rounded-xl"
+              class="neumorph-input w-full px-4 py-2.5 text-xs font-semibold rounded-xl"
             />
           </div>
-        </div>
 
-        <!-- Security Passcode -->
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-100 flex items-center gap-2">
-            <i class="fa-solid fa-key text-teal-300"></i> Security Passcode
-          </label>
-          <div class="relative">
-            <input 
-              type="password" 
-              id="loginPasscode" 
-              required 
-              placeholder="Enter Security Passcode" 
-              class="neumorph-input w-full px-4 py-3 text-xs font-semibold rounded-xl"
-            />
-            <button 
-              type="button" 
-              onclick="togglePasscodeVisibility()" 
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-200 hover:text-white transition focus:outline-none p-1 cursor-pointer"
-              title="Show/Hide Passcode"
-            >
-              <i id="passcodeToggleIcon" class="fa-solid fa-eye text-xs"></i>
-            </button>
+          <!-- Security Passcode with Eye Icon Toggle -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider mb-1.5 text-slate-100 flex items-center gap-2">
+              <i class="fa-solid fa-key text-teal-300"></i> Security Passcode
+            </label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="loginPasscode" 
+                required 
+                placeholder="Enter Security Passcode" 
+                class="neumorph-input w-full pl-4 pr-10 py-2.5 text-xs font-semibold rounded-xl"
+              />
+              <button 
+                type="button" 
+                onclick="togglePasscodeVisibility()" 
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-200 hover:text-white transition focus:outline-none p-1 cursor-pointer"
+                title="Show/Hide Passcode"
+              >
+                <i id="passcodeToggleIcon" class="fa-solid fa-eye text-xs"></i>
+              </button>
+            </div>
           </div>
+
+          <!-- Remember Account & Info -->
+          <div class="flex items-center justify-between pt-0.5">
+            <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-100 select-none">
+              <input type="checkbox" id="rememberAccount" class="neumorph-checkbox" />
+              <span>Remember my account</span>
+            </label>
+            <span class="text-[10px] font-bold text-teal-200 uppercase tracking-wide">District 2</span>
+          </div>
+
+          <!-- Error Alert -->
+          <div id="loginError" class="hidden p-2 rounded-lg bg-rose-950/70 border border-rose-400/50 text-rose-200 text-xs font-bold text-center">
+            <i class="fa-solid fa-triangle-exclamation mr-1"></i> Invalid Cyber ID or Security Passcode.
+          </div>
+
+          <!-- Submit Button -->
+          <button 
+            type="submit" 
+            class="neumorph-btn w-full py-3 mt-1 rounded-xl text-xs font-extrabold uppercase tracking-wider text-teal-200 hover:text-white flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+          >
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Verify & Access Surveillance System
+          </button>
+
+        </form>
+
+        <div class="text-center mt-5 pt-3 border-t border-white/15">
+          <p class="text-[10px] italic font-semibold text-slate-200">“Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan”</p>
         </div>
 
-        <!-- Remember My Account Checkbox -->
-        <div class="flex items-center justify-between pt-1">
-          <label class="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-100 select-none">
-            <input type="checkbox" id="rememberAccount" class="neumorph-checkbox" />
-            <span>Remember my account</span>
-          </label>
-        </div>
-
-        <!-- Login Error Notice -->
-        <div id="loginError" class="hidden p-2.5 rounded-lg bg-rose-950/70 border border-rose-400/50 text-rose-200 text-xs font-bold text-center">
-          <i class="fa-solid fa-triangle-exclamation mr-1"></i> Invalid Cyber ID or Security Passcode.
-        </div>
-
-        <!-- Sign In Button -->
-        <button 
-          type="submit" 
-          class="neumorph-btn w-full py-3.5 mt-2 rounded-xl text-xs font-extrabold uppercase tracking-wider text-teal-200 hover:text-white flex items-center justify-center gap-2 cursor-pointer shadow-lg"
-        >
-          <i class="fa-solid fa-arrow-right-to-bracket"></i> Verify & Access Surveillance System
-        </button>
-
-      </form>
-
-      <!-- Footer Tagline inside Card -->
-      <div class="text-center mt-6 pt-4 border-t border-white/15">
-        <p class="text-[11px] italic font-semibold text-slate-200">“Matatag, Mapagkakatiwalaan, at Maaasahang Pamunuan”</p>
       </div>
 
     </div>
