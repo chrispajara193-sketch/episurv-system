@@ -369,13 +369,28 @@
       }
     }
 
-    /* 📱 Mobile Table Card Layout */
+    /* ========================================================================= */
+    /* 🖥️ DESKTOP & BASE RULES (Hide all mobile-only labels by default)          */
+    /* ========================================================================= */
+    .mobile-card-label,
+    .mobile-badge-prefix {
+      display: none !important; /* 👈 Hides mobile labels & badge icons on desktop */
+    }
+
+    /* ========================================================================= */
+    /* 📱 MOBILE TABLE CARD LAYOUT (Applies ONLY on screens ≤ 768px)             */
+    /* ========================================================================= */
     @media screen and (max-width: 768px) {
-      .mobile-hide-header {
+      /* 1. Force the stacked desktop header row to truly disappear on mobile */
+      .qc-table tr.mobile-hide-header,
+      tr.mobile-hide-header {
         display: none !important;
       }
+
+      /* 2. Show the card labels above each input on mobile */
       .mobile-card-label {
         display: block !important;
+        text-align: left !important;
         font-weight: 800 !important;
         font-size: 10px !important;
         color: #0f766e !important;
@@ -383,8 +398,14 @@
         margin-bottom: 3px !important;
         margin-top: 2px !important;
       }
-      /* Turns "1st", "2nd", "3rd" into prominent card headers */
-      .mobile-order-badge {
+
+      /* 3. Show the badge title ("ADMISSION:" / "CONSULTATION:") on mobile */
+      .mobile-badge-prefix {
+        display: inline !important;
+      }
+
+      /* 4. Style the card header banner on mobile */
+      .qc-table td.mobile-order-badge {
         background: linear-gradient(135deg, #0f766e, #115e59) !important;
         color: #ffffff !important;
         font-weight: 900 !important;
@@ -398,10 +419,16 @@
       }
     }
 
-    /* Keeps print 100% intact */
+    /* ========================================================================= */
+    /* 🖨️ PRINT RULES (Ensures official document printing is 100% standard)    */
+    /* ========================================================================= */
     @media print {
-      .mobile-card-label {
+      .mobile-card-label,
+      .mobile-badge-prefix {
         display: none !important;
+      }
+      .qc-table tr.mobile-hide-header {
+        display: table-row !important;
       }
     }
 
@@ -2828,10 +2855,9 @@
     if (rememberBox) rememberBox.checked = isRemembered;
   }
 
-  // 🏷️ AUTOMATICALLY PAIRS TABLE HEADERS WITH EACH CELL ON MOBILE (NO DUPLICATES)
+  // 🏷️ AUTOMATICALLY PAIRS TABLE HEADERS WITH EACH CELL ON MOBILE
   function setupMobileTableLabels() {
     document.querySelectorAll('.qc-table').forEach(table => {
-      // Find header row (cross-browser safe)
       let headerRow = table.querySelector('tr.bg-slate-100');
       if (!headerRow) {
         const th = table.querySelector('th');
@@ -2842,6 +2868,7 @@
       const headers = Array.from(headerRow.querySelectorAll('th, td')).map(el => el.textContent.trim());
       if (headers.length === 0) return;
 
+      // Hide desktop headers on mobile
       headerRow.classList.add('mobile-hide-header');
 
       // Check context (Consultation vs Admission)
@@ -2861,16 +2888,15 @@
 
           // 1. Handle Order Badge ("1st", "2nd", "3rd")
           if (hText.includes('order') || headerName === '#') {
-            // 🛑 STOP: If already processed, never touch it again!
             if (td.dataset.badgeProcessed === 'true') return;
             td.dataset.badgeProcessed = 'true';
 
-            // Cleanly extract just "1st", "2nd", etc., ignoring any repeated labels
             const cleanMatch = td.textContent.match(/\b(\d+(?:st|nd|rd|th)?)\b/i);
-            const orderVal = cleanMatch ? cleanMatch[1] : td.textContent.replace(/consultation:?/gi, '').trim();
+            const orderVal = cleanMatch ? cleanMatch[1] : td.textContent.replace(/admission:?|consultation:?/gi, '').trim();
 
             td.classList.add('mobile-order-badge');
-            td.innerHTML = `<span><i class="fa-solid fa-notes-medical mr-1"></i> ${badgeTitle}:</span> <span class="text-teal-200 font-black">${orderVal}</span>`;
+            // Prefix hides on desktop, shows on mobile
+            td.innerHTML = `<span class="mobile-badge-prefix"><i class="fa-solid fa-notes-medical mr-1"></i> ${badgeTitle}: </span><span class="font-black">${orderVal}</span>`;
           } 
           // 2. Handle Regular Input Labels
           else {
