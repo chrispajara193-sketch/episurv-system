@@ -189,51 +189,42 @@
       line-height: 1.1 !important;
     }
 
-    /* 🖥️ ON-SCREEN SLIDESHOW VIEW */
-    @media screen {
+    /* ========================================================================= */
+    /* 🖥️ DESKTOP ONLY SLIDESHOW VIEW (Screens > 1024px)                        */
+    /* ========================================================================= */
+    @media screen and (min-width: 1025px) {
       .printable-slides .a4-page {
         display: none !important;
         animation: fadeInSlide 0.25s ease-in-out;
       }
       .printable-slides .a4-page.active-slide {
-        display: none !important;
+        display: flex !important;
       }
-      @keyframes fadeInSlide {
-        from { opacity: 0; transform: translateY(6px); }
-        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ========================================================================= */
+    /* 📱 PHONE & TABLET CONTINUOUS SCROLL VIEW (Screens ≤ 1024px)              */
+    /* ========================================================================= */
+    @media screen and (max-width: 1024px) {
+      /* Show all form pages continuously in one vertical flow */
+      .printable-slides .a4-page {
+        display: flex !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        min-height: auto !important;
+        height: auto !important;
+        padding: 12px 10px !important;
+        margin: 0 auto 24px auto !important;
+        border-radius: 12px !important;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08) !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
       }
+
+      /* Add a clear page separator header for phone/tablet continuous scroll */
       .a4-page {
-        width: 100%;
-        max-width: 1180px;
-        min-height: 297mm;
-        margin: 0 auto 30px auto;
-        background: white;
-        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.25);
-        padding: 10mm 14mm;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-      .qc-table td, .qc-table th {
-        font-size: 9.5px !important;
-        padding: 3px 4px !important;
-      }
-      .cell-label {
-        font-size: 8.5px !important;
-      }
-      .cell-input {
-        width: 100%;
-        background-color: #f8fafc;
-        border: 1px solid #cbd5e1;
-        border-radius: 2px;
-        padding: 2px 4px;
-        font-size: 9.5px;
-        font-weight: 600;
-      }
-      .cell-input:focus {
-        outline: none;
-        background-color: #ffffff;
-        border-color: #0d9488;
+        scroll-margin-top: 105px; /* Offset so sticky header doesn't cover top of page */
       }
     }
 
@@ -3760,8 +3751,9 @@
     });
   }
 
-  // 🎞️ BULLETPROOF SLIDE DECK LOGIC
+  // 🎞️ SLIDE & CONTINUOUS MOBILE SCROLL ENGINE
   let currentSlideIndex = 0;
+  let pageScrollObserver = null;
 
   function getActiveFormPages() {
     const isVector = document.getElementById('diseaseSelect')?.value.includes('Vectorborne');
@@ -3770,13 +3762,8 @@
     return container ? container.querySelectorAll('.a4-page') : [];
   }
 
-  function initSlides() {
-    const pages = getActiveFormPages();
-    if (!pages || !pages.length) return;
-
-    if (currentSlideIndex >= pages.length) currentSlideIndex = pages.length - 1;
-    if (currentSlideIndex < 0) currentSlideIndex = 0;
-
+  // Updates the top bar "Page X of 6" & button states
+  function updateHeaderIndicators(pages) {
     const numEl = document.getElementById('currentSlideNum');
     const totalEl = document.getElementById('totalSlideNum');
     if (numEl) numEl.textContent = String(currentSlideIndex + 1);
@@ -3787,16 +3774,80 @@
     if (prevBtn) prevBtn.disabled = (currentSlideIndex === 0);
     if (nextBtn) nextBtn.disabled = (currentSlideIndex === pages.length - 1);
 
-    pages.forEach((page, idx) => {
+    // Update desktop pill highlights
+    const pills = document.querySelectorAll('#slidePillsContainer button');
+    pills.forEach((pill, idx) => {
       if (idx === currentSlideIndex) {
-        page.classList.add('active-slide');
-        page.style.setProperty('display', 'flex', 'important');
+        pill.className = "w-6 h-6 rounded-md bg-teal-500 text-slate-950 font-black text-xs shadow flex items-center justify-center transition";
       } else {
-        page.classList.remove('active-slide');
-        page.style.setProperty('display', 'none', 'important');
+        pill.className = "w-6 h-6 rounded-md bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 font-bold text-xs flex items-center justify-center transition";
       }
     });
+  }
 
+  // 👁️ ScrollSpy: Automatically updates "Page X of 6" as you scroll with your finger
+  function setupScrollSpy() {
+    if (pageScrollObserver) pageScrollObserver.disconnect();
+
+    const isMobileOrTablet = window.innerWidth <= 1024;
+    if (!isMobileOrTablet) return;
+
+    const pages = getActiveFormPages();
+    if (!pages || !pages.length) return;
+
+    pageScrollObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const pageList = Array.from(getActiveFormPages());
+          const pageIndex = pageList.indexOf(entry.target);
+          if (pageIndex !== -1) {
+            currentSlideIndex = pageIndex;
+            updateHeaderIndicators(pageList);
+          }
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: '-10% 0px -65% 0px', // Triggers when top of page enters view
+      threshold: 0
+    });
+
+    pages.forEach(p => pageScrollObserver.observe(p));
+  }
+
+  function initSlides() {
+    const pages = getActiveFormPages();
+    if (!pages || !pages.length) return;
+
+    const isMobileOrTablet = window.innerWidth <= 1024;
+
+    if (currentSlideIndex >= pages.length) currentSlideIndex = pages.length - 1;
+    if (currentSlideIndex < 0) currentSlideIndex = 0;
+
+    updateHeaderIndicators(pages);
+
+    if (isMobileOrTablet) {
+      // 📱 Phone & Tablet: Show all pages continuously
+      pages.forEach(page => {
+        page.classList.remove('active-slide');
+        page.style.setProperty('display', 'flex', 'important');
+      });
+      setupScrollSpy();
+    } else {
+      // 🖥️ Desktop: Paginated 1-page-at-a-time slide view
+      if (pageScrollObserver) pageScrollObserver.disconnect();
+      pages.forEach((page, idx) => {
+        if (idx === currentSlideIndex) {
+          page.classList.add('active-slide');
+          page.style.setProperty('display', 'flex', 'important');
+        } else {
+          page.classList.remove('active-slide');
+          page.style.setProperty('display', 'none', 'important');
+        }
+      });
+    }
+
+    // Build desktop indicator pills
     const pillsContainer = document.getElementById('slidePillsContainer');
     if (pillsContainer) {
       pillsContainer.innerHTML = '';
@@ -3813,6 +3864,7 @@
       });
     }
 
+    // Run mobile table cards formatting
     if (typeof setupMobileTableLabels === 'function') {
       try {
         setupMobileTableLabels();
@@ -3827,8 +3879,16 @@
     const nextIndex = currentSlideIndex + direction;
     if (nextIndex >= 0 && nextIndex < pages.length) {
       currentSlideIndex = nextIndex;
-      initSlides();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const isMobileOrTablet = window.innerWidth <= 1024;
+
+      if (isMobileOrTablet) {
+        // Smoothly scroll directly to that page card
+        pages[nextIndex]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        updateHeaderIndicators(pages);
+      } else {
+        initSlides();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   }
 
@@ -3836,10 +3896,23 @@
     const pages = getActiveFormPages();
     if (index >= 0 && index < pages.length) {
       currentSlideIndex = index;
-      initSlides();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const isMobileOrTablet = window.innerWidth <= 1024;
+
+      if (isMobileOrTablet) {
+        pages[index]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        updateHeaderIndicators(pages);
+      } else {
+        initSlides();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   }
+
+  // Re-adjust smoothly if user rotates device (Portrait <-> Landscape)
+  window.addEventListener('resize', () => {
+    initSlides();
+  });
+  
 </script>
 </body>
 </html>
