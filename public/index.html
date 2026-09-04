@@ -2839,18 +2839,9 @@
     if (rememberBox) rememberBox.checked = isRemembered;
   }
 
-  // 🚀 RUNS AUTOMATICALLY ON PAGE LOAD
-  window.addEventListener('DOMContentLoaded', () => {
-    // Set default dates
-    if (document.getElementById('reportDate')) document.getElementById('reportDate').valueAsDate = new Date();
-    if (document.getElementById('v_reportDate')) document.getElementById('v_reportDate').valueAsDate = new Date();
-
-    setupMobileTableLabels(); // Ensure mobile table labels are set up on load
-
-    // 🏷️ AUTOMATICALLY PAIRS TABLE HEADERS WITH EACH CELL ON MOBILE
+  // 🏷️ AUTOMATICALLY PAIRS TABLE HEADERS WITH EACH CELL ON MOBILE (GLOBAL SCOPE)
   function setupMobileTableLabels() {
     document.querySelectorAll('.qc-table').forEach(table => {
-      // Find the header row (safe for all mobile engines)
       let headerRow = table.querySelector('tr.bg-slate-100');
       if (!headerRow) {
         const th = table.querySelector('th');
@@ -2861,10 +2852,8 @@
       const headers = Array.from(headerRow.querySelectorAll('th, td')).map(el => el.textContent.trim());
       if (headers.length === 0) return;
 
-      // 1. Hide the desktop horizontal header row on mobile
       headerRow.classList.add('mobile-hide-header');
 
-      // 2. Iterate each row and attach the appropriate label
       table.querySelectorAll('tr').forEach(row => {
         if (row === headerRow) return;
         const cells = row.querySelectorAll('td');
@@ -2872,8 +2861,6 @@
         cells.forEach((td, idx) => {
           if (headers[idx] && !td.querySelector('.cell-label, .mobile-card-label')) {
             const hText = headers[idx].toLowerCase();
-
-            // Transform "1st", "2nd", etc., into a clear header badge
             if (hText.includes('order') || headers[idx] === '#') {
               td.classList.add('mobile-order-badge');
               const orderVal = td.textContent.trim();
@@ -2889,6 +2876,30 @@
       });
     });
   }
+
+  // 🚀 RUNS AUTOMATICALLY ON PAGE LOAD
+  window.addEventListener('DOMContentLoaded', () => {
+    // Set default dates
+    if (document.getElementById('reportDate')) document.getElementById('reportDate').valueAsDate = new Date();
+    if (document.getElementById('v_reportDate')) document.getElementById('v_reportDate').valueAsDate = new Date();
+
+    setupMobileTableLabels();
+
+    // Check if user already logged in during this session
+    const isLoggedIn = sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true';
+
+    if (isLoggedIn) {
+      document.getElementById('loginScreen')?.classList.add('hidden');
+      document.getElementById('protectedApp')?.classList.remove('hidden');
+      changeQuestionnaireForm();
+      fetchRegistryCases();
+      initSlides();
+    } else {
+      document.getElementById('protectedApp')?.classList.add('hidden');
+      document.getElementById('loginScreen')?.classList.remove('hidden');
+      loadRememberedCredentials();
+    }
+  });
 
   // Run automatically when the page loads and when switching forms
   window.addEventListener('DOMContentLoaded', setupMobileTableLabels);
@@ -3810,8 +3821,6 @@
   }
 
 // 🎞️ SLIDE DECK LOGIC
-  let currentSlideIndex = 0;
-
   // 🎞️ BULLETPROOF SLIDE DECK LOGIC
   let currentSlideIndex = 0;
 
@@ -3826,23 +3835,22 @@
     const pages = getActiveFormPages();
     if (!pages || !pages.length) return;
 
-    // Keep index within bounds
     if (currentSlideIndex >= pages.length) currentSlideIndex = pages.length - 1;
     if (currentSlideIndex < 0) currentSlideIndex = 0;
 
-    // 1. 🎯 UPDATE THE PAGE INDICATORS IMMEDIATELY FIRST
+    // 1. Update indicators
     const numEl = document.getElementById('currentSlideNum');
     const totalEl = document.getElementById('totalSlideNum');
     if (numEl) numEl.textContent = String(currentSlideIndex + 1);
     if (totalEl) totalEl.textContent = String(pages.length);
 
-    // 2. 🎯 UPDATE PREV / NEXT BUTTON STATES
+    // 2. Update button disabled states
     const prevBtn = document.getElementById('btnPrevSlide');
     const nextBtn = document.getElementById('btnNextSlide');
     if (prevBtn) prevBtn.disabled = (currentSlideIndex === 0);
     if (nextBtn) nextBtn.disabled = (currentSlideIndex === pages.length - 1);
 
-    // 3. 🎯 SWITCH ACTIVE PAGE VISIBILITY
+    // 3. Switch slide visibility
     pages.forEach((page, idx) => {
       if (idx === currentSlideIndex) {
         page.classList.add('active-slide');
@@ -3853,7 +3861,7 @@
       }
     });
 
-    // 4. RE-RENDER NUMBER PILLS (Desktop)
+    // 4. Update desktop page pills
     const pillsContainer = document.getElementById('slidePillsContainer');
     if (pillsContainer) {
       pillsContainer.innerHTML = '';
@@ -3870,12 +3878,12 @@
       });
     }
 
-    // 5. SAFELY RE-RUN MOBILE TABLE LABELS (Won't crash slideshow if missing)
+    // 5. Run mobile table labels safely
     if (typeof setupMobileTableLabels === 'function') {
       try {
         setupMobileTableLabels();
       } catch (err) {
-        console.warn("Table labels warning:", err);
+        console.warn("Table labels notice:", err);
       }
     }
   }
@@ -3886,7 +3894,6 @@
     if (nextIndex >= 0 && nextIndex < pages.length) {
       currentSlideIndex = nextIndex;
       initSlides();
-      // Smoothly scroll back to the top of the form
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
