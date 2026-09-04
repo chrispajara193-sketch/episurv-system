@@ -590,14 +590,6 @@
         </div>
 
         <form id="masterEpiForm" onsubmit="handleFormSubmit(event)" novalidate class="space-y-4">
-          <!-- MINIMAL TOP BAR WITH 3-LINE SIDEBAR TOGGLE -->
-          <div class="flex items-center justify-between gap-3 mb-4 no-print">
-            <button type="button" onclick="toggleDiseaseSidebar()" class="px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-teal-400 border border-teal-500/50 shadow flex items-center gap-2.5 transition text-xs font-bold">
-              <i class="fa-solid fa-bars text-sm"></i>
-              <span class="text-slate-300 font-normal">Disease:</span>
-              <span id="currentDiseaseBadge" class="text-teal-300 font-bold">Leptospirosis</span>
-              <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
-            </button>
 
           <!-- Hidden native select element -->
           <select id="diseaseSelect" onchange="changeQuestionnaireForm()" class="hidden">
