@@ -599,11 +599,6 @@
               <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
             </button>
 
-            <button type="button" onclick="window.print()" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 shadow transition">
-              <i class="fa-solid fa-print"></i> Print Official Document
-            </button>
-          </div>
-
           <!-- Hidden native select element -->
           <select id="diseaseSelect" onchange="changeQuestionnaireForm()" class="hidden">
             <option value="Leptospirosis">Leptospirosis</option>
@@ -618,22 +613,39 @@
           </select>
 
           <!-- 🎞️ SLIDE DECK CONTROLLER (Screen Only) -->
-          <div class="sticky top-16 z-30 mb-4 bg-slate-900/95 backdrop-blur border border-teal-500/50 rounded-xl p-2.5 shadow-xl flex items-center justify-between gap-3 text-white no-print">
+          <!-- 🎞️ UNIFIED CONTROLLER: DISEASE TOGGLE (LEFT) + PREV/NEXT TOGETHER (RIGHT) -->
+        <div class="sticky top-16 z-30 mb-4 bg-slate-900/95 backdrop-blur border border-teal-500/50 rounded-xl p-2.5 shadow-xl flex flex-wrap items-center justify-between gap-3 text-white no-print">
+          
+          <!-- 1️⃣ LEFT: Disease Sidebar Toggle (Moved Here) -->
+          <button type="button" onclick="toggleDiseaseSidebar()" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-400 border border-teal-500/40 shadow flex items-center gap-2.5 transition text-xs font-bold cursor-pointer">
+            <i class="fa-solid fa-bars text-sm"></i>
+            <span class="text-slate-300 font-normal">Disease:</span>
+            <span id="currentDiseaseBadge" class="text-teal-300 font-bold">Leptospirosis</span>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+          </button>
+
+          <!-- 2️⃣ CENTER: Page Indicator & Clickable Pills -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-300">
+              Page <span id="currentSlideNum" class="text-teal-400 font-black text-sm">1</span> of <span id="totalSlideNum" class="text-white font-bold">6</span>
+            </span>
+            <div id="slidePillsContainer" class="hidden sm:flex items-center gap-1.5 ml-2"></div>
+          </div>
+
+          <!-- 3️⃣ RIGHT: Prev & Next Page Buttons Grouped Together -->
+          <div class="flex items-center gap-2">
+            <!-- Prev Button -->
             <button type="button" onclick="changeSlide(-1)" id="btnPrevSlide" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs flex items-center gap-1.5 transition disabled:opacity-30 disabled:cursor-not-allowed">
               <i class="fa-solid fa-chevron-left text-xs"></i> Prev Page
             </button>
 
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-slate-300">
-                Page <span id="currentSlideNum" class="text-teal-400 font-black text-sm">1</span> of <span id="totalSlideNum" class="text-white font-bold">6</span>
-              </span>
-              <div id="slidePillsContainer" class="hidden sm:flex items-center gap-1.5 ml-2"></div>
-            </div>
-
+            <!-- Next Button -->
             <button type="button" onclick="changeSlide(1)" id="btnNextSlide" class="px-3.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs flex items-center gap-1.5 transition disabled:opacity-30 disabled:cursor-not-allowed shadow">
               Next Page <i class="fa-solid fa-chevron-right text-xs"></i>
             </button>
           </div>
+
+        </div>
 
           <!-- ==================== DYNAMIC QUESTIONNAIRE CONTAINER ==================== -->
           <div id="printableQuestionnaire" class="printable-slides">
