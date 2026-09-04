@@ -196,7 +196,7 @@
         animation: fadeInSlide 0.25s ease-in-out;
       }
       .printable-slides .a4-page.active-slide {
-        display: flex !important;
+        display: none !important;
       }
       @keyframes fadeInSlide {
         from { opacity: 0; transform: translateY(6px); }
@@ -2846,7 +2846,7 @@
     if (document.getElementById('v_reportDate')) document.getElementById('v_reportDate').valueAsDate = new Date();
 
     setupMobileTableLabels(); // Ensure mobile table labels are set up on load
-    
+
     // 🏷️ AUTOMATICALLY PAIRS TABLE HEADERS WITH EACH CELL ON MOBILE
   function setupMobileTableLabels() {
     document.querySelectorAll('.qc-table').forEach(table => {
@@ -3812,11 +3812,92 @@
 // 🎞️ SLIDE DECK LOGIC
   let currentSlideIndex = 0;
 
+  // 🎞️ BULLETPROOF SLIDE DECK LOGIC
+  let currentSlideIndex = 0;
+
   function getActiveFormPages() {
     const isVector = document.getElementById('diseaseSelect')?.value.includes('Vectorborne');
     const containerId = isVector ? 'vectorborneForm' : 'leptospirosisForm';
     const container = document.getElementById(containerId);
     return container ? container.querySelectorAll('.a4-page') : [];
+  }
+
+  function initSlides() {
+    const pages = getActiveFormPages();
+    if (!pages || !pages.length) return;
+
+    // Keep index within bounds
+    if (currentSlideIndex >= pages.length) currentSlideIndex = pages.length - 1;
+    if (currentSlideIndex < 0) currentSlideIndex = 0;
+
+    // 1. 🎯 UPDATE THE PAGE INDICATORS IMMEDIATELY FIRST
+    const numEl = document.getElementById('currentSlideNum');
+    const totalEl = document.getElementById('totalSlideNum');
+    if (numEl) numEl.textContent = String(currentSlideIndex + 1);
+    if (totalEl) totalEl.textContent = String(pages.length);
+
+    // 2. 🎯 UPDATE PREV / NEXT BUTTON STATES
+    const prevBtn = document.getElementById('btnPrevSlide');
+    const nextBtn = document.getElementById('btnNextSlide');
+    if (prevBtn) prevBtn.disabled = (currentSlideIndex === 0);
+    if (nextBtn) nextBtn.disabled = (currentSlideIndex === pages.length - 1);
+
+    // 3. 🎯 SWITCH ACTIVE PAGE VISIBILITY
+    pages.forEach((page, idx) => {
+      if (idx === currentSlideIndex) {
+        page.classList.add('active-slide');
+        page.style.setProperty('display', 'flex', 'important');
+      } else {
+        page.classList.remove('active-slide');
+        page.style.setProperty('display', 'none', 'important');
+      }
+    });
+
+    // 4. RE-RENDER NUMBER PILLS (Desktop)
+    const pillsContainer = document.getElementById('slidePillsContainer');
+    if (pillsContainer) {
+      pillsContainer.innerHTML = '';
+      pages.forEach((_, idx) => {
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.textContent = idx + 1;
+        const isActive = (idx === currentSlideIndex);
+        pill.className = isActive 
+          ? "w-6 h-6 rounded-md bg-teal-500 text-slate-950 font-black text-xs shadow flex items-center justify-center transition"
+          : "w-6 h-6 rounded-md bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 font-bold text-xs flex items-center justify-center transition";
+        pill.onclick = () => goToSlide(idx);
+        pillsContainer.appendChild(pill);
+      });
+    }
+
+    // 5. SAFELY RE-RUN MOBILE TABLE LABELS (Won't crash slideshow if missing)
+    if (typeof setupMobileTableLabels === 'function') {
+      try {
+        setupMobileTableLabels();
+      } catch (err) {
+        console.warn("Table labels warning:", err);
+      }
+    }
+  }
+
+  function changeSlide(direction) {
+    const pages = getActiveFormPages();
+    const nextIndex = currentSlideIndex + direction;
+    if (nextIndex >= 0 && nextIndex < pages.length) {
+      currentSlideIndex = nextIndex;
+      initSlides();
+      // Smoothly scroll back to the top of the form
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function goToSlide(index) {
+    const pages = getActiveFormPages();
+    if (index >= 0 && index < pages.length) {
+      currentSlideIndex = index;
+      initSlides();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   function initSlides() {
