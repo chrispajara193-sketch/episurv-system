@@ -2828,9 +2828,10 @@
     if (rememberBox) rememberBox.checked = isRemembered;
   }
 
-  // 🏷️ AUTOMATICALLY PAIRS TABLE HEADERS WITH EACH CELL ON MOBILE (GLOBAL SCOPE)
+  // 🏷️ AUTOMATICALLY PAIRS TABLE HEADERS WITH EACH CELL ON MOBILE (NO DUPLICATES)
   function setupMobileTableLabels() {
     document.querySelectorAll('.qc-table').forEach(table => {
+      // Find header row (cross-browser safe)
       let headerRow = table.querySelector('tr.bg-slate-100');
       if (!headerRow) {
         const th = table.querySelector('th');
@@ -2843,21 +2844,40 @@
 
       headerRow.classList.add('mobile-hide-header');
 
+      // Check context (Consultation vs Admission)
+      const tableContext = (table.previousElementSibling?.textContent || '') + (table.parentElement?.textContent || '');
+      const isAdmissionTable = tableContext.toLowerCase().includes('admit');
+      const badgeTitle = isAdmissionTable ? 'ADMISSION' : 'CONSULTATION';
+
       table.querySelectorAll('tr').forEach(row => {
         if (row === headerRow) return;
         const cells = row.querySelectorAll('td');
 
         cells.forEach((td, idx) => {
-          if (headers[idx] && !td.querySelector('.cell-label, .mobile-card-label')) {
-            const hText = headers[idx].toLowerCase();
-            if (hText.includes('order') || headers[idx] === '#') {
-              td.classList.add('mobile-order-badge');
-              const orderVal = td.textContent.trim();
-              td.innerHTML = `<span><i class="fa-solid fa-notes-medical mr-1"></i> CONSULTATION:</span> <span class="text-teal-200 font-black">${orderVal}</span>`;
-            } else {
+          const headerName = headers[idx];
+          if (!headerName) return;
+
+          const hText = headerName.toLowerCase();
+
+          // 1. Handle Order Badge ("1st", "2nd", "3rd")
+          if (hText.includes('order') || headerName === '#') {
+            // 🛑 STOP: If already processed, never touch it again!
+            if (td.dataset.badgeProcessed === 'true') return;
+            td.dataset.badgeProcessed = 'true';
+
+            // Cleanly extract just "1st", "2nd", etc., ignoring any repeated labels
+            const cleanMatch = td.textContent.match(/\b(\d+(?:st|nd|rd|th)?)\b/i);
+            const orderVal = cleanMatch ? cleanMatch[1] : td.textContent.replace(/consultation:?/gi, '').trim();
+
+            td.classList.add('mobile-order-badge');
+            td.innerHTML = `<span><i class="fa-solid fa-notes-medical mr-1"></i> ${badgeTitle}:</span> <span class="text-teal-200 font-black">${orderVal}</span>`;
+          } 
+          // 2. Handle Regular Input Labels
+          else {
+            if (!td.querySelector('.cell-label, .mobile-card-label')) {
               const label = document.createElement('span');
               label.className = 'mobile-card-label';
-              label.textContent = headers[idx] + ':';
+              label.textContent = headerName + ':';
               td.prepend(label);
             }
           }
