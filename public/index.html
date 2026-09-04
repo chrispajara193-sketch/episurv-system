@@ -2721,6 +2721,7 @@
   </main>
 
   <!-- JAVASCRIPT LOGIC -->
+<!-- JAVASCRIPT LOGIC -->
 <script>
   const API_BASE = '/api';
   const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjwJYd_PIteMW766Ev-JS7XHdxqxgpQSGhdeFeF1U-kV1-K92Q3if-V9sswZ8lmlDX/exec";
@@ -2756,11 +2757,7 @@
     const enteredId = (cyberIdInput?.value || '').trim().toLowerCase();
     const enteredPass = (passcodeInput?.value || '').trim();
 
-    // Check credentials
     if (AUTH_CREDENTIALS[enteredId] && AUTH_CREDENTIALS[enteredId] === enteredPass) {
-      // ✅ SUCCESSFUL LOGIN
-
-      // Handle "Remember my account"
       if (rememberCheckbox?.checked) {
         localStorage.setItem('EPISURV_REMEMBER_ID', cyberIdInput.value.trim());
         localStorage.setItem('EPISURV_REMEMBER_PASS', enteredPass);
@@ -2771,24 +2768,18 @@
         localStorage.removeItem('EPISURV_REMEMBER_ACTIVE');
       }
 
-      // Mark user as logged in for this browser session
       sessionStorage.setItem('EPISURV_LOGGED_IN', 'true');
       sessionStorage.setItem('EPISURV_USER_EMAIL', enteredId);
 
-      // Hide error
       if (errorNotice) errorNotice.classList.add('hidden');
 
-      // 🔓 UNLOCK THE APPLICATION
       document.getElementById('loginScreen')?.classList.add('hidden');
       document.getElementById('protectedApp')?.classList.remove('hidden');
 
-      // Initialize forms, slides, and cases
       changeQuestionnaireForm();
       fetchRegistryCases();
       initSlides();
-
     } else {
-      // ❌ INVALID CREDENTIALS
       if (errorNotice) errorNotice.classList.remove('hidden');
       if (passcodeInput) passcodeInput.value = '';
     }
@@ -2816,11 +2807,9 @@
     sessionStorage.removeItem('EPISURV_LOGGED_IN');
     sessionStorage.removeItem('EPISURV_USER_EMAIL');
 
-    // Hide app, show login screen
     document.getElementById('protectedApp')?.classList.add('hidden');
     document.getElementById('loginScreen')?.classList.remove('hidden');
 
-    // Reload remembered credentials if any
     loadRememberedCredentials();
   }
 
@@ -2879,13 +2868,11 @@
 
   // 🚀 RUNS AUTOMATICALLY ON PAGE LOAD
   window.addEventListener('DOMContentLoaded', () => {
-    // Set default dates
     if (document.getElementById('reportDate')) document.getElementById('reportDate').valueAsDate = new Date();
     if (document.getElementById('v_reportDate')) document.getElementById('v_reportDate').valueAsDate = new Date();
 
     setupMobileTableLabels();
 
-    // Check if user already logged in during this session
     const isLoggedIn = sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true';
 
     if (isLoggedIn) {
@@ -2897,26 +2884,7 @@
     } else {
       document.getElementById('protectedApp')?.classList.add('hidden');
       document.getElementById('loginScreen')?.classList.remove('hidden');
-      loadRememberedCredentials(); // Pre-fills Cyber ID & Passcode if Remembered
-    }
-  });
-
-  // Run automatically when the page loads and when switching forms
-  window.addEventListener('DOMContentLoaded', setupMobileTableLabels);
-
-    // Check if user already logged in during this session
-    const isLoggedIn = sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true';
-
-    if (isLoggedIn) {
-      document.getElementById('loginScreen')?.classList.add('hidden');
-      document.getElementById('protectedApp')?.classList.remove('hidden');
-      changeQuestionnaireForm();
-      fetchRegistryCases();
-      initSlides();
-    } else {
-      document.getElementById('protectedApp')?.classList.add('hidden');
-      document.getElementById('loginScreen')?.classList.remove('hidden');
-      loadRememberedCredentials(); // Pre-fills Cyber ID & Passcode if Remembered
+      loadRememberedCredentials();
     }
   });
 
@@ -2954,13 +2922,12 @@
       if (titleEl) titleEl.textContent = disease.toUpperCase();
     }
 
-    // Keep the 3-line hamburger button label in sync
     const opt = diseaseSelect.options[diseaseSelect.selectedIndex];
     syncSidebarUI(disease, opt ? opt.text : disease);
 
     currentSlideIndex = 0;
     initSlides();
-    setupMobileTableLabels(); // Re-apply mobile table labels after switching forms
+    setupMobileTableLabels();
   }  
 
   function switchTab(tabId) {
@@ -3036,7 +3003,6 @@
     }
   }
 
-  // ⚡ HELPER: Converts Google Sheet / ISO date strings to YYYY-MM-DD for <input type="date">
   function formatDateForInput(dateVal) {
     if (!dateVal) return '';
     const str = String(dateVal).trim();
@@ -3133,7 +3099,6 @@
     }
   }
 
-  // 🎯 SETTER: Fill DRU inside 2.2 Medical Consultation -> Place of Consultation (1st Row)
   function fillConsultationPlace(druValue) {
     if (!druValue) return;
 
@@ -3168,7 +3133,6 @@
     }
   }
 
-  // 🎯 MULTI-ELEMENT LOCATOR: Finds and populates all inputs corresponding to a given label
   function fillAllInputsByLabel(keywords, value) {
     if (!value) return;
     const termList = (Array.isArray(keywords) ? keywords : [keywords]).map(k => k.toLowerCase().replace(/[\s_\-\/\:]/g, ''));
@@ -3181,14 +3145,12 @@
       const isMatch = termList.some(term => txt === term || txt.includes(term));
       if (!isMatch) continue;
 
-      // 1. Direct input inside
       let input = el.querySelector('input[type="text"], input:not([type]), textarea');
       if (input) {
         applyValToElement(input, value);
         continue;
       }
 
-      // 2. Next sibling elements
       let sib = el.nextElementSibling;
       while (sib) {
         if (sib.matches('input[type="text"], input:not([type]), textarea')) {
@@ -3203,7 +3165,6 @@
         sib = sib.nextElementSibling;
       }
 
-      // 3. Parent container lookup (following element)
       if (el.parentElement) {
         const pInputs = el.parentElement.querySelectorAll('input[type="text"], input:not([type]), textarea');
         for (const pInp of pInputs) {
@@ -3216,11 +3177,9 @@
     }
   }
 
-  // 🎯 SETTER: Fill SITIO specifically inside "STREET/PUROK/SITIO:"
   function fillStreetPurokSitio(sitioValue) {
     if (!sitioValue) return;
 
-    // 1. All standard and vector-prefixed IDs for Street/Purok/Sitio
     const targetIds = [
       'v_streetAddress', 'streetAddress',
       'v_street', 'street',
@@ -3242,19 +3201,14 @@
       }
     }
 
-    // 2. Scan and fill both forms by label without early return
     fillAllInputsByLabel(['streetpuroksitio', 'puroksitio', 'streetsitio'], sitioValue);
 
-    // 3. Fallback placeholder search
     const placeholderInputs = document.querySelectorAll('input[placeholder*="sitio" i], input[placeholder*="purok" i], input[placeholder*="street" i]');
     placeholderInputs.forEach(inp => {
       applyValToElement(inp, sitioValue);
     });
-
-    console.log('📍 fillStreetPurokSitio executed with value:', sitioValue);
   }
 
-  // ⚡ GOOGLE SHEET CASE ID AUTOFILL FUNCTION
   async function fetchAndAutofillFromSheet() {
     const inputEl = document.getElementById('sheetSearchCaseId');
     const btn = document.getElementById('btnLookupSheet') || document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]');
@@ -3294,20 +3248,14 @@
         }
       }
 
-      console.log('📄 Sheet Data Received:', d);
-
-      // 🎯 STEP 1: AUTO-DETECT AND SWITCH DISEASE FORM
       detectAndSwitchDisease(d, caseIdInput);
 
-      // 🎯 STEP 2: EXACT & FUZZY HEADER LOOKUP
       const cleanStr = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
       const getField = (...keys) => {
-        // Direct key check
         for (const k of keys) {
           if (d[k] !== undefined && d[k] !== null && String(d[k]).trim() !== '') return String(d[k]).trim();
         }
-        // Cleaned exact match
         for (const k of keys) {
           const ck = cleanStr(k);
           if (!ck) continue;
@@ -3318,7 +3266,6 @@
             }
           }
         }
-        // Partial includes match (Sheet header includes keyword)
         for (const k of keys) {
           const ck = cleanStr(k);
           if (ck.length < 3) continue;
@@ -3349,7 +3296,6 @@
         }
       };
 
-      // 🎯 STEP 3: EXTRACT VALUES FROM SHEET
       const caseIdVal = getField('CASE_ID', 'case_id', 'caseid', 'epid_id', 'case_no') || caseIdInput;
       const druVal = getField('DRU', 'dru', 'dru_name', 'health_center', 'facility');
       const firstNameVal = getField('FIRST_NAME', 'first_name', 'firstname', 'given_name');
@@ -3359,7 +3305,6 @@
       const dateOnsetVal = getField('DATE_ONSET_OF_ILLNESS', 'DATE_ONSET', 'date_onset_of_illness', 'date_onset', 'onset');
       const dateAdmittedVal = getField('DATE_ADMITTED', 'date_admitted', 'admission_date');
 
-      // Robust Sitio Extraction
       let sitioVal = getField(
         'SITIO', 'sitio',
         'STREET_PUROK_SITIO', 'street_purok_sitio', 'streetpuroksitio',
@@ -3369,7 +3314,6 @@
         'STREET_ADDRESS', 'street_address'
       );
 
-      // Extra safety: scan any column header containing 'sitio' or 'purok'
       if (!sitioVal) {
         for (const k in d) {
           const cleanK = k.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -3382,20 +3326,13 @@
         }
       }
 
-      console.log('📍 Sitio Value Found:', sitioVal);
-
       const cityVal = getField('CURRENT_ADDRESS_CITY_MUNICIPALITY', 'city', 'municipality') || 'Quezon City';
 
-      // 🎯 STEP 4: POPULATE FORM FIELDS
-
-      // 1. Case ID
       setVal(['epidId', 'caseRefId', 'v_caseId', 'v_caseRefId', 'v_epidId', 'caseId', 'case_id', 'v_case_id'], caseIdVal);
       fillByLabelOrPlaceholder(['case id', 'case no'], caseIdVal);
 
-      // 2. DRU -> 2.2 Medical Consultation (Place of Consultation 1st Row)
       fillConsultationPlace(druVal);
 
-      // 3. Patient Profile: Last, First, Middle Name
       setVal(['patientLastName', 'v_patientLastName', 'lastName', 'v_lastName', 'lname', 'v_lname', 'LAST_NAME', 'last_name'], lastNameVal);
       fillByLabelOrPlaceholder(['last name', 'surname', 'family name'], lastNameVal);
 
@@ -3405,7 +3342,6 @@
       setVal(['patientMiddleName', 'v_patientMiddleName', 'middleName', 'v_middleName', 'mname', 'v_mname', 'MIDDLE_NAME', 'middle_name'], middleNameVal);
       fillByLabelOrPlaceholder(['middle name'], middleNameVal);
 
-      // 4. Date of Birth & Automatic Age Calculation
       setVal(['dob', 'v_dob', 'birthDate', 'v_birthDate', 'dateOfBirth', 'v_dateOfBirth', 'DATE_OF_BIRT', 'date_of_birth'], dobVal, true);
       fillByLabelOrPlaceholder(['date of birth', 'birth date'], dobVal, true);
       autoCalcAgeBreakdown();
@@ -3424,7 +3360,6 @@
         }
       }
 
-      // Infer Sex if available
       let sexVal = getField('sex', 'gender', 'kasarian');
       if (!sexVal && caseIdVal) {
         if (caseIdVal.trim().toUpperCase().endsWith('M')) sexVal = 'Male';
@@ -3435,33 +3370,18 @@
         fillByLabelOrPlaceholder(['sex at birth', 'sex', 'gender'], sexVal);
       }
 
-      // 🎯 5. SITIO -> Target STREET/PUROK/SITIO:
       fillStreetPurokSitio(sitioVal);
 
-      // 6. City / Municipality
       setVal(['city', 'v_city', 'municipality', 'v_municipality', 'patientCity'], cityVal);
       fillByLabelOrPlaceholder(['city', 'municipality'], cityVal);
 
-      // 7. Clinical Dates
       setVal(['dateOnset', 'v_dateOnset', 'date_onset', 'v_date_onset', 'dateOnsetOfIllness', 'v_dateOnsetOfIllness', 'DATE_ONSET_OF_ILLNESS'], dateOnsetVal, true);
       fillByLabelOrPlaceholder(['date of onset', 'date onset', 'onset of illness'], dateOnsetVal, true);
 
       setVal(['dateAdmitted', 'v_dateAdmitted', 'date_admitted', 'v_date_admitted', 'admissionDate', 'v_admissionDate', 'dateOfAdmission', 'DATE_ADMITTED'], dateAdmittedVal, true);
       fillByLabelOrPlaceholder(['date admitted', 'admission date', 'date of admission'], dateAdmittedVal, true);
 
-      console.log('✅ Extracted & Applied Data:', {
-        caseId: caseIdVal,
-        consultationPlace_2_2: druVal,
-        firstName: firstNameVal,
-        lastName: lastNameVal,
-        dob: dobVal,
-        sitio: sitioVal,
-        onset: dateOnsetVal,
-        admitted: dateAdmittedVal
-      });
-
       alert(`✅ Form filled for Case ID "${caseIdVal}" (${firstNameVal || ''} ${lastNameVal || ''})!`);
-
     } catch (err) {
       console.error('Google Sheet error:', err);
       alert('❌ Error connecting to Google Sheet. Please verify your Apps Script permissions.');
@@ -3473,7 +3393,6 @@
     }
   }
 
-  // FORM SUBMIT HANDLER
   async function handleFormSubmit(e) {
     if (e && e.preventDefault) e.preventDefault();
 
@@ -3550,19 +3469,14 @@
     }
   }
 
-  // 💾 UPDATES EXISTING RECORD OR ADDS NEW ONE
   function saveLocalBackup(record) {
     try {
       let local = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
-      
-      // Check if this Case ID already exists in the registry
       const existingIndex = local.findIndex(c => c.epid_id === record.epid_id);
       
       if (existingIndex !== -1) {
-        // Update the existing record with your edited values
         local[existingIndex] = { ...local[existingIndex], ...record, updatedAt: new Date().toISOString() };
       } else {
-        // Add new record if it didn't exist before
         local.unshift({ ...record, id: Date.now() });
       }
 
@@ -3597,17 +3511,13 @@
     renderRegistryRows(cases);
   }
 
-// 🖨️ Prints the official form for a specific case from the Registry
   function printRegistryCase(epidId) {
-    // 1. Switch back to the questionnaire tab so it's not hidden
     switchTab('questionnaireTab');
 
-    // 2. Look up the saved case data
     const local = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
     const found = local.find(c => c.epid_id === epidId);
 
     if (found) {
-      // Set the disease form
       const diseaseSelect = document.getElementById('diseaseSelect');
       if (diseaseSelect && found.disease) {
         diseaseSelect.value = found.disease;
@@ -3620,14 +3530,12 @@
         if (el && val !== undefined) el.value = val;
       };
 
-      // Set identification
       setVal('caseRefId', found.epid_id);
       setVal('v_caseId', found.epid_id);
       setVal(isVector ? 'v_DiseaseReportingUnit' : 'DiseaseReportingUnit', found.dru_name);
       setVal(isVector ? 'v_Investigator' : 'Investigator', found.investigator);
       setVal(isVector ? 'v_reportDate' : 'reportDate', found.report_date);
 
-      // Split patient name (LastName, FirstName MiddleName)
       if (found.patient_name) {
         const parts = found.patient_name.split(',');
         const lName = parts[0] ? parts[0].trim() : '';
@@ -3648,18 +3556,14 @@
       setVal(isVector ? 'v_dateOnset' : 'dateOnset', found.date_onset);
     }
 
-    // 3. Small timeout to let the DOM display the form before triggering the print window
     setTimeout(() => {
       window.print();
     }, 250);
   }
 
-  // ✏️ LOAD & EDIT PATIENT CASE IN THE QUESTIONNAIRE
   function editRegistryCase(epidId) {
-    // 1. Switch back to the Questionnaire Form tab
     switchTab('questionnaireTab');
 
-    // 2. Locate the record in local backup
     const local = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
     const found = local.find(c => c.epid_id === epidId);
 
@@ -3668,7 +3572,6 @@
       return;
     }
 
-    // 3. Switch to the correct disease form
     const diseaseSelect = document.getElementById('diseaseSelect');
     if (diseaseSelect && found.disease) {
       diseaseSelect.value = found.disease;
@@ -3685,7 +3588,6 @@
       }
     };
 
-    // 4. Populate Identification & Administrative details
     setVal('epidId', found.epid_id);
     setVal('caseRefId', found.epid_id);
     setVal('v_caseId', found.epid_id);
@@ -3695,7 +3597,6 @@
     setVal(isVector ? 'v_Investigator' : 'Investigator', found.investigator);
     setVal(isVector ? 'v_reportDate' : 'reportDate', found.report_date);
 
-    // 5. Parse and populate Patient Name (Last, First, Middle)
     if (found.patient_name) {
       const parts = found.patient_name.split(',');
       const lName = parts[0] ? parts[0].trim() : '';
@@ -3708,7 +3609,6 @@
       setVal(isVector ? 'v_patientMiddleName' : 'patientMiddleName', mName);
     }
 
-    // 6. Demographics & Address
     setVal(isVector ? 'v_dob' : 'dob', found.dob);
     setVal(isVector ? 'v_age' : 'age', found.age);
     setVal(isVector ? 'v_sex' : 'sex', found.sex);
@@ -3716,23 +3616,21 @@
     setVal(isVector ? 'v_city' : 'city', found.city);
     setVal('contact', found.contact);
 
-    // 7. Clinical Information
     setVal(isVector ? 'v_dateOnset' : 'dateOnset', found.date_onset);
     setVal('caseClassification', found.case_classification);
     setVal('outcome', found.outcome);
 
-    // 8. Restore Checked Symptoms (if stored)
     if (found.disease_specific_data?.symptoms && Array.isArray(found.disease_specific_data.symptoms)) {
       document.querySelectorAll('#printableQuestionnaire input[name="symp"], #printableQuestionnaire input[name="v_symp"]').forEach(cb => {
         cb.checked = found.disease_specific_data.symptoms.includes(cb.value);
       });
     }
 
-    // Scroll to the top of the form smoothly
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     alert(`📝 Loaded Case "${found.epid_id}" (${found.patient_name}).\nMake your changes and click "Save & Log Case" to update!`);
   }
+
   function renderRegistryRows(cases) {
     const tbody = document.getElementById('registryBody');
     if (!tbody) return;
@@ -3757,11 +3655,9 @@
         <td class="p-3 font-bold ${r.outcome && r.outcome.includes('Died') ? 'text-rose-600' : 'text-teal-700'}">${r.outcome || 'Alive'}</td>
         <td class="p-3 text-center">
           <div class="flex items-center justify-center gap-1.5">
-            <!-- ✏️ EDIT PATIENT BUTTON -->
             <button type="button" onclick="editRegistryCase('${r.epid_id}')" class="p-1.5 bg-teal-600 text-white rounded hover:bg-teal-500 transition shadow-sm" title="Edit Patient Information">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
-            <!-- 🖨️ PRINT OFFICIAL FORM BUTTON -->
             <button type="button" onclick="printRegistryCase('${r.epid_id}')" class="p-1.5 bg-slate-800 text-white rounded hover:bg-slate-700 transition shadow-sm" title="Print Official Form">
               <i class="fa-solid fa-print"></i>
             </button>
@@ -3771,11 +3667,11 @@
       tbody.appendChild(tr);
     });
   }
+
   function exportSurveillanceCSV() {
     window.location.href = `${API_BASE}/export-csv`;
   }
 
-  // ☰ Toggle Left Slide-out Sidebar
   function toggleDiseaseSidebar() {
     const sidebar = document.getElementById('diseaseSidebar');
     const backdrop = document.getElementById('sidebarBackdrop');
@@ -3791,7 +3687,6 @@
     }
   }
 
-  // Handle disease selection from sidebar
   function selectDisease(val, label) {
     const dropdown = document.getElementById('diseaseSelect');
     if (dropdown) {
@@ -3799,10 +3694,9 @@
       changeQuestionnaireForm();
     }
     syncSidebarUI(val, label);
-    toggleDiseaseSidebar(); // Close sidebar
+    toggleDiseaseSidebar();
   }
 
-  // Updates active button highlights and the trigger button label
   function syncSidebarUI(val, label) {
     const badge = document.getElementById('currentDiseaseBadge');
     if (badge) badge.textContent = label || val;
@@ -3820,7 +3714,7 @@
     });
   }
 
-// 🎞️ BULLETPROOF SLIDE DECK LOGIC
+  // 🎞️ BULLETPROOF SLIDE DECK LOGIC
   let currentSlideIndex = 0;
 
   function getActiveFormPages() {
@@ -3837,19 +3731,16 @@
     if (currentSlideIndex >= pages.length) currentSlideIndex = pages.length - 1;
     if (currentSlideIndex < 0) currentSlideIndex = 0;
 
-    // 1. Update indicators
     const numEl = document.getElementById('currentSlideNum');
     const totalEl = document.getElementById('totalSlideNum');
     if (numEl) numEl.textContent = String(currentSlideIndex + 1);
     if (totalEl) totalEl.textContent = String(pages.length);
 
-    // 2. Update button disabled states
     const prevBtn = document.getElementById('btnPrevSlide');
     const nextBtn = document.getElementById('btnNextSlide');
     if (prevBtn) prevBtn.disabled = (currentSlideIndex === 0);
     if (nextBtn) nextBtn.disabled = (currentSlideIndex === pages.length - 1);
 
-    // 3. Switch slide visibility
     pages.forEach((page, idx) => {
       if (idx === currentSlideIndex) {
         page.classList.add('active-slide');
@@ -3860,7 +3751,6 @@
       }
     });
 
-    // 4. Update desktop page pills
     const pillsContainer = document.getElementById('slidePillsContainer');
     if (pillsContainer) {
       pillsContainer.innerHTML = '';
@@ -3877,7 +3767,6 @@
       });
     }
 
-    // 5. Run mobile table labels safely
     if (typeof setupMobileTableLabels === 'function') {
       try {
         setupMobileTableLabels();
@@ -3905,70 +3794,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
-
-    if (currentSlideIndex >= pages.length) currentSlideIndex = 0;
-
-    // Show only the active slide
-    pages.forEach((page, idx) => {
-      if (idx === currentSlideIndex) {
-        page.classList.add('active-slide');
-      } else {
-        page.classList.remove('active-slide');
-      }
-    });
-
-    setupMobileTableLabels();
-
-    // Update Page Numbers
-    const numEl = document.getElementById('currentSlideNum');
-    const totalEl = document.getElementById('totalSlideNum');
-    if (numEl) numEl.textContent = currentSlideIndex + 1;
-    if (totalEl) totalEl.textContent = pages.length;
-
-    // Update Prev / Next Buttons
-    const prevBtn = document.getElementById('btnPrevSlide');
-    const nextBtn = document.getElementById('btnNextSlide');
-    if (prevBtn) prevBtn.disabled = (currentSlideIndex === 0);
-    if (nextBtn) nextBtn.disabled = (currentSlideIndex === pages.length - 1);
-
-    // Build clickable page pill buttons (1, 2, 3, etc.)
-    const pillsContainer = document.getElementById('slidePillsContainer');
-    if (pillsContainer) {
-      pillsContainer.innerHTML = '';
-      pages.forEach((_, idx) => {
-        const pill = document.createElement('button');
-        pill.type = 'button';
-        pill.textContent = idx + 1;
-        const isActive = idx === currentSlideIndex;
-        pill.className = isActive 
-          ? "w-6 h-6 rounded-md bg-teal-500 text-slate-950 font-black text-xs shadow flex items-center justify-center transition"
-          : "w-6 h-6 rounded-md bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 font-bold text-xs flex items-center justify-center transition";
-        pill.onclick = () => goToSlide(idx);
-        pillsContainer.appendChild(pill);
-      });
-    }
-  }
-
-  function changeSlide(direction) {
-    const pages = getActiveFormPages();
-    const nextIndex = currentSlideIndex + direction;
-    if (nextIndex >= 0 && nextIndex < pages.length) {
-      currentSlideIndex = nextIndex;
-      initSlides();
-      // Scroll smoothly to top of questionnaire
-      document.getElementById('printableQuestionnaire')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-
-  function goToSlide(index) {
-    const pages = getActiveFormPages();
-    if (index >= 0 && index < pages.length) {
-      currentSlideIndex = index;
-      initSlides();
-      document.getElementById('printableQuestionnaire')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-
 </script>
 </body>
 </html>
