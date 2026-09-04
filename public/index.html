@@ -237,6 +237,62 @@
       }
     }
 
+/* 📱 CROSS-DEVICE RESPONSIVE SHIELD (Phones, Tablets & Laptops) */
+    @media screen and (max-width: 768px) {
+      /* Prevent iOS Safari from disorienting zoom-in when tapping an input */
+      .cell-input, select, input, textarea {
+        font-size: 13px !important;
+      }
+
+      /* Compact Top Header for Mobile */
+      header h1 {
+        font-size: 13px !important;
+        line-height: 1.2 !important;
+      }
+      header p {
+        display: none !important; /* Hide subtitle on phones to save vertical space */
+      }
+
+      /* 🛡️ No-Distortion Sheet Scroller */
+      .questionnaire-touch-wrapper {
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 15px !important;
+      }
+
+      /* Locks the A4 sheet to clean proportions so columns never collapse */
+      .a4-page {
+        min-width: 760px !important; 
+        max-width: 760px !important;
+        padding: 8mm 10mm !important;
+        margin: 0 auto 16px auto !important;
+      }
+
+      /* Compact Neumorphic Login Card on small phone screens */
+      .neumorph-card {
+        padding: 24px 18px !important;
+        border-radius: 20px !important;
+        max-width: 100% !important;
+      }
+
+      /* Mobile Search Bar layout */
+      #sheetSearchCaseId {
+        min-width: 100% !important;
+      }
+
+      /* Make slide buttons fit neatly on small screens */
+      #btnPrevSlide, #btnNextSlide {
+        padding: 6px 10px !important;
+      }
+      #currentDiseaseBadge {
+        max-width: 110px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
     /* 🖨️ FLAWLESS PRINT ENGINE */
     @media print {
       html, body {
@@ -641,8 +697,15 @@
           </div>
 
         </div>
+        
+        <!-- 💡 Mobile Swipe Guide (Only appears on mobile/tablet screens) -->
+        <div class="md:hidden flex items-center justify-center gap-2 mb-2 text-[11px] font-bold text-teal-900 bg-teal-100/90 px-3 py-1.5 rounded-lg border border-teal-300 shadow-sm no-print">
+          <i class="fa-solid fa-arrows-left-right text-teal-700 animate-pulse"></i>
+          <span>Swipe left & right to view the full questionnaire page</span>
+        </div>
 
-          <!-- ==================== DYNAMIC QUESTIONNAIRE CONTAINER ==================== -->
+        <!-- 🛡️ WRAPPER: PREVENTS TABLE DISTORTION -->
+        <div class="questionnaire-touch-wrapper">
           <div id="printableQuestionnaire" class="printable-slides">
 
             <!-- FORM 1: LEPTOSPIROSIS -->
