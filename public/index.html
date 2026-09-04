@@ -3810,7 +3810,7 @@
       });
     }, {
       root: null,
-      rootMargin: '-10% 0px -65% 0px', // Triggers when top of page enters view
+      rootMargin: '-10% 0px -65% 0px',
       threshold: 0
     });
 
@@ -3833,7 +3833,7 @@
       pages.forEach(page => {
         page.classList.remove('active-slide');
         page.style.setProperty('display', 'flex', 'important');
-        page.style.setProperty('flex-direction', 'column', 'important'); /* 👈 Enforce vertical stack */
+        page.style.setProperty('flex-direction', 'column', 'important');
       });
       setupScrollSpy();
     } else {
@@ -3843,7 +3843,7 @@
         if (idx === currentSlideIndex) {
           page.classList.add('active-slide');
           page.style.setProperty('display', 'flex', 'important');
-          page.style.setProperty('flex-direction', 'column', 'important'); /* 👈 Enforce vertical stack */
+          page.style.setProperty('flex-direction', 'column', 'important');
         } else {
           page.classList.remove('active-slide');
           page.style.setProperty('display', 'none', 'important');
@@ -3876,33 +3876,6 @@
     }
   }
 
-    // Build desktop indicator pills
-    const pillsContainer = document.getElementById('slidePillsContainer');
-    if (pillsContainer) {
-      pillsContainer.innerHTML = '';
-      pages.forEach((_, idx) => {
-        const pill = document.createElement('button');
-        pill.type = 'button';
-        pill.textContent = idx + 1;
-        const isActive = (idx === currentSlideIndex);
-        pill.className = isActive 
-          ? "w-6 h-6 rounded-md bg-teal-500 text-slate-950 font-black text-xs shadow flex items-center justify-center transition"
-          : "w-6 h-6 rounded-md bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 font-bold text-xs flex items-center justify-center transition";
-        pill.onclick = () => goToSlide(idx);
-        pillsContainer.appendChild(pill);
-      });
-    }
-
-    // Run mobile table cards formatting
-    if (typeof setupMobileTableLabels === 'function') {
-      try {
-        setupMobileTableLabels();
-      } catch (err) {
-        console.warn("Table labels notice:", err);
-      }
-    }
-  }
-
   function changeSlide(direction) {
     const pages = getActiveFormPages();
     const nextIndex = currentSlideIndex + direction;
@@ -3911,7 +3884,6 @@
       const isMobileOrTablet = window.innerWidth <= 1024;
 
       if (isMobileOrTablet) {
-        // Smoothly scroll directly to that page card
         pages[nextIndex]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         updateHeaderIndicators(pages);
       } else {
@@ -3937,7 +3909,6 @@
     }
   }
 
-  // Re-adjust smoothly if user rotates device (Portrait <-> Landscape)
   window.addEventListener('resize', () => {
     initSlides();
   });
