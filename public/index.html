@@ -237,59 +237,135 @@
       }
     }
 
-/* 📱 CROSS-DEVICE RESPONSIVE SHIELD (Phones, Tablets & Laptops) */
+    /* 📱 100% FLUID MOBILE ADAPTATION (No Horizontal Swipe) */
     @media screen and (max-width: 768px) {
-      /* Prevent iOS Safari from disorienting zoom-in when tapping an input */
+      body {
+        overflow-x: hidden !important;
+      }
+
+      /* Native font size prevents iOS Safari zoom-in */
       .cell-input, select, input, textarea {
         font-size: 13px !important;
+        line-height: 1.35 !important;
       }
 
-      /* Compact Top Header for Mobile */
       header h1 {
-        font-size: 13px !important;
-        line-height: 1.2 !important;
+        font-size: 12.5px !important;
       }
       header p {
-        display: none !important; /* Hide subtitle on phones to save vertical space */
+        display: none !important;
       }
 
-      /* 🛡️ No-Distortion Sheet Scroller */
+      /* Scale down header logos on phone */
+      .header-logo-img {
+        height: 32px !important;
+        max-width: 32px !important;
+      }
+      .footer-bp-img, .footer-iso-img {
+        height: 22px !important;
+      }
+      .footer-tagline {
+        font-size: 8.5px !important;
+      }
+
+      /* REMOVE THE 760px LOCK & FORCE 100% PHONE FIT */
       .questionnaire-touch-wrapper {
         width: 100% !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        padding-bottom: 15px !important;
-      }
-
-      /* Locks the A4 sheet to clean proportions so columns never collapse */
-      .a4-page {
-        min-width: 760px !important; 
-        max-width: 760px !important;
-        padding: 8mm 10mm !important;
-        margin: 0 auto 16px auto !important;
-      }
-
-      /* Compact Neumorphic Login Card on small phone screens */
-      .neumorph-card {
-        padding: 24px 18px !important;
-        border-radius: 20px !important;
         max-width: 100% !important;
+        overflow-x: hidden !important;
+        padding: 0 !important;
+        margin: 0 !important;
       }
 
-      /* Mobile Search Bar layout */
+      .a4-page {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        min-height: auto !important;
+        height: auto !important;
+        padding: 10px 8px !important;
+        margin: 0 auto 16px auto !important;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+      }
+
+      /* REFLOW DESKTOP TABLES INTO FLUID MOBILE CARDS */
+      .qc-table {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: auto !important;
+        border: 1px solid #000000 !important;
+        border-radius: 6px !important;
+        margin-bottom: 8px !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+      }
+
+      .qc-table tbody {
+        display: block !important;
+        width: 100% !important;
+      }
+
+      .qc-table tr {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+      }
+      .qc-table tr:last-child {
+        border-bottom: none !important;
+      }
+
+      .qc-table td, .qc-table th {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+        border: none !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding: 5px 6px !important;
+        font-size: 11px !important;
+      }
+
+      .qc-table td:last-child {
+        border-bottom: none !important;
+      }
+
+      /* Make inputs stretch comfortably */
+      .cell-input {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        padding: 5px 7px;
+        font-weight: 600;
+      }
+
+      .cell-input.inline, input.inline {
+        display: block !important;
+        width: 100% !important;
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
+      }
+
+      .flex.gap-1, .flex.gap-2, .flex.gap-4 {
+        flex-wrap: wrap !important;
+      }
+
+      .neumorph-card {
+        padding: 22px 16px !important;
+        border-radius: 18px !important;
+      }
       #sheetSearchCaseId {
         min-width: 100% !important;
-      }
-
-      /* Make slide buttons fit neatly on small screens */
-      #btnPrevSlide, #btnNextSlide {
-        padding: 6px 10px !important;
-      }
-      #currentDiseaseBadge {
-        max-width: 110px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
       }
     }
 
@@ -711,12 +787,6 @@
 
         </div>
         
-        <!-- 💡 Mobile Swipe Guide (Only appears on mobile/tablet screens) -->
-        <div class="md:hidden flex items-center justify-center gap-2 mb-2 text-[11px] font-bold text-teal-900 bg-teal-100/90 px-3 py-1.5 rounded-lg border border-teal-300 shadow-sm no-print">
-          <i class="fa-solid fa-arrows-left-right text-teal-700 animate-pulse"></i>
-          <span>Swipe left & right to view the full questionnaire page</span>
-        </div>
-
         <!-- 🛡️ WRAPPER: PREVENTS TABLE DISTORTION -->
         <div class="questionnaire-touch-wrapper">
           <div id="printableQuestionnaire" class="printable-slides">
