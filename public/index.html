@@ -369,6 +369,35 @@
       }
     }
 
+    /* Hides the stacked column headers on phone */
+    @media screen and (max-width: 768px) {
+      .mobile-hide-header {
+        display: none !important;
+      }
+      .mobile-card-label {
+        display: block !important;
+        font-weight: 800 !important;
+        font-size: 8.5px !important;
+        color: #0f766e !important;
+        text-transform: uppercase !important;
+        margin-bottom: 2px !important;
+      }
+      /* Highlights the row separator like "1st", "2nd", "3rd" */
+      .mobile-order-badge {
+        background-color: #e2e8f0 !important;
+        font-weight: 900 !important;
+        color: #0f172a !important;
+        border-radius: 4px !important;
+      }
+    }
+
+    /* Keeps print 100% intact */
+    @media print {
+      .mobile-card-label {
+        display: none !important;
+      }
+    }
+
     /* 🖨️ FLAWLESS PRINT ENGINE */
     @media print {
       html, body {
@@ -2809,6 +2838,42 @@
     if (document.getElementById('reportDate')) document.getElementById('reportDate').valueAsDate = new Date();
     if (document.getElementById('v_reportDate')) document.getElementById('v_reportDate').valueAsDate = new Date();
 
+    // 🏷️ AUTOMATICALLY PAIRS LABELS WITH INPUTS ON MOBILE TABLES
+  function setupMobileTableLabels() {
+    document.querySelectorAll('.qc-table').forEach(table => {
+      const headerRow = table.querySelector('tr.bg-slate-100, tr:has(th)');
+      if (!headerRow) return;
+
+      const headers = Array.from(headerRow.querySelectorAll('th, td')).map(el => el.textContent.trim());
+      if (headers.length === 0) return;
+
+      // Hide the stacked header row on phone
+      headerRow.classList.add('mobile-hide-header');
+
+      // Add the proper label directly above each input
+      table.querySelectorAll('tr').forEach(row => {
+        if (row === headerRow) return;
+        const cells = row.querySelectorAll('td');
+        cells.forEach((td, idx) => {
+          if (headers[idx] && !td.querySelector('.cell-label, .mobile-card-label')) {
+            const label = document.createElement('span');
+            label.className = 'mobile-card-label';
+            label.textContent = headers[idx] + ':';
+            td.prepend(label);
+
+            // Style "1st", "2nd", "3rd" as neat section headers
+            if (headers[idx].toLowerCase().includes('order') || headers[idx] === '#') {
+              td.classList.add('mobile-order-badge');
+            }
+          }
+        });
+      });
+    });
+  }
+
+  // Run automatically when the page loads and when switching forms
+  window.addEventListener('DOMContentLoaded', setupMobileTableLabels);
+
     // Check if user already logged in during this session
     const isLoggedIn = sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true';
 
@@ -2865,6 +2930,7 @@
 
     currentSlideIndex = 0;
     initSlides();
+    setupMobileTableLabels(); // Re-apply mobile table labels after switching forms
   }  
 
   function switchTab(tabId) {
