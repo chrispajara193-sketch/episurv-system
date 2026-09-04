@@ -2897,7 +2897,7 @@
     } else {
       document.getElementById('protectedApp')?.classList.add('hidden');
       document.getElementById('loginScreen')?.classList.remove('hidden');
-      loadRememberedCredentials();
+      loadRememberedCredentials(); // Pre-fills Cyber ID & Passcode if Remembered
     }
   });
 
@@ -3820,8 +3820,7 @@
     });
   }
 
-// 🎞️ SLIDE DECK LOGIC
-  // 🎞️ BULLETPROOF SLIDE DECK LOGIC
+// 🎞️ BULLETPROOF SLIDE DECK LOGIC
   let currentSlideIndex = 0;
 
   function getActiveFormPages() {
@@ -3906,10 +3905,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
-
-  function initSlides() {
-    const pages = getActiveFormPages();
-    if (!pages.length) return;
 
     if (currentSlideIndex >= pages.length) currentSlideIndex = 0;
 
