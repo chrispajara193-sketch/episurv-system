@@ -2840,7 +2840,7 @@
 
   // --- 🔍 GOOGLE SHEET LOOKUP & AUTOFILL ENGINE ---
   function detectAndSwitchDisease(d, caseIdInput) {
-    let textPool = (d.disease || d.diseaseName || d.DISEASE_NAME || '').toLowerCase();
+    let textPool = (d.disease || d.diseaseName || d.DISEASE_NAME || d.DISEASE || '').toLowerCase();
     let matchedKeyword = '';
     if (textPool.includes('dengue') || textPool.includes('vector')) matchedKeyword = 'vector';
     else if (textPool.includes('lepto')) matchedKeyword = 'lepto';
@@ -2872,90 +2872,65 @@
         if (!isNaN(d.getTime())) val = d.toISOString().split('T')[0];
     }
     if (el.tagName === 'SELECT') {
+      const vLower = val.toLowerCase();
       for (const opt of el.options) {
-        if (opt.value.toLowerCase() === val.toLowerCase() || opt.text.toLowerCase() === val.toLowerCase()) {
+        if (opt.value.toLowerCase() === vLower || opt.text.toLowerCase() === vLower) {
           el.value = opt.value;
           break;
         }
       }
     } else { el.value = val; }
     el.dispatchEvent(new Event('change', { bubbles: true }));
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  function autoCalcAgeBreakdown() {
+    const dobInput = document.getElementById('dob') || document.getElementById('v_dob');
+    const ageInput = document.getElementById('age') || document.getElementById('v_age');
+    if (!dobInput || !dobInput.value || !ageInput) return;
+    const birthDate = new Date(dobInput.value);
+    const today = new Date();
+    if (isNaN(birthDate.getTime())) return;
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
+    ageInput.value = age >= 0 ? age : 0;
   }
 
   function autofillLogic(d) {
     const setVal = (id, val, isDate = false) => {
       const el = document.getElementById(id);
-      if (el && val !== undefined && val !== null && val !== "") {
-        let finalVal = val;
-        
-        // 🛠️ DATE FORMATTER: Forces YYYY-MM-DD so HTML boxes work
-        if (isDate) {
-          const dateObj = new Date(val);
-          if (!isNaN(dateObj.getTime())) {
-            finalVal = dateObj.toISOString().split('T')[0];
-          }
-        }
-        
-        el.value = finalVal;
-        // This tells the browser "the value changed, please recalculate age"
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-      }
+      applyValToElement(el, val, isDate);
     };
 
-    // 1. Patient Name (Added Middle Name)
-    setVal('patientFirstName', d.FIRST_NAME || d.first_name);
-    setVal('v_patientFirstName', d.FIRST_NAME || d.first_name);
+    setVal('caseRefId', d.CASE_ID || d.case_id || d.epid_id);
+    setVal('v_caseId', d.CASE_ID || d.case_id || d.epid_id);
     setVal('patientLastName', d.LAST_NAME || d.last_name);
     setVal('v_patientLastName', d.LAST_NAME || d.last_name);
-    
-    // NEW: Middle Name Mapping
-    const mname = d.MIDDLE_NAME || d.middle_name || "";
-    setVal('patientMiddleName', mname);
-    setVal('v_patientMiddleName', mname);
-
-    // 2. Dates (Using exact headers from your screenshot)
-    // Note: 'true' at the end tells the function to fix the date format
+    setVal('patientFirstName', d.FIRST_NAME || d.first_name);
+    setVal('v_patientFirstName', d.FIRST_NAME || d.first_name);
+    setVal('patientMiddleName', d.MIDDLE_NAME || d.middle_name);
+    setVal('v_patientMiddleName', d.MIDDLE_NAME || d.middle_name);
     setVal('dob', d.DATE_OF_BIRTH || d.dob, true);
     setVal('v_dob', d.DATE_OF_BIRTH || d.dob, true);
-
+    setVal('sex', d.SEX || d.sex || d.GENDER);
+    setVal('v_sex', d.SEX || d.sex || d.GENDER);
+    setVal('Barangay', d.BARANGAY || d.barangay);
+    setVal('v_Barangay', d.BARANGAY || d.barangay);
+    setVal('streetAddress', d.SITIO || d.sitio);
+    setVal('v_streetAddress', d.SITIO || d.sitio);
+    setVal('city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
+    setVal('v_city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
     setVal('dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset, true);
     setVal('v_dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset, true);
 
-    setVal('dateAdmitted', d.DATE_ADMITTED || d.date_admitted, true);
-    setVal('v_dateAdmitted', d.DATE_ADMITTED || d.date_admitted, true);
-
-    // 3. Address & Health Center
-    setVal('streetAddress', d.SITIO || d.sitio);
-    setVal('v_streetAddress', d.SITIO || d.sitio);
-    setVal('Barangay', d.BARANGAY || d.barangay);
-    setVal('v_Barangay', d.BARANGAY || d.barangay);
-    setVal('city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
-    setVal('v_city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
-    
     const dru = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru_name;
     setVal('DiseaseReportingUnit', dru);
     setVal('v_DiseaseReportingUnit', dru);
     setVal('consultFacility1', dru); 
     setVal('v_consultPlace1', dru);
 
-    // 4. IDs
-    const id = d.CASE_ID || d.case_id || d.epid_id;
-    setVal('caseRefId', id);
-    setVal('v_caseId', id);
-
-    // 5. Gender
-    const sex = d.SEX || d.sex || d.GENDER;
-    setVal('sex', sex);
-    setVal('v_sex', sex);
-
-    // 6. Age
-    const age = d.AGE || d.age || d.AGE_IN_YEARS;
-    setVal('age', age);
-    setVal('v_age', age);
-
-    // Final trigger for age calculation if DOB is there
-    if (typeof autoCalcAgeBreakdown === 'function') autoCalcAgeBreakdown();
+    setTimeout(autoCalcAgeBreakdown, 300);
   }
 
   async function fetchAndAutofillFromSheet() {
@@ -2974,7 +2949,6 @@
     }
 
     if (!navigator.onLine) { alert("❌ Offline and not in cache."); return; }
-    
     const btn = document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]');
     if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching...';
 
@@ -2990,17 +2964,12 @@
     finally { if (btn) btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill Form'; }
   }
 
-  // 🚪 LOGIN HANDLER
+  // 🚪 LOGIN & UI HANDLERS
   function handleLogin(e) {
     if (e) e.preventDefault();
-    const cyberIdInput = document.getElementById('loginCyberId');
-    const passcodeInput = document.getElementById('loginPasscode');
-    const errorNotice = document.getElementById('loginError');
-
-    const enteredId = (cyberIdInput?.value || '').trim().toLowerCase();
-    const enteredPass = (passcodeInput?.value || '').trim();
-
-    if (AUTH_CREDENTIALS[enteredId] && AUTH_CREDENTIALS[enteredId] === enteredPass) {
+    const enteredId = (document.getElementById('loginCyberId')?.value || '').trim().toLowerCase();
+    const enteredPass = (document.getElementById('loginPasscode')?.value || '').trim();
+    if (AUTH_CREDENTIALS[enteredId] === enteredPass) {
       sessionStorage.setItem('EPISURV_LOGGED_IN', 'true');
       sessionStorage.setItem('EPISURV_USER_EMAIL', enteredId);
       document.getElementById('loginScreen').classList.add('hidden');
@@ -3008,17 +2977,13 @@
       changeQuestionnaireForm();
       fetchRegistryCases();
       initSlides();
-    } else {
-      errorNotice.classList.remove('hidden');
-    }
+      updateOfflineLookupCache();
+    } else { document.getElementById('loginError').classList.remove('hidden'); }
   }
 
-  function handleLogout() {
-    sessionStorage.clear();
-    location.reload();
-  }
+  function handleLogout() { sessionStorage.clear(); location.reload(); }
 
-  // 💾 SAVE LOGIC
+  // 💾 SAVE LOGIC (FIXED: Uses POST to Cloud)
   async function handleFormSubmit(e) {
     if (e && e.preventDefault) e.preventDefault();
     const isVector = document.getElementById('diseaseSelect').value.includes('Vectorborne');
@@ -3034,6 +2999,8 @@
       patient_name: `${getVal('patientLastName', 'v_patientLastName')}, ${getVal('patientFirstName', 'v_patientFirstName')}`,
       barangay: getVal('Barangay', 'v_Barangay'),
       report_date: getVal('reportDate', 'v_reportDate', new Date().toISOString().split('T')[0]),
+      age: getVal('age', 'v_age'),
+      sex: getVal('sex', 'v_sex'),
       created_at: new Date().toISOString()
     };
 
@@ -3112,7 +3079,8 @@
   let currentSlideIndex = 0;
   function getActiveFormPages() {
     const isVector = document.getElementById('diseaseSelect').value.includes('Vectorborne');
-    return document.getElementById(isVector ? 'vectorborneForm' : 'leptospirosisForm').querySelectorAll('.a4-page');
+    const container = document.getElementById(isVector ? 'vectorborneForm' : 'leptospirosisForm');
+    return container.querySelectorAll('.a4-page');
   }
 
   function initSlides() {
@@ -3164,6 +3132,7 @@
     } catch (e) {}
   }
 
+  // --- EVENT LISTENERS ---
   window.addEventListener('online', processSyncQueue);
   window.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true') {
@@ -3173,8 +3142,13 @@
       fetchRegistryCases();
       updateOfflineLookupCache();
     }
+    
+    // Auto age calculation listener
+    ['dob', 'v_dob'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.addEventListener('change', autoCalcAgeBreakdown); el.addEventListener('input', autoCalcAgeBreakdown); }
+    });
   });
-
 </script>
 </body>
 </html>
