@@ -2864,14 +2864,14 @@
     }
   }
 
-  // 🛠️ Robust Value Setter (Fixes Date Formats)
+  // 1. IMPROVED: Forces dates into YYYY-MM-DD and triggers calculation events
   function applyValToElement(el, rawVal, isDate = false) {
     if (!el || rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
     
     let val = String(rawVal).trim();
 
     if (isDate) {
-      // Force date into YYYY-MM-DD format so HTML boxes can "see" it
+      // Clean the date: standardizes formats like 09/07/2026 or ISO strings to YYYY-MM-DD
       const d = new Date(rawVal);
       if (!isNaN(d.getTime())) {
         const year = d.getFullYear();
@@ -2893,12 +2893,12 @@
       el.value = val;
     }
 
-    // Crucial: Tell the browser the value changed so listeners trigger
+    // 🔥 This is the secret: Tell the browser a change happened so Age updates
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  // 🎂 Robust Age Calculator
+  // 2. FIXED: Robust Age calculation
   function autoCalcAgeBreakdown() {
     const dobInput = document.getElementById('dob') || document.getElementById('v_dob');
     const ageInput = document.getElementById('age') || document.getElementById('v_age');
@@ -2918,21 +2918,19 @@
     }
 
     ageInput.value = age >= 0 ? age : 0;
-    // Notify other parts of the app that age was updated
     ageInput.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  // 🧠 Integrated Autofill Logic
+  // 3. UPDATED: Full mapping for Onset, Admitted, and Sitio
   function autofillLogic(d) {
     const setVal = (id, val, isDate = false) => {
       const el = document.getElementById(id);
       applyValToElement(el, val, isDate);
     };
 
-    // Mapping Database Keys to HTML IDs
+    // --- NAMES & IDs ---
     setVal('caseRefId', d.CASE_ID || d.case_id || d.epid_id);
     setVal('v_caseId', d.CASE_ID || d.case_id || d.epid_id);
-    
     setVal('patientLastName', d.LAST_NAME || d.last_name);
     setVal('v_patientLastName', d.LAST_NAME || d.last_name);
     setVal('patientFirstName', d.FIRST_NAME || d.first_name);
@@ -2940,31 +2938,34 @@
     setVal('patientMiddleName', d.MIDDLE_NAME || d.middle_name);
     setVal('v_patientMiddleName', d.MIDDLE_NAME || d.middle_name);
 
+    // --- DATES (Matches your specific Sheet Headers) ---
     setVal('dob', d.DATE_OF_BIRTH || d.dob, true);
     setVal('v_dob', d.DATE_OF_BIRTH || d.dob, true);
-
-    setVal('sex', d.SEX || d.sex || d.GENDER || d.gender);
-    setVal('v_sex', d.SEX || d.sex || d.GENDER || d.gender);
-
-    setVal('Barangay', d.BARANGAY || d.barangay || d.brgy);
-    setVal('v_Barangay', d.BARANGAY || d.barangay || d.brgy);
-
-    setVal('streetAddress', d.SITIO || d.sitio || d.STREET);
-    setVal('v_streetAddress', d.SITIO || d.sitio || d.STREET);
-
-    setVal('city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city || d.CITY);
-    setVal('v_city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city || d.CITY);
 
     setVal('dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset || d.DATE_ONSET, true);
     setVal('v_dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset || d.DATE_ONSET, true);
 
+    setVal('dateAdmitted', d.DATE_ADMITTED || d.date_admitted, true);
+    setVal('v_dateAdmitted', d.DATE_ADMITTED || d.date_admitted, true);
+
+    // --- ADDRESS & GENDER ---
+    setVal('sex', d.SEX || d.sex || d.GENDER || d.gender);
+    setVal('v_sex', d.SEX || d.sex || d.GENDER || d.gender);
+    setVal('Barangay', d.BARANGAY || d.barangay || d.brgy);
+    setVal('v_Barangay', d.BARANGAY || d.barangay || d.brgy);
+    setVal('streetAddress', d.SITIO || d.sitio || d.STREET);
+    setVal('v_streetAddress', d.SITIO || d.sitio || d.STREET);
+    setVal('city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city || d.CITY);
+    setVal('v_city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city || d.CITY);
+
+    // --- DRU / HEALTH CENTER ---
     const dru = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru_name || d.facility;
     setVal('DiseaseReportingUnit', dru);
     setVal('v_DiseaseReportingUnit', dru);
     setVal('consultFacility1', dru); 
     setVal('v_consultPlace1', dru);
 
-    // Wait a split second for the DOM to catch up, then calculate age
+    // Calculate age immediately after autofill finishes
     setTimeout(autoCalcAgeBreakdown, 300);
   }
 
