@@ -2864,14 +2864,14 @@
     }
   }
 
-  // 🛠️ 1. FORCES THE BROWSER TO "SEE" THE CHANGE
+  // 🛠️ 1. FORCED DATE FORMATTER
   function applyValToElement(el, rawVal, isDate = false) {
     if (!el || rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
     
     let val = String(rawVal).trim();
 
     if (isDate) {
-      // Clean date format for HTML5 (YYYY-MM-DD)
+      // This part ensures the date is EXACTLY YYYY-MM-DD
       const d = new Date(rawVal);
       if (!isNaN(d.getTime())) {
         const year = d.getFullYear();
@@ -2883,14 +2883,13 @@
 
     el.value = val;
 
-    // 🚀 CRITICAL: We manually trigger BOTH events so listeners (like Age Calc) wake up
+    // Manually trigger the events so the Age Calculator "wakes up"
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  // 🎂 2. ROBUST AGE CALCULATION
+  // 🎂 2. THE CALCULATION ENGINE
   function autoCalcAgeBreakdown() {
-    // Find whichever DOB field is currently in use
     const dobInput = document.getElementById('dob') || document.getElementById('v_dob');
     const ageInput = document.getElementById('age') || document.getElementById('v_age');
 
@@ -2908,57 +2907,41 @@
       age--;
     }
 
-    // Set value directly
+    // Force the number into the age box
     ageInput.value = age >= 0 ? age : 0;
-    console.log("Calculated Age:", ageInput.value);
+    console.log("System: Age Calculated as " + ageInput.value);
   }
 
-  // 🧠 3. UPDATED AUTOFILL (Includes Date Admitted)
+  // 🧠 3. THE MAPPING (Linking Sheet headers to your Form)
   function autofillLogic(d) {
     const setVal = (id, val, isDate = false) => {
       const el = document.getElementById(id);
       if (el) applyValToElement(el, val, isDate);
     };
 
-    // Mapping Section
+    // Name & ID Mapping
     setVal('caseRefId', d.CASE_ID || d.case_id || d.epid_id);
     setVal('v_caseId', d.CASE_ID || d.case_id || d.epid_id);
-    setVal('patientLastName', d.LAST_NAME || d.last_name);
-    setVal('v_patientLastName', d.LAST_NAME || d.last_name);
-    setVal('patientFirstName', d.FIRST_NAME || d.first_name);
-    setVal('v_patientFirstName', d.FIRST_NAME || d.first_name);
+    setVal('patientLastName', d.LAST_NAME || d.last_name || d.patient_name?.split(',')[0]);
+    setVal('patientFirstName', d.FIRST_NAME || d.first_name || d.patient_name?.split(',')[1]);
     setVal('patientMiddleName', d.MIDDLE_NAME || d.middle_name);
-    setVal('v_patientMiddleName', d.MIDDLE_NAME || d.middle_name);
 
-    // Dates (Matches your specific Sheet Headers)
+    // DATE OF BIRTH (CRITICAL)
     setVal('dob', d.DATE_OF_BIRTH || d.dob, true);
     setVal('v_dob', d.DATE_OF_BIRTH || d.dob, true);
 
-    setVal('dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset || d.DATE_ONSET, true);
-    setVal('v_dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset || d.DATE_ONSET, true);
-
-    // NEW: Date Admitted Mapping
-    setVal('dateAdmitted', d.DATE_ADMITTED || d.date_admitted, true);
-    setVal('v_dateAdmitted', d.DATE_ADMITTED || d.date_admitted, true);
-
-    // Address & Identity
-    setVal('sex', d.SEX || d.sex || d.GENDER);
-    setVal('v_sex', d.SEX || d.sex || d.GENDER);
+    // Address & Health Center
     setVal('Barangay', d.BARANGAY || d.barangay);
     setVal('v_Barangay', d.BARANGAY || d.barangay);
-    setVal('streetAddress', d.SITIO || d.sitio);
-    setVal('v_streetAddress', d.SITIO || d.sitio);
-    setVal('city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
-    setVal('v_city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
-
+    setVal('streetAddress', d.SITIO || d.sitio || d.STREET);
+    setVal('v_streetAddress', d.SITIO || d.sitio || d.STREET);
+    
     const dru = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru_name;
     setVal('DiseaseReportingUnit', dru);
     setVal('v_DiseaseReportingUnit', dru);
-    setVal('consultFacility1', dru); 
-    setVal('v_consultPlace1', dru);
 
-    // 🏁 FINAL STEP: Call the calc directly just to be 100% sure
-    setTimeout(autoCalcAgeBreakdown, 500); 
+    // Run the calculation immediately after a short delay
+    setTimeout(autoCalcAgeBreakdown, 500);
   }
 
   async function fetchAndAutofillFromSheet() {
@@ -3189,13 +3172,12 @@ window.addEventListener('DOMContentLoaded', () => {
         updateOfflineLookupCache();
     }
 
-    // 2. Auto age calculation listener
     ['dob', 'v_dob'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('change', autoCalcAgeBreakdown);
-            el.addEventListener('input', autoCalcAgeBreakdown);
-        }
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('change', autoCalcAgeBreakdown);
+        el.addEventListener('input', autoCalcAgeBreakdown);
+      }
     });
   });
 </script>
