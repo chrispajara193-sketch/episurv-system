@@ -2838,6 +2838,26 @@
     "qcesu.payatassuper@quezoncity.gov.ph": "PS2026"
   };
 
+  // --- 👁️ PASSWORD TOGGLE HANDLER (FIXED) ---
+  function togglePasscodeVisibility() {
+    const passInput = document.getElementById('loginPasscode');
+    const icon = document.getElementById('passcodeToggleIcon');
+    if (!passInput) return;
+    if (passInput.type === 'password') {
+      passInput.type = 'text';
+      if (icon) {
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      }
+    } else {
+      passInput.type = 'password';
+      if (icon) {
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
+  }
+
   // --- 🔍 GOOGLE SHEET LOOKUP & AUTOFILL ENGINE ---
   function detectAndSwitchDisease(d, caseIdInput) {
     let textPool = (d.disease || d.diseaseName || d.DISEASE_NAME || d.DISEASE || '').toLowerCase();
@@ -2857,6 +2877,8 @@
       for (let opt of diseaseDropdown.options) {
         if (opt.value.toLowerCase().includes(matchedKeyword)) {
           diseaseDropdown.value = opt.value;
+          const badge = document.getElementById('currentDiseaseBadge');
+          if (badge) badge.textContent = opt.text;
           break;
         }
       }
@@ -2865,231 +2887,232 @@
   }
 
   // 🔍 Helper to read properties case-insensitively from the Google Sheet response
-function getProp(obj, ...keys) {
-  if (!obj) return '';
-  for (const key of keys) {
-    if (obj[key] !== undefined && obj[key] !== null && String(obj[key]).trim() !== '') {
-      return obj[key];
-    }
-    const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-    for (const objKey in obj) {
-      if (objKey.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanKey) {
-        if (obj[objKey] !== undefined && obj[objKey] !== null && String(obj[objKey]).trim() !== '') {
-          return obj[objKey];
+  function getProp(obj, ...keys) {
+    if (!obj) return '';
+    for (const key of keys) {
+      if (obj[key] !== undefined && obj[key] !== null && String(obj[key]).trim() !== '') {
+        return obj[key];
+      }
+      const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+      for (const objKey in obj) {
+        if (objKey.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanKey) {
+          if (obj[objKey] !== undefined && obj[objKey] !== null && String(obj[objKey]).trim() !== '') {
+            return obj[objKey];
+          }
         }
       }
     }
-  }
-  return '';
-}
-
-// 🛠️ 1. FORCED FORMATTER & INTELLIGENT <SELECT> MATCHER
-function applyValToElement(el, rawVal, isDate = false) {
-  if (!el || rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
-  
-  let val = String(rawVal).trim();
-
-  // Robust Date Formatter (Outputs YYYY-MM-DD for <input type="date">)
-  if (isDate) {
-    if (typeof rawVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
-      // already valid format
-    } else {
-      const d = new Date(rawVal);
-      if (!isNaN(d.getTime())) {
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        val = `${year}-${month}-${day}`;
-      }
-    }
+    return '';
   }
 
-  // 🎯 Intelligent case-insensitive matcher for <select> dropdowns
-  if (el.tagName === 'SELECT') {
-    const cleanVal = val.toLowerCase().replace(/[^a-z0-9]/g, '');
-    let matched = false;
+  // 🛠️ 1. FORCED FORMATTER & INTELLIGENT <SELECT> MATCHER
+  function applyValToElement(el, rawVal, isDate = false) {
+    if (!el || rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
+    
+    let val = String(rawVal).trim();
 
-    // Pass 1: exact or normalized match
-    for (let opt of el.options) {
-      const optValClean = opt.value.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const optTextClean = opt.text.toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (optValClean === cleanVal || optTextClean === cleanVal) {
-        el.value = opt.value;
-        matched = true;
-        break;
+    // Robust Date Formatter (Outputs YYYY-MM-DD for <input type="date">)
+    if (isDate) {
+      if (typeof rawVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        // already valid format
+      } else {
+        const d = new Date(rawVal);
+        if (!isNaN(d.getTime())) {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          val = `${year}-${month}-${day}`;
+        }
       }
     }
 
-    // Pass 2: prefix or fuzzy match (e.g., 'M' -> 'Male', 'F' -> 'Female')
-    if (!matched) {
+    // 🎯 Intelligent case-insensitive matcher for <select> dropdowns
+    if (el.tagName === 'SELECT') {
+      const cleanVal = val.toLowerCase().replace(/[^a-z0-9]/g, '');
+      let matched = false;
+
+      // Pass 1: exact or normalized match
       for (let opt of el.options) {
-        if (opt.value === 'Select' || opt.value === '') continue;
         const optValClean = opt.value.toLowerCase().replace(/[^a-z0-9]/g, '');
         const optTextClean = opt.text.toLowerCase().replace(/[^a-z0-9]/g, '');
-        if (
-          (cleanVal.length >= 1 && (optValClean.startsWith(cleanVal) || optTextClean.startsWith(cleanVal))) ||
-          (cleanVal.length >= 4 && (optValClean.includes(cleanVal) || cleanVal.includes(optValClean)))
-        ) {
+        if (optValClean === cleanVal || optTextClean === cleanVal) {
           el.value = opt.value;
           matched = true;
           break;
         }
       }
+
+      // Pass 2: prefix or fuzzy match (e.g., 'M' -> 'Male', 'F' -> 'Female')
+      if (!matched) {
+        for (let opt of el.options) {
+          if (opt.value === 'Select' || opt.value === '') continue;
+          const optValClean = opt.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const optTextClean = opt.text.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (
+            (cleanVal.length >= 1 && (optValClean.startsWith(cleanVal) || optTextClean.startsWith(cleanVal))) ||
+            (cleanVal.length >= 4 && (optValClean.includes(cleanVal) || cleanVal.includes(optValClean)))
+          ) {
+            el.value = opt.value;
+            matched = true;
+            break;
+          }
+        }
+      }
+
+      if (!matched) el.value = val;
+    } else {
+      el.value = val;
     }
 
-    if (!matched) el.value = val;
-  } else {
-    el.value = val;
+    // Dispatch events to trigger listeners
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  // Dispatch events to trigger listeners
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-  el.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
-// 🎂 2. ACCURATE AGE CALCULATION (UPDATES BOTH LEPTO & VECTORBORNE)
-function calculateAgeFromDate(dateStr) {
-  if (!dateStr) return null;
-  const birthDate = new Date(dateStr);
-  if (isNaN(birthDate.getTime())) return null;
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
+  // 🎂 2. ACCURATE AGE CALCULATION (PRIORITIZES ACTIVE FORM)
+  function calculateAgeFromDate(dateStr) {
+    if (!dateStr) return null;
+    const birthDate = new Date(dateStr);
+    if (isNaN(birthDate.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 0 ? age : 0;
   }
-  return age >= 0 ? age : 0;
-}
 
-function autoCalcAgeBreakdown() {
-  const dobVal = document.getElementById('dob')?.value || document.getElementById('v_dob')?.value;
-  if (!dobVal) return;
+  function autoCalcAgeBreakdown() {
+    const isVector = document.getElementById('diseaseSelect')?.value.includes('Vectorborne');
+    const activeDob = document.getElementById(isVector ? 'v_dob' : 'dob');
+    const dobVal = activeDob?.value || document.getElementById('dob')?.value || document.getElementById('v_dob')?.value;
+    if (!dobVal) return;
 
-  const calculatedAge = calculateAgeFromDate(dobVal);
-  if (calculatedAge !== null) {
-    const ageEl = document.getElementById('age');
-    const vAgeEl = document.getElementById('v_age');
-    if (ageEl) ageEl.value = calculatedAge;
-    if (vAgeEl) vAgeEl.value = calculatedAge;
+    const calculatedAge = calculateAgeFromDate(dobVal);
+    if (calculatedAge !== null) {
+      const ageEl = document.getElementById('age');
+      const vAgeEl = document.getElementById('v_age');
+      if (ageEl) ageEl.value = calculatedAge;
+      if (vAgeEl) vAgeEl.value = calculatedAge;
+    }
   }
-}
 
-function autofillLogic(d) {
-  const setVal = (id, val, isDate = false) => {
-    const el = document.getElementById(id);
-    if (el) applyValToElement(el, val, isDate);
-  };
+  // 🧠 3. AUTOFILL ENGINE
+  function autofillLogic(d) {
+    const setVal = (id, val, isDate = false) => {
+      const el = document.getElementById(id);
+      if (el) applyValToElement(el, val, isDate);
+    };
 
-  // 1. Case ID
-  const caseId = getProp(d, 'CASE_ID', 'case_id', 'epid_id');
-  setVal('caseRefId', caseId);
-  setVal('v_caseId', caseId);
+    // 1. Case ID
+    const caseId = getProp(d, 'CASE_ID', 'case_id', 'epid_id');
+    setVal('caseRefId', caseId);
+    setVal('v_caseId', caseId);
 
-  // 2. Patient Names
-  let lName = getProp(d, 'LAST_NAME', 'last_name', 'surname');
-  let fName = getProp(d, 'FIRST_NAME', 'first_name', 'given_name');
-  let mName = getProp(d, 'MIDDLE_NAME', 'middle_name');
-  let suffix = getProp(d, 'SUFFIX', 'suffix');
+    // 2. Patient Names
+    let lName = getProp(d, 'LAST_NAME', 'last_name', 'surname');
+    let fName = getProp(d, 'FIRST_NAME', 'first_name', 'given_name');
+    let mName = getProp(d, 'MIDDLE_NAME', 'middle_name');
+    let suffix = getProp(d, 'SUFFIX', 'suffix');
 
-  if (!lName && !fName) {
-    const fullName = getProp(d, 'PATIENT_NAME', 'patient_name', 'name');
-    if (fullName) {
-      if (fullName.includes(',')) {
-        const parts = fullName.split(',');
-        lName = parts[0]?.trim();
-        const firstMid = parts[1]?.trim().split(/\s+/);
-        if (firstMid && firstMid.length > 0) {
-          fName = firstMid[0];
-          if (firstMid.length > 1) mName = firstMid.slice(1).join(' ');
+    if (!lName && !fName) {
+      const fullName = getProp(d, 'PATIENT_NAME', 'patient_name', 'name');
+      if (fullName) {
+        if (fullName.includes(',')) {
+          const parts = fullName.split(',');
+          lName = parts[0]?.trim();
+          const firstMid = parts[1]?.trim().split(/\s+/);
+          if (firstMid && firstMid.length > 0) {
+            fName = firstMid[0];
+            if (firstMid.length > 1) mName = firstMid.slice(1).join(' ');
+          }
+        } else {
+          const parts = fullName.split(/\s+/);
+          fName = parts[0];
+          lName = parts.slice(1).join(' ');
         }
-      } else {
-        const parts = fullName.split(/\s+/);
-        fName = parts[0];
-        lName = parts.slice(1).join(' ');
       }
     }
+
+    setVal('patientLastName', lName);
+    setVal('v_patientLastName', lName);
+    setVal('patientFirstName', fName);
+    setVal('v_patientFirstName', fName);
+    setVal('patientMiddleName', mName);
+    setVal('v_patientMiddleName', mName);
+    setVal('patientSuffix', suffix);
+    setVal('v_patientSuffix', suffix);
+
+    // 3. Date of Birth & Age
+    const dobVal = getProp(d, 'DATE_OF_BIRTH', 'date_of_birth', 'dob', 'birthdate');
+    setVal('dob', dobVal, true);
+    setVal('v_dob', dobVal, true);
+
+    const ageVal = getProp(d, 'AGE', 'age');
+    if (ageVal) {
+      setVal('age', ageVal);
+      setVal('v_age', ageVal);
+    }
+    autoCalcAgeBreakdown();
+
+    // 4. Sex
+    const sexVal = getProp(d, 'SEX', 'sex', 'gender');
+    setVal('sex', sexVal);
+    setVal('v_sex', sexVal);
+
+    // 5. 🏥 DRU -> Disease Reporting Unit & Place of Consultation
+    const druVal = getProp(d, 'DRU', 'dru', 'health_center', 'health_center_designation', 'dru_name', 'facility');
+    setVal('DiseaseReportingUnit', druVal);
+    setVal('v_DiseaseReportingUnit', druVal);
+    setVal('v_consultPlace1', druVal);
+    setVal('consultFacility1', druVal);
+    setVal('placeAdmission', druVal);
+
+    // 6. Barangay
+    const brgyVal = getProp(d, 'BARANGAY', 'barangay', 'brgy');
+    setVal('Barangay', brgyVal);
+    setVal('v_Barangay', brgyVal);
+    setVal('barangay', brgyVal);
+    setVal('v_barangay', brgyVal);
+
+    // 7. Address Details
+    const houseVal = getProp(d, 'HOUSE_NO', 'house_no', 'house_bldg', 'lot_bldg', 'bldg');
+    setVal('houseBldg', houseVal);
+    setVal('v_houseBldg', houseVal);
+
+    const streetVal = getProp(d, 'STREET', 'street', 'sitio', 'purok', 'street_address');
+    setVal('streetAddress', streetVal);
+    setVal('v_streetAddress', streetVal);
+
+    const cityVal = getProp(d, 'CITY', 'city', 'municipality') || 'Quezon City';
+    setVal('city', cityVal);
+    setVal('v_city', cityVal);
+
+    const contactVal = getProp(d, 'CONTACT', 'contact', 'contact_no', 'phone', 'mobile');
+    setVal('contact', contactVal);
+    setVal('v_contact', contactVal);
+
+    // 8. 📅 Date Onset (Column H: DATE_ONSET_OF_ILLNESS)
+    const onsetVal = getProp(d, 'DATE_ONSET_OF_ILLNESS', 'date_onset_of_illness', 'DATE_OF_ONSET', 'date_of_onset', 'dateOnset');
+    setVal('dateOnset', onsetVal, true);
+    setVal('v_dateOnset', onsetVal, true);
+
+    // 9. 📅 Date Admitted (Column J: DATE_ADMITTED)
+    const admitVal = getProp(d, 'DATE_ADMITTED', 'date_admitted', 'admission_date');
+    setVal('dateAdmitted', admitVal, true);
+
+    // 10. Officer & Investigator
+    const repDateVal = getProp(d, 'DATE_INVESTIGATED', 'date_investigated', 'report_date', 'reportDate');
+    setVal('reportDate', repDateVal, true);
+    setVal('v_reportDate', repDateVal, true);
+
+    const invVal = getProp(d, 'INVESTIGATOR', 'investigator');
+    setVal('Investigator', invVal);
+    setVal('v_Investigator', invVal);
+
+    setTimeout(autoCalcAgeBreakdown, 300);
   }
-
-  setVal('patientLastName', lName);
-  setVal('v_patientLastName', lName);
-  setVal('patientFirstName', fName);
-  setVal('v_patientFirstName', fName);
-  setVal('patientMiddleName', mName);
-  setVal('v_patientMiddleName', mName);
-  setVal('patientSuffix', suffix);
-  setVal('v_patientSuffix', suffix);
-
-  // 3. Date of Birth & Age
-  const dobVal = getProp(d, 'DATE_OF_BIRTH', 'date_of_birth', 'dob', 'birthdate');
-  setVal('dob', dobVal, true);
-  setVal('v_dob', dobVal, true);
-
-  const ageVal = getProp(d, 'AGE', 'age');
-  if (ageVal) {
-    setVal('age', ageVal);
-    setVal('v_age', ageVal);
-  }
-  autoCalcAgeBreakdown();
-
-  // 4. Sex
-  const sexVal = getProp(d, 'SEX', 'sex', 'gender');
-  setVal('sex', sexVal);
-  setVal('v_sex', sexVal);
-
-  // 5. 🏥 DRU -> Disease Reporting Unit & Place of Consultation
-  const druVal = getProp(d, 'DRU', 'dru', 'health_center', 'health_center_designation', 'dru_name', 'facility');
-  setVal('DiseaseReportingUnit', druVal);
-  setVal('v_DiseaseReportingUnit', druVal);
-  // 👇 Autofills "Place of Consultation" and "Place of Admission" with the DRU column
-  setVal('v_consultPlace1', druVal);
-  setVal('consultFacility1', druVal);
-  setVal('placeAdmission', druVal);
-
-  // 6. Barangay
-  const brgyVal = getProp(d, 'BARANGAY', 'barangay', 'brgy');
-  setVal('Barangay', brgyVal);
-  setVal('v_Barangay', brgyVal);
-  setVal('barangay', brgyVal);
-  setVal('v_barangay', brgyVal);
-
-  // 7. Address Details
-  const houseVal = getProp(d, 'HOUSE_NO', 'house_no', 'house_bldg', 'lot_bldg', 'bldg');
-  setVal('houseBldg', houseVal);
-  setVal('v_houseBldg', houseVal);
-
-  const streetVal = getProp(d, 'STREET', 'street', 'sitio', 'purok', 'street_address');
-  setVal('streetAddress', streetVal);
-  setVal('v_streetAddress', streetVal);
-
-  const cityVal = getProp(d, 'CITY', 'city', 'municipality') || 'Quezon City';
-  setVal('city', cityVal);
-  setVal('v_city', cityVal);
-
-  const contactVal = getProp(d, 'CONTACT', 'contact', 'contact_no', 'phone', 'mobile');
-  setVal('contact', contactVal);
-  setVal('v_contact', contactVal);
-
-  // 8. 📅 Date Onset (from Column H: DATE_ONSET_OF_ILLNESS)
-  const onsetVal = getProp(d, 'DATE_ONSET_OF_ILLNESS', 'date_onset_of_illness', 'DATE_OF_ONSET', 'date_of_onset', 'dateOnset');
-  setVal('dateOnset', onsetVal, true);
-  setVal('v_dateOnset', onsetVal, true);
-
-  // 9. 📅 Date Admitted (from Column J: DATE_ADMITTED)
-  const admitVal = getProp(d, 'DATE_ADMITTED', 'date_admitted', 'admission_date');
-  setVal('dateAdmitted', admitVal, true);
-
-  // 10. Officer & Investigator
-  const repDateVal = getProp(d, 'DATE_INVESTIGATED', 'date_investigated', 'report_date', 'reportDate');
-  setVal('reportDate', repDateVal, true);
-  setVal('v_reportDate', repDateVal, true);
-
-  const invVal = getProp(d, 'INVESTIGATOR', 'investigator');
-  setVal('Investigator', invVal);
-  setVal('v_Investigator', invVal);
-
-  // Ensure age calculates immediately
-  setTimeout(autoCalcAgeBreakdown, 300);
-}
 
   async function fetchAndAutofillFromSheet() {
     const inputEl = document.getElementById('sheetSearchCaseId');
@@ -3117,7 +3140,7 @@ function autofillLogic(d) {
         detectAndSwitchDisease(result.data, caseIdInput);
         autofillLogic(result.data);
         alert("✅ Online: Form filled.");
-      } else { alert("⚠️ " + result.message); }
+      } else { alert("⚠️ " + (result.message || 'Case ID not found in sheet.')); }
     } catch (err) { alert("❌ Connection Error."); }
     finally { if (btn) btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill Form'; }
   }
@@ -3137,35 +3160,86 @@ function autofillLogic(d) {
       fetchRegistryCases();
       initSlides();
       updateOfflineLookupCache();
-    } else { document.getElementById('loginError').classList.remove('hidden'); }
+    } else { 
+      document.getElementById('loginError').classList.remove('hidden'); 
+    }
   }
 
   function handleLogout() { sessionStorage.clear(); location.reload(); }
 
-  // 💾 SAVE LOGIC (FIXED: Uses POST to Cloud)
+  // 💾 4. ACCURATE FORM SUBMIT ENGINE (Stores Full Data for Reloading)
   async function handleFormSubmit(e) {
     if (e && e.preventDefault) e.preventDefault();
+    
     const isVector = document.getElementById('diseaseSelect').value.includes('Vectorborne');
     const getVal = (stdId, vecId, fallback = '') => {
       const id = (isVector && vecId) ? vecId : stdId;
       const el = document.getElementById(id) || document.getElementById(stdId);
-      return el && el.value ? el.value.trim() : fallback;
+      return el && el.value && el.value !== 'Select' ? el.value.trim() : fallback;
     };
+
+    // Extract classification
+    let classification = 'Suspect';
+    const container = document.getElementById(isVector ? 'vectorborneForm' : 'leptospirosisForm');
+    if (container) {
+      const checkedBoxes = Array.from(container.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked'));
+      for (const el of checkedBoxes) {
+        const text = el.parentElement?.textContent || '';
+        if (text.includes('Confirmed')) { classification = 'Confirmed'; break; }
+        if (text.includes('Probable')) { classification = 'Probable'; break; }
+      }
+    }
+
+    // Extract outcome
+    const outcomeRadio = isVector ? 'v_out' : 'leptoOut';
+    const outcomeSelected = document.querySelector(`input[name="${outcomeRadio}"]:checked`);
+    let outcome = 'Alive';
+    if (outcomeSelected && outcomeSelected.parentElement?.textContent.toLowerCase().includes('died')) {
+      outcome = 'Died';
+    }
+
+    const lName = getVal('patientLastName', 'v_patientLastName');
+    const fName = getVal('patientFirstName', 'v_patientFirstName');
+    const mName = getVal('patientMiddleName', 'v_patientMiddleName');
+    const suffix = getVal('patientSuffix', 'v_patientSuffix');
+
+    let patientName = '';
+    if (lName || fName) {
+      patientName = `${lName}${fName ? `, ${fName}` : ''}${mName ? ` ${mName}` : ''}${suffix ? ` ${suffix}` : ''}`.trim();
+    }
 
     const payload = {
       epid_id: document.getElementById('caseRefId')?.value || document.getElementById('v_caseId')?.value || `QC-${Date.now()}`,
-      disease: document.getElementById('diseaseSelect').value,
-      patient_name: `${getVal('patientLastName', 'v_patientLastName')}, ${getVal('patientFirstName', 'v_patientFirstName')}`,
-      barangay: getVal('Barangay', 'v_Barangay'),
       report_date: getVal('reportDate', 'v_reportDate', new Date().toISOString().split('T')[0]),
-      age: getVal('age', 'v_age'),
-      sex: getVal('sex', 'v_sex'),
+      investigator: getVal('Investigator', 'v_Investigator', 'Disease Surveillance Officer'),
+      patient_name: patientName || 'Unknown Patient',
+      last_name: lName,
+      first_name: fName,
+      middle_name: mName,
+      suffix: suffix,
+      dob: getVal('dob', 'v_dob'),
+      date_of_birth: getVal('dob', 'v_dob'),
+      age: parseInt(getVal('age', 'v_age', 0), 10) || 0,
+      sex: getVal('sex', 'v_sex', '—'),
+      disease: document.getElementById('diseaseSelect').value,
+      barangay: getVal('Barangay', 'v_Barangay') || getVal('barangay', 'v_barangay', '—'),
+      dru: getVal('DiseaseReportingUnit', 'v_DiseaseReportingUnit'),
+      street: getVal('streetAddress', 'v_streetAddress'),
+      house_no: getVal('houseBldg', 'v_houseBldg'),
+      city: getVal('city', 'v_city', 'Quezon City'),
+      contact: getVal('contact', 'v_contact'),
+      date_onset_of_illness: getVal('dateOnset', 'v_dateOnset'),
+      date_admitted: getVal('dateAdmitted', 'dateAdmitted'),
+      place_of_consultation: getVal('consultFacility1', 'v_consultPlace1'),
+      case_classification: classification,
+      outcome: outcome,
       created_at: new Date().toISOString()
     };
 
     if (!navigator.onLine) {
       saveToSyncQueue(payload);
-      alert("📡 Offline: Saved locally.");
+      alert("📡 Offline Mode: Saved locally to device.");
+      switchTab('registryTab');
       return;
     }
 
@@ -3175,8 +3249,49 @@ function autofillLogic(d) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (res.ok) { alert("✅ Saved to Cloud!"); fetchRegistryCases(); switchTab('registryTab'); }
-    } catch (err) { saveToSyncQueue(payload); }
+      if (res.ok) {
+        alert("✅ Case successfully saved and logged to database!");
+        fetchRegistryCases();
+        switchTab('registryTab');
+      } else {
+        throw new Error('Server returned error');
+      }
+    } catch (err) {
+      saveToSyncQueue(payload);
+      alert("⚠️ Could not reach server directly. Saved to offline sync queue.");
+      switchTab('registryTab');
+    }
+  }
+
+  // ✏️ EDIT BUTTON HANDLER (Reloads record back into form)
+  async function editRegistryCase(id) {
+    let target = null;
+    const queue = JSON.parse(localStorage.getItem('EPISURV_SYNC_QUEUE') || '[]');
+    target = queue.find(c => c.epid_id === id);
+
+    if (!target) {
+      try {
+        const res = await fetch(`${API_BASE}/cases?search=${encodeURIComponent(id)}`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          target = data.data.find(c => c.epid_id === id) || data.data[0];
+        }
+      } catch (e) {}
+    }
+
+    if (target) {
+      detectAndSwitchDisease(target, id);
+      autofillLogic(target);
+      switchTab('questionnaireTab');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      alert(`Case ${id} could not be loaded.`);
+    }
+  }
+
+  // 📁 EXPORT PIDSR CSV
+  function exportSurveillanceCSV() {
+    window.open(`${API_BASE}/export-csv`, '_blank');
   }
 
   // --- SYNC & REGISTRY ENGINE ---
@@ -3200,76 +3315,148 @@ function autofillLogic(d) {
     fetchRegistryCases();
   }
 
+  // 📋 5. FULL 10-COLUMN REGISTRY RENDERER
   function renderRegistryRows(cases) {
     const tbody = document.getElementById('registryBody');
     const currentUserEmail = sessionStorage.getItem('EPISURV_USER_EMAIL');
     if (!tbody) return;
     tbody.innerHTML = '';
+
+    if (!cases || cases.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-slate-400 font-semibold">No surveillance cases found.</td></tr>`;
+      return;
+    }
+
     cases.forEach(r => {
-      const statusBadge = r.isPending ? '<span class="bg-amber-500 text-white px-1 rounded animate-pulse text-[10px]">PENDING</span>' : '';
-      let delBtn = ADMIN_EMAILS.includes(currentUserEmail) ? `<button onclick="deleteRegistryCase('${r.epid_id}')" class="p-1 bg-rose-600 text-white rounded ml-1"><i class="fa-solid fa-trash"></i></button>` : '';
+      const statusBadge = r.isPending 
+        ? '<span class="bg-amber-500 text-white px-1.5 py-0.5 rounded animate-pulse text-[9px] font-black ml-1">PENDING</span>' 
+        : '';
+
+      const delBtn = ADMIN_EMAILS.includes(currentUserEmail) 
+        ? `<button onclick="deleteRegistryCase('${r.epid_id}')" class="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded shadow transition" title="Delete Case"><i class="fa-solid fa-trash text-xs"></i></button>` 
+        : '';
+
+      const isDied = String(r.outcome || '').toLowerCase().includes('died');
+      const outcomeBadge = isDied
+        ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-300">Died</span>`
+        : `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700 border border-emerald-300">Alive</span>`;
+
+      const cls = r.case_classification || 'Suspect';
+      let clsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">${cls}</span>`;
+      if (cls === 'Confirmed') clsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-300">Confirmed</span>`;
+      else if (cls === 'Probable') clsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Probable</span>`;
+
       const tr = document.createElement('tr');
-      tr.className = "border-b border-slate-100 text-xs";
-      tr.innerHTML = `<td class="p-2 font-bold">${r.epid_id} ${statusBadge}</td><td class="p-2">${r.patient_name}</td><td class="p-2">${r.disease}</td><td class="p-2 text-center"><button onclick="editRegistryCase('${r.epid_id}')" class="p-1 bg-teal-600 text-white rounded"><i class="fa-solid fa-pen"></i></button>${delBtn}</td>`;
+      tr.className = "border-b border-slate-100 hover:bg-slate-50 transition text-xs";
+      
+      tr.innerHTML = `
+        <td class="p-3 font-mono font-bold text-slate-900 whitespace-nowrap">${r.epid_id} ${statusBadge}</td>
+        <td class="p-3 text-slate-700 whitespace-nowrap">${r.report_date || '—'}</td>
+        <td class="p-3 text-slate-700">${r.investigator || '—'}</td>
+        <td class="p-3 font-bold text-slate-900">${r.patient_name || '—'}</td>
+        <td class="p-3 text-slate-700 whitespace-nowrap">${r.age ?? '—'} / ${r.sex || '—'}</td>
+        <td class="p-3 text-slate-700 font-semibold">${r.disease || '—'}</td>
+        <td class="p-3 text-slate-700">${r.barangay || '—'}</td>
+        <td class="p-3">${clsBadge}</td>
+        <td class="p-3">${outcomeBadge}</td>
+        <td class="p-3 text-center whitespace-nowrap">
+          <div class="flex items-center justify-center gap-1.5">
+            <button onclick="editRegistryCase('${r.epid_id}')" class="p-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded shadow transition" title="Edit Case">
+              <i class="fa-solid fa-pen text-xs"></i>
+            </button>
+            ${delBtn}
+          </div>
+        </td>
+      `;
       tbody.appendChild(tr);
     });
   }
 
+  // 🔍 6. REAL-TIME REGISTRY SEARCH
   async function fetchRegistryCases() {
+    const query = (document.getElementById('searchRegistry')?.value || '').trim();
     let cloud = [];
     try {
-      const res = await fetch(`${API_BASE}/cases`);
+      const res = await fetch(`${API_BASE}/cases${query ? `?search=${encodeURIComponent(query)}` : ''}`);
       const result = await res.json();
       cloud = result.data || [];
     } catch(e){}
-    const queue = JSON.parse(localStorage.getItem('EPISURV_SYNC_QUEUE') || '[]');
+    
+    let queue = JSON.parse(localStorage.getItem('EPISURV_SYNC_QUEUE') || '[]');
+    if (query) {
+      const q = query.toLowerCase();
+      queue = queue.filter(c =>
+        (c.patient_name && c.patient_name.toLowerCase().includes(q)) ||
+        (c.epid_id && c.epid_id.toLowerCase().includes(q)) ||
+        (c.barangay && c.barangay.toLowerCase().includes(q))
+      );
+    }
     renderRegistryRows([...queue.map(c => ({...c, isPending: true})), ...cloud]);
   }
 
   async function deleteRegistryCase(id) {
-    if (!confirm("Delete permanently?")) return;
+    if (!confirm(`Are you sure you want to permanently delete case ${id}?`)) return;
     try {
-      await fetch(`${API_BASE}/cases/${encodeURIComponent(id)}`, { method: 'DELETE', headers: { 'x-user-email': sessionStorage.getItem('EPISURV_USER_EMAIL') }});
-      fetchRegistryCases();
-    } catch(e) { alert("Delete failed."); }
+      const res = await fetch(`${API_BASE}/cases/${encodeURIComponent(id)}`, { 
+        method: 'DELETE', 
+        headers: { 'x-user-email': sessionStorage.getItem('EPISURV_USER_EMAIL') }
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        let queue = JSON.parse(localStorage.getItem('EPISURV_SYNC_QUEUE') || '[]');
+        localStorage.setItem('EPISURV_SYNC_QUEUE', JSON.stringify(queue.filter(q => q.epid_id !== id)));
+        alert("🗑️ Case deleted successfully.");
+        fetchRegistryCases();
+      } else {
+        alert(result.message || "Delete failed: Unauthorized or server error.");
+      }
+    } catch(e) { 
+      alert("Delete failed. Network connection error."); 
+    }
   }
 
-  // --- CORE UI ENGINE ---
+  // --- CORE UI & SLIDE ENGINE (RESTORES MOBILE SCROLL & PRINTING) ---
   let currentSlideIndex = 0;
   function getActiveFormPages() {
     const isVector = document.getElementById('diseaseSelect').value.includes('Vectorborne');
     const container = document.getElementById(isVector ? 'vectorborneForm' : 'leptospirosisForm');
-    return container.querySelectorAll('.a4-page');
+    return container ? container.querySelectorAll('.a4-page') : [];
   }
 
   function initSlides() {
     const pages = getActiveFormPages();
-    
-    // If no pages found, try to force a form refresh
-    if (pages.length === 0) {
-        console.warn("No pages found, refreshing form...");
-        return; 
-    }
+    if (pages.length === 0) return;
 
     pages.forEach((p, i) => {
-        // Ensure the active page is visible and the rest are hidden
-        p.style.setProperty('display', (i === currentSlideIndex ? 'flex' : 'none'), 'important');
+      p.classList.toggle('active-slide', i === currentSlideIndex);
+      p.style.removeProperty('display'); // Removes inline overrides so CSS responsive & print media queries work
     });
 
-    document.getElementById('currentSlideNum').textContent = currentSlideIndex + 1;
-    document.getElementById('totalSlideNum').textContent = pages.length;
+    const curEl = document.getElementById('currentSlideNum');
+    const totEl = document.getElementById('totalSlideNum');
+    if (curEl) curEl.textContent = currentSlideIndex + 1;
+    if (totEl) totEl.textContent = pages.length;
+
+    const btnPrev = document.getElementById('btnPrevSlide');
+    const btnNext = document.getElementById('btnNextSlide');
+    if (btnPrev) btnPrev.disabled = currentSlideIndex === 0;
+    if (btnNext) btnNext.disabled = currentSlideIndex === pages.length - 1;
   }
 
   function changeSlide(n) {
     const p = getActiveFormPages();
-    if (currentSlideIndex + n >= 0 && currentSlideIndex + n < p.length) { currentSlideIndex += n; initSlides(); window.scrollTo(0,0); }
+    if (currentSlideIndex + n >= 0 && currentSlideIndex + n < p.length) { 
+      currentSlideIndex += n; 
+      initSlides(); 
+      window.scrollTo(0, 0); 
+    }
   }
 
   function switchTab(id) {
     document.getElementById('questionnaireTab').classList.add('hidden');
     document.getElementById('registryTab').classList.add('hidden');
     document.getElementById(id).classList.remove('hidden');
-    if(id === 'registryTab') fetchRegistryCases();
+    if (id === 'registryTab') fetchRegistryCases();
   }
 
   function changeQuestionnaireForm() {
@@ -3303,20 +3490,15 @@ function autofillLogic(d) {
   }
 
   // --- EVENT LISTENERS ---
-  // --- EVENT LISTENERS ---
-window.addEventListener('online', processSyncQueue);
+  window.addEventListener('online', processSyncQueue);
 
-window.addEventListener('DOMContentLoaded', () => {
-    // 1. Handle Login state
+  window.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true') {
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('protectedApp').classList.remove('hidden');
-        
-        // 🚀 CRITICAL: Tell the app to set up the default form (Lepto)
-        changeQuestionnaireForm(); 
-        
-        fetchRegistryCases();
-        updateOfflineLookupCache();
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('protectedApp').classList.remove('hidden');
+      changeQuestionnaireForm(); 
+      fetchRegistryCases();
+      updateOfflineLookupCache();
     }
 
     ['dob', 'v_dob'].forEach(id => {
