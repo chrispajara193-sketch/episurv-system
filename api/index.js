@@ -115,4 +115,27 @@ app.get(['/api/export-csv', '/export-csv'], async (req, res) => {
   }
 });
 
+// 🗑️ 5. DELETE CASE (Admin Only)
+app.delete(['/api/cases/:id', '/cases/:id'], async (req, res) => {
+  const adminEmail = "qcesd.d2esu@quezoncity.gov.ph";
+  // We expect the frontend to send the user's email in a special header
+  const requesterEmail = req.headers['x-user-email'];
+
+  if (requesterEmail !== adminEmail) {
+    return res.status(403).json({ success: false, message: 'ACCESS DENIED: You do not have permission to delete records.' });
+  }
+
+  try {
+    const id = req.params.id;
+    // Clean the ID for Firebase keys (same logic as saving)
+    const safeId = id.replace(/[\.\#\$\[\]]/g, "-");
+
+    await db.ref(`surveillance_cases/${safeId}`).remove();
+    res.json({ success: true, message: 'Record permanently deleted from Firebase.' });
+  } catch (err) {
+    console.error('DELETE error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = app;
