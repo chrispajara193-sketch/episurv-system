@@ -2929,11 +2929,10 @@
     setVal('Barangay', brgy);
     setVal('v_Barangay', brgy);
 
-    // 5. Fill Health Center
-    const dru = getD(['HEALTH CENTER DESIGNATION', 'healthCenter', 'dru_name']);
-    setVal('DiseaseReportingUnit', dru);
-    setVal('v_DiseaseReportingUnit', dru);
-
+    const druValue = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru || d.dru_name;
+    setVal('consultFacility1', druValue); 
+    setVal('v_consultPlace1', druValue); 
+    
     // Trigger age calculation automatically
     if (typeof autoCalcAgeBreakdown === 'function') autoCalcAgeBreakdown();
   }
