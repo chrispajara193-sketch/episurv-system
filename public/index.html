@@ -2812,7 +2812,7 @@
   const API_BASE = '/api';
   const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxjwJYd_PIteMW766Ev-JS7XHdxqxgpQSGhdeFeF1U-kV1-K92Q3if-V9sswZ8lmlDX/exec";
 
-  // 🔐 ADMIN LIST (Emails that can delete)
+  // 🔐 ADMIN LIST
   const ADMIN_EMAILS = [
     "qcesd.d2esu@quezoncity.gov.ph",
     "nicxdumlao.qcesu@gmail.com"
@@ -2838,33 +2838,23 @@
   };
 
   // --- 🔍 GOOGLE SHEET LOOKUP & AUTOFILL ENGINE ---
-
-  // 🧠 SMART DISEASE DETECTOR & AUTO-SWITCHER
   function detectAndSwitchDisease(d, caseIdInput) {
-    let textPool = '';
-    const targetKeywords = ['disease', 'diagnosis', 'morbidity', 'condition', 'notifiable', 'category', 'syndrome', 'casedisease', 'diseasename'];
-    for (let key in d) {
-      const cleanKey = key.toLowerCase().replace(/[\s_\-\/\.]/g, '');
-      if (targetKeywords.some(k => cleanKey.includes(k))) { textPool += ' ' + String(d[key]).toLowerCase(); }
-    }
-    if (!textPool.trim()) { for (let key in d) { textPool += ' ' + String(d[key]).toLowerCase(); } }
-    textPool += ' ' + (caseIdInput || '').toLowerCase();
-
+    let textPool = (d.disease || d.diseaseName || d.DISEASE_NAME || '').toLowerCase();
     let matchedKeyword = '';
-    if (textPool.includes('dengue') || textPool.includes('chik') || textPool.includes('vector')) matchedKeyword = 'vector';
+    if (textPool.includes('dengue') || textPool.includes('vector')) matchedKeyword = 'vector';
     else if (textPool.includes('lepto')) matchedKeyword = 'lepto';
     else if (textPool.includes('diphtheria')) matchedKeyword = 'diphtheria';
     else if (textPool.includes('mpox')) matchedKeyword = 'mpox';
     else if (textPool.includes('rabies')) matchedKeyword = 'rabies';
     else if (textPool.includes('diarrhea') || textPool.includes('abd')) matchedKeyword = 'bloody diarrhea';
-    else if (textPool.includes('measles') || textPool.includes('rubella')) matchedKeyword = 'measles';
+    else if (textPool.includes('measles')) matchedKeyword = 'measles';
     else if (textPool.includes('pertussis')) matchedKeyword = 'pertussis';
     else if (textPool.includes('covid') || textPool.includes('panrespi')) matchedKeyword = 'panrespi';
 
     if (matchedKeyword) {
       const diseaseDropdown = document.getElementById('diseaseSelect');
       for (let opt of diseaseDropdown.options) {
-        if (opt.value.toLowerCase().includes(matchedKeyword) || opt.text.toLowerCase().includes(matchedKeyword)) {
+        if (opt.value.toLowerCase().includes(matchedKeyword)) {
           diseaseDropdown.value = opt.value;
           break;
         }
@@ -2881,142 +2871,86 @@
         if (!isNaN(d.getTime())) val = d.toISOString().split('T')[0];
     }
     if (el.tagName === 'SELECT') {
-      const valStr = val.toLowerCase();
       for (const opt of el.options) {
-        if (opt.value.toLowerCase() === valStr || opt.text.toLowerCase() === valStr) {
+        if (opt.value.toLowerCase() === val.toLowerCase() || opt.text.toLowerCase() === val.toLowerCase()) {
           el.value = opt.value;
           break;
         }
       }
-    } else if (el.type === 'checkbox') {
-      el.checked = (val.toLowerCase() === 'yes' || val.toLowerCase() === 'true');
-    } else {
-      el.value = val;
-    }
+    } else { el.value = val; }
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  // --- 🔍 HYBRID LOOKUP ENGINE (Online & Offline) ---
+  function autofillLogic(d) {
+    const mapping = {
+        'caseRefId': d.epid_id || d.CASE_ID || d.case_id,
+        'v_caseId': d.epid_id || d.CASE_ID || d.case_id,
+        'patientLastName': d.last_name || d.LAST_NAME || (d.patient_name ? d.patient_name.split(',')[0] : ''),
+        'patientFirstName': d.first_name || d.FIRST_NAME || (d.patient_name ? d.patient_name.split(',')[1] : ''),
+        'dob': d.dob || d.DATE_OF_BIRTH,
+        'v_dob': d.dob || d.DATE_OF_BIRTH,
+        'age': d.age || d.AGE,
+        'v_age': d.age || d.AGE,
+        'sex': d.sex || d.SEX || d.gender,
+        'v_sex': d.sex || d.SEX || d.gender,
+        'Barangay': d.barangay || d.BARANGAY,
+        'v_Barangay': d.barangay || d.BARANGAY,
+        'dateOnset': d.date_onset || d.DATE_ONSET,
+        'v_dateOnset': d.date_onset || d.DATE_ONSET
+    };
+    for (let id in mapping) {
+      const el = document.getElementById(id);
+      if (el) applyValToElement(el, mapping[id], id.toLowerCase().includes('date') || id.includes('dob'));
+    }
+  }
+
   async function fetchAndAutofillFromSheet() {
     const inputEl = document.getElementById('sheetSearchCaseId');
     const caseIdInput = inputEl?.value.trim().toUpperCase();
-    if (!caseIdInput) {
-      alert('Please enter a Case ID.');
-      return;
-    }
+    if (!caseIdInput) { alert('Please enter a Case ID.'); return; }
 
-    const btn = document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]');
-    if (btn) {
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching...';
-      btn.disabled = true;
-    }
-
-    // 1. 🔍 SEARCH LOCAL MEMORY FIRST (Works Offline)
     const localCache = JSON.parse(localStorage.getItem('EPISURV_LOOKUP_CACHE') || '[]');
-    const cachedData = localCache.find(item => 
-      String(item.epid_id || item.CASE_ID || '').toUpperCase() === caseIdInput
-    );
+    const cachedData = localCache.find(item => String(item.epid_id || item.CASE_ID || '').toUpperCase() === caseIdInput);
 
     if (cachedData) {
       detectAndSwitchDisease(cachedData, caseIdInput);
-      autofillLogic(cachedData); 
-      alert(`📡 FOUND (Local Cache): Form filled for ${cachedData.patient_name || cachedData.FIRST_NAME}`);
-      if (btn) { btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill'; btn.disabled = false; }
+      autofillLogic(cachedData);
+      alert(`📡 FOUND (Offline Cache): Form filled.`);
       return;
     }
 
-    // 2. ☁️ SEARCH CLOUD (If not in cache and online)
-    if (!navigator.onLine) {
-      alert("❌ Offline: ID not in cache. Connect to internet for cloud search.");
-      if (btn) { btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill'; btn.disabled = false; }
-      return;
-    }
+    if (!navigator.onLine) { alert("❌ Offline and not in cache."); return; }
+    
+    const btn = document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching...';
 
     try {
-      // Note: We use the URL you provided in your script
       const res = await fetch(`${GOOGLE_SHEET_API_URL}?caseId=${encodeURIComponent(caseIdInput)}`);
       const result = await res.json();
-
       if (result.success) {
         detectAndSwitchDisease(result.data, caseIdInput);
         autofillLogic(result.data);
-        alert(`✅ Online: Form filled for ${result.data.FIRST_NAME || result.data.patient_name}`);
-      } else {
-        alert('⚠️ ' + result.message);
-      }
-    } catch (err) {
-      console.error("Fetch Error:", err);
-      alert('❌ Connection Error to Google Sheet. Check Deployment Settings (Set to "Anyone").');
-    } finally {
-      if (btn) {
-        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill Form';
-        btn.disabled = false;
-      }
-    }
+        alert("✅ Online: Form filled.");
+      } else { alert("⚠️ " + result.message); }
+    } catch (err) { alert("❌ Connection Error."); }
+    finally { if (btn) btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill Form'; }
   }
 
-  // 🧠 SMARTER AUTOFILL (Handles both Sheet Headers and Database Keys)
-  function autofillLogic(d) {
-    const setVal = (id, val) => {
-      const el = document.getElementById(id);
-      if (el && val !== undefined && val !== null) {
-        el.value = val;
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    };
-
-    // Mapping both formats (Database format vs Google Sheet Header format)
-    setVal('caseRefId', d.epid_id || d.CASE_ID);
-    setVal('v_caseId', d.epid_id || d.CASE_ID);
-    
-    // Patient Name Handling
-    if (d.patient_name) {
-      const parts = d.patient_name.split(',');
-      setVal('patientLastName', parts[0]?.trim());
-      setVal('patientFirstName', parts[1]?.trim());
-    } else {
-      setVal('patientLastName', d.LAST_NAME);
-      setVal('patientFirstName', d.FIRST_NAME);
-      setVal('patientMiddleName', d.MIDDLE_NAME);
-    }
-
-    setVal('dob', d.dob || d.DATE_OF_BIRTH);
-    setVal('v_dob', d.dob || d.DATE_OF_BIRTH);
-    setVal('age', d.age || d.AGE);
-    setVal('v_age', d.age || d.AGE);
-    setVal('sex', d.sex || d.SEX || d.GENDER);
-    setVal('v_sex', d.sex || d.SEX || d.GENDER);
-    setVal('Barangay', d.barangay || d.BARANGAY);
-    setVal('v_Barangay', d.barangay || d.BARANGAY);
-    setVal('dateOnset', d.date_onset || d.DATE_ONSET);
-    setVal('v_dateOnset', d.date_onset || d.DATE_ONSET);
-    
-    autoCalcAgeBreakdown();
-  }
-
-  // 🚪 LOGIN HANDLER (FIXED)
+  // 🚪 LOGIN HANDLER
   function handleLogin(e) {
     if (e) e.preventDefault();
     const cyberIdInput = document.getElementById('loginCyberId');
     const passcodeInput = document.getElementById('loginPasscode');
-    const rememberCheckbox = document.getElementById('rememberAccount');
     const errorNotice = document.getElementById('loginError');
 
     const enteredId = (cyberIdInput?.value || '').trim().toLowerCase();
     const enteredPass = (passcodeInput?.value || '').trim();
 
     if (AUTH_CREDENTIALS[enteredId] && AUTH_CREDENTIALS[enteredId] === enteredPass) {
-      if (rememberCheckbox?.checked) {
-        localStorage.setItem('EPISURV_REMEMBER_ID', enteredId);
-        localStorage.setItem('EPISURV_REMEMBER_PASS', enteredPass);
-        localStorage.setItem('EPISURV_REMEMBER_ACTIVE', 'true');
-      }
       sessionStorage.setItem('EPISURV_LOGGED_IN', 'true');
       sessionStorage.setItem('EPISURV_USER_EMAIL', enteredId);
-
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('protectedApp').classList.remove('hidden');
-
       changeQuestionnaireForm();
       fetchRegistryCases();
       initSlides();
@@ -3025,17 +2959,14 @@
     }
   }
 
-  // 🚪 LOGOUT HANDLER
   function handleLogout() {
-    sessionStorage.removeItem('EPISURV_LOGGED_IN');
-    sessionStorage.removeItem('EPISURV_USER_EMAIL');
+    sessionStorage.clear();
     location.reload();
   }
 
-  // 💾 SAVE LOGIC (WITH OFFLINE SUPPORT)
+  // 💾 SAVE LOGIC
   async function handleFormSubmit(e) {
     if (e && e.preventDefault) e.preventDefault();
-
     const isVector = document.getElementById('diseaseSelect').value.includes('Vectorborne');
     const getVal = (stdId, vecId, fallback = '') => {
       const id = (isVector && vecId) ? vecId : stdId;
@@ -3043,47 +2974,32 @@
       return el && el.value ? el.value.trim() : fallback;
     };
 
-    const lastName = getVal('patientLastName', 'v_patientLastName', '');
-    const firstName = getVal('patientFirstName', 'v_patientFirstName', '');
-    const fullName = `${lastName}, ${firstName}`.trim();
-
     const payload = {
       epid_id: document.getElementById('caseRefId')?.value || document.getElementById('v_caseId')?.value || `QC-${Date.now()}`,
       disease: document.getElementById('diseaseSelect').value,
-      patient_name: fullName,
-      barangay: getVal('Barangay', 'v_Barangay', ''),
+      patient_name: `${getVal('patientLastName', 'v_patientLastName')}, ${getVal('patientFirstName', 'v_patientFirstName')}`,
+      barangay: getVal('Barangay', 'v_Barangay'),
       report_date: getVal('reportDate', 'v_reportDate', new Date().toISOString().split('T')[0]),
       created_at: new Date().toISOString()
     };
 
     if (!navigator.onLine) {
       saveToSyncQueue(payload);
-      alert("📡 Saved locally (Offline). Will sync when online.");
+      alert("📡 Offline: Saved locally.");
       return;
     }
 
     try {
-      // Use 'mode: cors' and handle the redirect
-      const res = await fetch(`${GOOGLE_SHEET_API_URL}?caseId=${encodeURIComponent(caseIdInput)}`, {
-        method: 'GET',
-        redirect: 'follow'
+      const res = await fetch(`${API_BASE}/cases`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
-      
-      const result = await res.json();
+      if (res.ok) { alert("✅ Saved to Cloud!"); fetchRegistryCases(); switchTab('registryTab'); }
+    } catch (err) { saveToSyncQueue(payload); }
+  }
 
-      if (result.success) {
-        detectAndSwitchDisease(result.data, caseIdInput);
-        autofillLogic(result.data);
-        alert(`✅ Online: Form filled for ${result.data.FIRST_NAME || result.data.patient_name}`);
-      } else {
-        alert('⚠️ ' + result.message);
-      }
-    } catch (err) {
-      console.error("Detailed Error:", err);
-      alert('❌ Connection Error. Open the browser Console (F12) to see details.');
-    }
-
-  // --- SYNC ENGINE ---
+  // --- SYNC & REGISTRY ENGINE ---
   function saveToSyncQueue(payload) {
     let queue = JSON.parse(localStorage.getItem('EPISURV_SYNC_QUEUE') || '[]');
     queue.push(payload);
@@ -3095,30 +3011,26 @@
     const queue = JSON.parse(localStorage.getItem('EPISURV_SYNC_QUEUE') || '[]');
     if (queue.length === 0 || !navigator.onLine) return;
     for (const item of [...queue]) {
-      await fetch(`${API_BASE}/cases`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
-      let cur = JSON.parse(localStorage.getItem('EPISURV_SYNC_QUEUE') || '[]');
-      localStorage.setItem('EPISURV_SYNC_QUEUE', JSON.stringify(cur.filter(q => q.epid_id !== item.epid_id)));
+      try {
+        await fetch(`${API_BASE}/cases`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
+        let cur = JSON.parse(localStorage.getItem('EPISURV_SYNC_QUEUE') || '[]');
+        localStorage.setItem('EPISURV_SYNC_QUEUE', JSON.stringify(cur.filter(q => q.epid_id !== item.epid_id)));
+      } catch(e) { break; }
     }
     fetchRegistryCases();
   }
 
-  // --- UI RENDERING ---
   function renderRegistryRows(cases) {
     const tbody = document.getElementById('registryBody');
     const currentUserEmail = sessionStorage.getItem('EPISURV_USER_EMAIL');
     if (!tbody) return;
     tbody.innerHTML = '';
-
     cases.forEach(r => {
-      const statusBadge = r.isPending ? '<span class="bg-amber-500 text-white px-1 rounded animate-pulse">PENDING</span>' : '';
-      let actions = `<button onclick="editRegistryCase('${r.epid_id}')" class="p-1 bg-teal-600 text-white rounded">Edit</button>`;
-      
-      if (ADMIN_EMAILS.includes(currentUserEmail)) {
-        actions += `<button onclick="deleteRegistryCase('${r.epid_id}')" class="p-1 bg-rose-600 text-white rounded ml-1">Del</button>`;
-      }
-
+      const statusBadge = r.isPending ? '<span class="bg-amber-500 text-white px-1 rounded animate-pulse text-[10px]">PENDING</span>' : '';
+      let delBtn = ADMIN_EMAILS.includes(currentUserEmail) ? `<button onclick="deleteRegistryCase('${r.epid_id}')" class="p-1 bg-rose-600 text-white rounded ml-1"><i class="fa-solid fa-trash"></i></button>` : '';
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="p-2">${r.epid_id} ${statusBadge}</td><td class="p-2">${r.patient_name}</td><td class="p-2">${r.disease}</td><td class="p-2">${actions}</td>`;
+      tr.className = "border-b border-slate-100 text-xs";
+      tr.innerHTML = `<td class="p-2 font-bold">${r.epid_id} ${statusBadge}</td><td class="p-2">${r.patient_name}</td><td class="p-2">${r.disease}</td><td class="p-2 text-center"><button onclick="editRegistryCase('${r.epid_id}')" class="p-1 bg-teal-600 text-white rounded"><i class="fa-solid fa-pen"></i></button>${delBtn}</td>`;
       tbody.appendChild(tr);
     });
   }
@@ -3134,7 +3046,15 @@
     renderRegistryRows([...queue.map(c => ({...c, isPending: true})), ...cloud]);
   }
 
-  // --- CORE ENGINE (REQUIRED FOR APP TO WORK) ---
+  async function deleteRegistryCase(id) {
+    if (!confirm("Delete permanently?")) return;
+    try {
+      await fetch(`${API_BASE}/cases/${encodeURIComponent(id)}`, { method: 'DELETE', headers: { 'x-user-email': sessionStorage.getItem('EPISURV_USER_EMAIL') }});
+      fetchRegistryCases();
+    } catch(e) { alert("Delete failed."); }
+  }
+
+  // --- CORE UI ENGINE ---
   let currentSlideIndex = 0;
   function getActiveFormPages() {
     const isVector = document.getElementById('diseaseSelect').value.includes('Vectorborne');
@@ -3150,16 +3070,14 @@
 
   function changeSlide(n) {
     const p = getActiveFormPages();
-    if (currentSlideIndex + n >= 0 && currentSlideIndex + n < p.length) {
-      currentSlideIndex += n;
-      initSlides();
-    }
+    if (currentSlideIndex + n >= 0 && currentSlideIndex + n < p.length) { currentSlideIndex += n; initSlides(); window.scrollTo(0,0); }
   }
 
   function switchTab(id) {
     document.getElementById('questionnaireTab').classList.add('hidden');
     document.getElementById('registryTab').classList.add('hidden');
     document.getElementById(id).classList.remove('hidden');
+    if(id === 'registryTab') fetchRegistryCases();
   }
 
   function changeQuestionnaireForm() {
@@ -3182,6 +3100,16 @@
     toggleDiseaseSidebar();
   }
 
+  // --- CACHE ENGINE ---
+  async function updateOfflineLookupCache() {
+    if (!navigator.onLine) return;
+    try {
+      const res = await fetch(`${GOOGLE_SHEET_API_URL}?action=getAll`);
+      const result = await res.json();
+      if (result.success) localStorage.setItem('EPISURV_LOOKUP_CACHE', JSON.stringify(result.data));
+    } catch (e) {}
+  }
+
   window.addEventListener('online', processSyncQueue);
   window.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true') {
@@ -3189,33 +3117,7 @@
       document.getElementById('protectedApp').classList.remove('hidden');
       initSlides();
       fetchRegistryCases();
-    }
-  });
-
-// --- 💾 OFFLINE LOOKUP CACHE ENGINE ---
-  async function updateOfflineLookupCache() {
-    // Only try to update if we are actually online
-    if (!navigator.onLine) return; 
-
-    console.log("🔄 Syncing Google Sheet data for offline lookup...");
-    try {
-      const res = await fetch(`${GOOGLE_SHEET_API_URL}?action=getAll`);
-      const result = await res.json();
-
-      if (result && result.data) {
-        // Save the entire patient list to the computer/phone memory
-        localStorage.setItem('EPISURV_LOOKUP_CACHE', JSON.stringify(result.data));
-        console.log("✅ Offline lookup cache updated with " + result.data.length + " records.");
-      }
-    } catch (err) {
-      console.warn("Could not update offline cache:", err);
-    }
-  }
-
-  // Auto-update cache whenever the user is online and the page finishes loading
-  window.addEventListener('load', () => {
-    if (sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true') {
-        updateOfflineLookupCache();
+      updateOfflineLookupCache();
     }
   });
 
