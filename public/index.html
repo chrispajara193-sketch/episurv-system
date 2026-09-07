@@ -3002,6 +3002,7 @@
       sessionStorage.setItem('EPISURV_USER_EMAIL', enteredId);
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('protectedApp').classList.remove('hidden');
+      document.getElementById('sidebarBackdrop').classList.add('hidden');
       changeQuestionnaireForm();
       fetchRegistryCases();
       initSlides();
@@ -3113,7 +3114,18 @@
 
   function initSlides() {
     const pages = getActiveFormPages();
-    pages.forEach((p, i) => p.style.display = (i === currentSlideIndex ? 'flex' : 'none'));
+    
+    // If no pages found, try to force a form refresh
+    if (pages.length === 0) {
+        console.warn("No pages found, refreshing form...");
+        return; 
+    }
+
+    pages.forEach((p, i) => {
+        // Ensure the active page is visible and the rest are hidden
+        p.style.setProperty('display', (i === currentSlideIndex ? 'flex' : 'none'), 'important');
+    });
+
     document.getElementById('currentSlideNum').textContent = currentSlideIndex + 1;
     document.getElementById('totalSlideNum').textContent = pages.length;
   }
@@ -3169,21 +3181,23 @@ window.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true') {
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('protectedApp').classList.remove('hidden');
-        initSlides();
+        
+        // 🚀 CRITICAL: Tell the app to set up the default form (Lepto)
+        changeQuestionnaireForm(); 
+        
         fetchRegistryCases();
         updateOfflineLookupCache();
     }
 
-    // 2. Auto age calculation listener (Keep this here once)
+    // 2. Auto age calculation listener
     ['dob', 'v_dob'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        // Run calculation whenever the user types or the script fills the box
-        el.addEventListener('change', autoCalcAgeBreakdown);
-        el.addEventListener('input', autoCalcAgeBreakdown);
-      }
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', autoCalcAgeBreakdown);
+            el.addEventListener('input', autoCalcAgeBreakdown);
+        }
     });
-});
+  });
 </script>
 </body>
 </html>
