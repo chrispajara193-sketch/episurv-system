@@ -11,7 +11,101 @@
   <!-- Spline 3D Viewer CDN -->
   <script type="module" src="https://unpkg.com/@splinetool/viewer/build/spline-viewer.js"></script>
   <style>
-    /* 🎨 NEUMORPHISM LOGIN STYLES (#4e79a7 Palette) */
+    /* ========================================================================= */
+/* 🧬 EPIDEMIOLOGY & DISEASE SURVEILLANCE AMBIENT PARTICLES                  */
+/* ========================================================================= */
+.epi-particles-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 🌐 Subtle Surveillance Grid Background */
+.epi-surveillance-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 45px 45px;
+  mask-image: radial-gradient(circle at center, black 40%, transparent 85%);
+  -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 85%);
+}
+
+/* 📡 Surveillance Radar Pulse Wave (Radiating from behind the card) */
+.radar-pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(45, 212, 191, 0.28);
+  animation: radarPing 8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+.radar-pulse-ring:nth-child(2) { animation-delay: 2.6s; }
+.radar-pulse-ring:nth-child(3) { animation-delay: 5.2s; }
+
+@keyframes radarPing {
+  0% {
+    transform: translate(-50%, -50%) scale(0.65);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* 🦠 Floating Pathogen / Bio Particles */
+.epi-particle {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.22);
+  filter: drop-shadow(0 0 10px rgba(20, 184, 166, 0.45));
+  animation: floatPathogen 12s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Depth-of-field blur (simulates looking through a microscope lens) */
+.particle-blur-sm { filter: blur(1.5px); opacity: 0.18; }
+.particle-blur-md { filter: blur(3px); opacity: 0.12; }
+
+/* 🔵 Glowing Cluster Nodes (Cases detected) */
+.cluster-node {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.7) 0%, rgba(20, 184, 166, 0.15) 60%, transparent 100%);
+  animation: nodeGlow 4.5s ease-in-out infinite alternate;
+}
+
+/* Keyframe animations */
+@keyframes floatPathogen {
+  0% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-24px) translateX(14px) rotate(20deg);
+  }
+  100% {
+    transform: translateY(-48px) translateX(-12px) rotate(-15deg);
+  }
+}
+
+@keyframes nodeGlow {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.25;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0.8;
+  }
+}
+
+  /* 🎨 NEUMORPHISM LOGIN STYLES (#4e79a7 Palette) */
     .neumorph-bg {
       background-color: #4e79a7;
     }
@@ -19,6 +113,8 @@
       background: #4e79a7;
       box-shadow: 16px 16px 32px #3b5c7f, -16px -16px 32px #6196cf;
       border-radius: 28px;
+      position: relative;
+      z-index: 10;
     }
     .neumorph-input {
       background: #4e79a7;
@@ -642,8 +738,44 @@
 <!-- ========================================================================= -->
   <!-- 🔐 MANUS.IM-INSPIRED NEUMORPHIC 3D LOGIN CARD                             -->
   <!-- ========================================================================= -->
-  <div id="loginScreen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 neumorph-bg overflow-y-auto no-print">
-    <div class="neumorph-card w-full max-w-md p-8 sm:p-10 text-white relative my-auto">
+  <div id="loginScreen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 neumorph-bg overflow-hidden no-print">
+
+    <!-- 🧬 1. INSERT THE PARTICLES WRAPPER RIGHT HERE (Behind the card) -->
+    <div class="epi-particles-wrapper">
+      <!-- Grid & Radar Scan Rings -->
+      <div class="epi-surveillance-grid"></div>
+      <div class="radar-pulse-ring"></div>
+      <div class="radar-pulse-ring"></div>
+      <div class="radar-pulse-ring"></div>
+
+      <!-- Floating Bio/Surveillance Icons -->
+      <i class="fa-solid fa-virus epi-particle text-teal-300 text-4xl top-[12%] left-[10%] [animation-duration:11s]"></i>
+      <i class="fa-solid fa-dna epi-particle text-cyan-200 text-2xl top-[28%] left-[16%] particle-blur-sm [animation-duration:15s]"></i>
+      <i class="fa-solid fa-bacteria epi-particle text-teal-200 text-3xl top-[20%] left-[28%] [animation-duration:9s]"></i>
+
+      <i class="fa-solid fa-virus-covid epi-particle text-teal-300 text-5xl top-[10%] right-[14%] [animation-duration:13s]"></i>
+      <i class="fa-solid fa-crosshairs epi-particle text-emerald-300 text-2xl top-[25%] right-[22%] particle-blur-sm [animation-duration:10s]"></i>
+      <i class="fa-solid fa-shield-virus epi-particle text-cyan-300 text-3xl top-[18%] right-[8%] [animation-duration:14s]"></i>
+
+      <i class="fa-solid fa-microscope epi-particle text-slate-200 text-3xl bottom-[18%] left-[12%] [animation-duration:12s]"></i>
+      <i class="fa-solid fa-virus epi-particle text-teal-400 text-2xl bottom-[28%] left-[22%] particle-blur-md [animation-duration:16s]"></i>
+      <i class="fa-solid fa-circle-nodes epi-particle text-emerald-300 text-3xl bottom-[10%] left-[18%] [animation-duration:8s]"></i>
+
+      <i class="fa-solid fa-dna epi-particle text-teal-200 text-4xl bottom-[15%] right-[12%] [animation-duration:14s]"></i>
+      <i class="fa-solid fa-head-side-cough epi-particle text-cyan-200 text-2xl bottom-[25%] right-[24%] particle-blur-sm [animation-duration:10s]"></i>
+      <i class="fa-solid fa-virus-covid epi-particle text-teal-300 text-3xl bottom-[8%] right-[18%] [animation-duration:12s]"></i>
+
+      <!-- Glowing Case Cluster Nodes -->
+      <div class="cluster-node w-12 h-12 top-[15%] left-[8%]"></div>
+      <div class="cluster-node w-16 h-16 top-[22%] right-[12%] [animation-delay:1.2s]"></div>
+      <div class="cluster-node w-10 h-10 bottom-[20%] left-[15%] [animation-delay:2.4s]"></div>
+      <div class="cluster-node w-20 h-20 bottom-[12%] right-[10%] [animation-delay:1.8s]"></div>
+      <div class="cluster-node w-8 h-8 top-[48%] left-[5%] [animation-delay:3s]"></div>
+      <div class="cluster-node w-8 h-8 top-[52%] right-[6%] [animation-delay:0.7s]"></div>
+    </div>
+
+    <!-- 🎴 2. YOUR NEUMORPHIC CARD (Added 'z-10 relative' so it stays above the particles) -->
+    <div class="neumorph-card w-full max-w-md p-8 sm:p-10 text-white relative z-10 my-auto shadow-2xl">
       
       <!-- QC Logos Header -->
       <div class="flex justify-center items-center gap-3 mb-4">
