@@ -2883,62 +2883,78 @@
   }
 
   function autofillLogic(d) {
-    const setVal = (id, val) => {
+    const setVal = (id, val, isDate = false) => {
       const el = document.getElementById(id);
       if (el && val !== undefined && val !== null && val !== "") {
-        el.value = val;
+        let finalVal = val;
+        
+        // 🛠️ DATE FORMATTER: Forces YYYY-MM-DD so HTML boxes work
+        if (isDate) {
+          const dateObj = new Date(val);
+          if (!isNaN(dateObj.getTime())) {
+            finalVal = dateObj.toISOString().split('T')[0];
+          }
+        }
+        
+        el.value = finalVal;
+        // This tells the browser "the value changed, please recalculate age"
         el.dispatchEvent(new Event('change', { bubbles: true }));
+        el.dispatchEvent(new Event('input', { bubbles: true }));
       }
     };
 
-    // 1. Health Center / DRU
-    const druValue = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru_name;
-    setVal('DiseaseReportingUnit', druValue);
-    setVal('v_DiseaseReportingUnit', druValue);
-    setVal('consultFacility1', druValue); 
-    setVal('v_consultPlace1', druValue); 
-
-    // 2. Dates (Using exact headers from your screenshot)
-    const dob = d.DATE_OF_BIRTH || d.dob;
-    setVal('dob', dob);
-    setVal('v_dob', dob);
-
-    const onset = d.DATE_ONSET_OF_ILLNESS || d.date_onset || d.DATE_ONSET;
-    setVal('dateOnset', onset);
-    setVal('v_dateOnset', onset);
-
-    const admitted = d.DATE_ADMITTED || d.date_admitted;
-    setVal('dateAdmitted', admitted);
-    setVal('v_dateAdmitted', admitted);
-
-    // 3. Address & Location
-    const brgy = d.BARANGAY || d.barangay;
-    setVal('Barangay', brgy);
-    setVal('v_Barangay', brgy);
-
-    const sitio = d.SITIO || d.sitio;
-    setVal('streetAddress', sitio);
-    setVal('v_streetAddress', sitio);
-
-    const city = d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city;
-    setVal('city', city);
-    setVal('v_city', city);
-
-    // 4. Personal Info
+    // 1. Patient Name (Added Middle Name)
     setVal('patientFirstName', d.FIRST_NAME || d.first_name);
     setVal('v_patientFirstName', d.FIRST_NAME || d.first_name);
     setVal('patientLastName', d.LAST_NAME || d.last_name);
     setVal('v_patientLastName', d.LAST_NAME || d.last_name);
-    setVal('sex', d.SEX || d.sex || d.GENDER);
-    setVal('v_sex', d.SEX || d.sex || d.GENDER);
-    setVal('age', d.AGE || d.age);
-    setVal('v_age', d.AGE || d.age);
+    
+    // NEW: Middle Name Mapping
+    const mname = d.MIDDLE_NAME || d.middle_name || "";
+    setVal('patientMiddleName', mname);
+    setVal('v_patientMiddleName', mname);
 
-    // 5. Case Details
-    setVal('caseRefId', d.CASE_ID || d.case_id || d.epid_id);
-    setVal('v_caseId', d.CASE_ID || d.case_id || d.epid_id);
+    // 2. Dates (Using exact headers from your screenshot)
+    // Note: 'true' at the end tells the function to fix the date format
+    setVal('dob', d.DATE_OF_BIRTH || d.dob, true);
+    setVal('v_dob', d.DATE_OF_BIRTH || d.dob, true);
 
-    // Trigger age calculation
+    setVal('dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset, true);
+    setVal('v_dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset, true);
+
+    setVal('dateAdmitted', d.DATE_ADMITTED || d.date_admitted, true);
+    setVal('v_dateAdmitted', d.DATE_ADMITTED || d.date_admitted, true);
+
+    // 3. Address & Health Center
+    setVal('streetAddress', d.SITIO || d.sitio);
+    setVal('v_streetAddress', d.SITIO || d.sitio);
+    setVal('Barangay', d.BARANGAY || d.barangay);
+    setVal('v_Barangay', d.BARANGAY || d.barangay);
+    setVal('city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
+    setVal('v_city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
+    
+    const dru = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru_name;
+    setVal('DiseaseReportingUnit', dru);
+    setVal('v_DiseaseReportingUnit', dru);
+    setVal('consultFacility1', dru); 
+    setVal('v_consultPlace1', dru);
+
+    // 4. IDs
+    const id = d.CASE_ID || d.case_id || d.epid_id;
+    setVal('caseRefId', id);
+    setVal('v_caseId', id);
+
+    // 5. Gender
+    const sex = d.SEX || d.sex || d.GENDER;
+    setVal('sex', sex);
+    setVal('v_sex', sex);
+
+    // 6. Age
+    const age = d.AGE || d.age || d.AGE_IN_YEARS;
+    setVal('age', age);
+    setVal('v_age', age);
+
+    // Final trigger for age calculation if DOB is there
     if (typeof autoCalcAgeBreakdown === 'function') autoCalcAgeBreakdown();
   }
 
