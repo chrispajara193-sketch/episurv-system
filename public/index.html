@@ -2898,60 +2898,56 @@
 
   async function fetchAndAutofillFromSheet() {
     const inputEl = document.getElementById('sheetSearchCaseId');
-    if (!inputEl || !inputEl.value.trim()) {
+    const caseIdInput = inputEl?.value.trim().toUpperCase();
+    if (!caseIdInput) {
       alert('Please enter a Case ID.');
       return;
     }
 
-    const caseIdInput = inputEl.value.trim();
+    // 1. 🔍 SEARCH LOCAL MEMORY FIRST (Works even if Offline)
+    const localCache = JSON.parse(localStorage.getItem('EPISURV_LOOKUP_CACHE') || '[]');
+    
+    // Look for the ID in our downloaded copy
+    const cachedData = localCache.find(item => {
+        const idInRow = String(item.epid_id || item.CASE_ID || item.case_id || '').toUpperCase();
+        return idInRow === caseIdInput;
+    });
+
+    if (cachedData) {
+      console.log("📡 ID found in local cache. Autofilling...");
+      detectAndSwitchDisease(cachedData, caseIdInput);
+      autofillLogic(cachedData); // This uses the mapping we discussed earlier
+      alert(`📡 FOUND (Local Memory): Form filled for ${cachedData.patient_name || 'Patient'}`);
+      return;
+    }
+
+    // 2. ☁️ SEARCH CLOUD (Only if not found in local memory and we are online)
+    if (!navigator.onLine) {
+      alert("❌ Offline: ID not found in local cache. Please connect to internet to search the cloud.");
+      return;
+    }
+
     const btn = document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]');
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching...';
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching Cloud...';
 
     try {
       const res = await fetch(`${GOOGLE_SHEET_API_URL}?caseId=${encodeURIComponent(caseIdInput)}`);
       const result = await res.json();
 
-      if (!result.success) {
-        alert('⚠️ Case ID not found in Google Sheet.');
-        return;
+      if (result.success) {
+        detectAndSwitchDisease(result.data, caseIdInput);
+        autofillLogic(result.data);
+        alert(`✅ Online: Form filled for ${result.data.FIRST_NAME || result.data.patient_name}`);
+      } else {
+        alert('⚠️ Case ID not found in Local Memory or Cloud.');
       }
-
-      const d = result.data;
-      detectAndSwitchDisease(d, caseIdInput);
-
-      // Auto-fill common fields
-      const mapping = {
-        'caseRefId': d.CASE_ID || d.case_id,
-        'v_caseId': d.CASE_ID || d.case_id,
-        'patientLastName': d.LAST_NAME || d.last_name,
-        'v_patientLastName': d.LAST_NAME || d.last_name,
-        'patientFirstName': d.FIRST_NAME || d.first_name,
-        'v_patientFirstName': d.FIRST_NAME || d.first_name,
-        'dob': d.DATE_OF_BIRTH || d.dob,
-        'v_dob': d.DATE_OF_BIRTH || d.dob,
-        'age': d.AGE || d.age,
-        'v_age': d.AGE || d.age,
-        'sex': d.SEX || d.gender,
-        'v_sex': d.SEX || d.gender,
-        'barangay': d.BARANGAY || d.brgy,
-        'v_Barangay': d.BARANGAY || d.brgy,
-        'dateOnset': d.DATE_ONSET || d.onset,
-        'v_dateOnset': d.DATE_ONSET || d.onset
-      };
-
-      for (let id in mapping) {
-        const el = document.getElementById(id);
-        if (el) applyValToElement(el, mapping[id], id.toLowerCase().includes('date') || id === 'dob' || id === 'v_dob');
-      }
-
-      alert(`✅ Form filled for: ${d.FIRST_NAME || ''} ${d.LAST_NAME || ''}`);
     } catch (err) {
       alert('❌ Connection Error to Google Sheet.');
     } finally {
       if (btn) btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill Form';
     }
   }
-  
+
   // 🚪 LOGIN HANDLER (FIXED)
   function handleLogin(e) {
     if (e) e.preventDefault();
@@ -3142,6 +3138,33 @@
       document.getElementById('protectedApp').classList.remove('hidden');
       initSlides();
       fetchRegistryCases();
+    }
+  });
+
+// --- 💾 OFFLINE LOOKUP CACHE ENGINE ---
+  async function updateOfflineLookupCache() {
+    // Only try to update if we are actually online
+    if (!navigator.onLine) return; 
+
+    console.log("🔄 Syncing Google Sheet data for offline lookup...");
+    try {
+      const res = await fetch(`${GOOGLE_SHEET_API_URL}?action=getAll`);
+      const result = await res.json();
+
+      if (result && result.data) {
+        // Save the entire patient list to the computer/phone memory
+        localStorage.setItem('EPISURV_LOOKUP_CACHE', JSON.stringify(result.data));
+        console.log("✅ Offline lookup cache updated with " + result.data.length + " records.");
+      }
+    } catch (err) {
+      console.warn("Could not update offline cache:", err);
+    }
+  }
+
+  // Auto-update cache whenever the user is online and the page finishes loading
+  window.addEventListener('load', () => {
+    if (sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true') {
+        updateOfflineLookupCache();
     }
   });
 
