@@ -27,27 +27,38 @@
   opacity: 1 !important;
 }
 
-/* 🎯 Live Sonar Ping spawned on Click */
+/* 🎯 Live Sonar Ping spawned on Click (FIXED) */
 .click-sonar-wave {
   position: fixed;
+  width: 280px;
+  height: 280px;
   border-radius: 50%;
   pointer-events: none;
-  border: 1.5px solid #2dd4bf;
-  box-shadow: 0 0 20px rgba(45, 212, 191, 0.6);
+  border: 2px solid #2dd4bf;
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.25) 0%, rgba(20, 184, 166, 0.08) 45%, transparent 70%);
+  box-shadow: 0 0 25px rgba(45, 212, 191, 0.8), inset 0 0 15px rgba(45, 212, 191, 0.35);
+  z-index: 40; /* Elevated so it's always clearly visible */
   transform: translate(-50%, -50%) scale(0);
-  animation: expandSonar 0.9s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
-  z-index: 5;
+  animation: expandSonar 0.85s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
 }
 
+/* Inner tactical radar ring */
+.click-sonar-wave::after {
+  content: '';
+  position: absolute;
+  inset: 20%;
+  border-radius: 50%;
+  border: 1px dashed rgba(94, 234, 212, 0.6);
+}
+
+/* Now animates transform scale smoothly from 0 to 1 */
 @keyframes expandSonar {
   0% {
-    width: 0px;
-    height: 0px;
-    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
   }
   100% {
-    width: 320px;
-    height: 320px;
+    transform: translate(-50%, -50%) scale(1);
     opacity: 0;
   }
 }
@@ -3816,50 +3827,50 @@ function initInteractiveLoginEngine() {
   const tracker = document.getElementById('surveillanceTracker');
   const particles = document.querySelectorAll('#interactiveParticlesWrapper [data-depth]');
 
-  if (!loginScreen || !loginCard) return;
+  if (!loginScreen) return;
 
-  // 1. 🎯 Follow Cursor with Surveillance Reticle & 3D Parallax Movement
+  // 1. 🎯 Follow Cursor with Surveillance Reticle & Parallax
   loginScreen.addEventListener('mousemove', (e) => {
     const { clientX, clientY } = e;
     const { innerWidth, innerHeight } = window;
 
-    // Show tracker when mouse moves
     if (tracker) {
       tracker.style.opacity = '1';
-      tracker.style.left = `${clientX + 22}px`;
-      tracker.style.top = `${clientY + 18}px`;
+      tracker.style.left = `${clientX + 20}px`;
+      tracker.style.top = `${clientY + 15}px`;
     }
 
-    // Normalized coordinates (-1 to 1)
-    const normX = (clientX / innerWidth) - 0.5;
-    const normY = (clientY / innerHeight) - 0.5;
+    if (loginCard) {
+      const normX = (clientX / innerWidth) - 0.5;
+      const normY = (clientY / innerHeight) - 0.5;
+      const tiltX = -(normY * 8).toFixed(2);
+      const tiltY = (normX * 8).toFixed(2);
+      loginCard.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+      loginCard.style.transition = 'transform 0.08s ease-out';
+    }
 
-    // 2. 🎴 3D Tactile Card Tilt (Manus.im style)
-    const tiltX = -(normY * 8).toFixed(2); // Tilt -4deg to 4deg
-    const tiltY = (normX * 8).toFixed(2);
-    loginCard.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-    loginCard.style.transition = 'transform 0.08s ease-out';
-
-    // 3. 🔬 Depth Parallax for floating Pathogens
     particles.forEach(p => {
       const depth = parseFloat(p.getAttribute('data-depth')) || 20;
+      const normX = (clientX / innerWidth) - 0.5;
+      const normY = (clientY / innerHeight) - 0.5;
       const moveX = (normX * depth).toFixed(1);
       const moveY = (normY * depth).toFixed(1);
       p.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
     });
   });
 
-  // Reset card tilt when cursor leaves the window
   loginScreen.addEventListener('mouseleave', () => {
     if (tracker) tracker.style.opacity = '0';
-    loginCard.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
-    loginCard.style.transition = 'transform 0.4s ease';
+    if (loginCard) {
+      loginCard.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+      loginCard.style.transition = 'transform 0.4s ease';
+    }
   });
 
-  // 4. 🌊 Spawn Expanding Sonar Wave on Screen Click
-  loginScreen.addEventListener('click', (e) => {
-    // If clicking inside inputs or buttons, don't trigger ripple
-    if (e.target.closest('input, button, select, a')) return;
+  // 2. 🌊 Live Sonar Click Wave (Triggered on pointerdown)
+  loginScreen.addEventListener('pointerdown', (e) => {
+    // Prevent triggering when clicking form inputs or the submit button
+    if (e.target.closest('input, button, select, label')) return;
 
     const wave = document.createElement('div');
     wave.className = 'click-sonar-wave';
@@ -3867,14 +3878,20 @@ function initInteractiveLoginEngine() {
     wave.style.top = `${e.clientY}px`;
     loginScreen.appendChild(wave);
 
-    // Clean up after animation finishes
-    setTimeout(() => wave.remove(), 950);
+    setTimeout(() => {
+      if (wave && wave.parentNode) {
+        wave.parentNode.removeChild(wave);
+      }
+    }, 900);
   });
 }
 
-// Automatically initialize when the page loads
-window.addEventListener('DOMContentLoaded', initInteractiveLoginEngine);
-
+// Ensure it loads whether DOM is still loading or already parsed
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initInteractiveLoginEngine);
+} else {
+  initInteractiveLoginEngine();
+}
 </script>
 </body>
 </html>
