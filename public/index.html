@@ -64,47 +64,71 @@
 }
 
 /* 🧭 Quezon City Surveillance Reticle Cursor Tracker */
+/* 🧭 Quezon City Surveillance Reticle (Pinned directly to Cursor Tip) */
 #surveillanceTracker {
   position: fixed;
+  top: 0;
+  left: 0;
   pointer-events: none;
-  z-index: 20;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  z-index: 50;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
+  will-change: transform;
 }
+
+/* 🎯 Target Reticle: Centered EXACTLY on the cursor point */
 .tracker-crosshair {
-  width: 28px;
-  height: 28px;
-  border: 1px dashed rgba(45, 212, 191, 0.5);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%); /* Centers the reticle on the cursor */
+  border: 1.5px dashed rgba(45, 212, 191, 0.75);
   border-radius: 50%;
-  position: relative;
   animation: rotateTracker 10s linear infinite;
 }
-.tracker-crosshair::before, .tracker-crosshair::after {
+
+/* Crosshair internal target lines */
+.tracker-crosshair::before,
+.tracker-crosshair::after {
   content: '';
   position: absolute;
-  background: rgba(45, 212, 191, 0.7);
+  background: rgba(45, 212, 191, 0.9);
 }
 .tracker-crosshair::before {
-  top: 50%; left: -3px; right: -3px; height: 1px; transform: translateY(-50%);
+  top: 50%;
+  left: -4px;
+  right: -4px;
+  height: 1.5px;
+  transform: translateY(-50%);
 }
 .tracker-crosshair::after {
-  left: 50%; top: -3px; bottom: -3px; width: 1px; transform: translateX(-50%);
+  left: 50%;
+  top: -4px;
+  bottom: -4px;
+  width: 1.5px;
+  transform: translateX(-50%);
 }
+
+/* 🏷️ Coordinate Pill: Floats cleanly to the right of the crosshair */
 .tracker-label {
-  font-family: monospace;
-  font-size: 8px;
+  position: absolute;
+  left: 24px;
+  top: 0;
+  transform: translateY(-50%);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 8.5px;
   font-weight: 700;
   color: #5eead4;
   letter-spacing: 0.05em;
-  background: rgba(15, 23, 42, 0.7);
-  padding: 1px 5px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  padding: 2px 7px;
   border-radius: 4px;
-  border: 1px solid rgba(45, 212, 191, 0.3);
+  border: 1px solid rgba(45, 212, 191, 0.4);
   white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 @keyframes rotateTracker {
@@ -3836,8 +3860,7 @@ function initInteractiveLoginEngine() {
 
     if (tracker) {
       tracker.style.opacity = '1';
-      tracker.style.left = `${clientX + 20}px`;
-      tracker.style.top = `${clientY + 15}px`;
+      tracker.style.transform = `translate3d(${clientX}px, ${clientY}px, 0)`;
     }
 
     if (loginCard) {
