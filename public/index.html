@@ -2864,14 +2864,14 @@
     }
   }
 
-  // 1. IMPROVED: Forces dates into YYYY-MM-DD and triggers calculation events
+  // 🛠️ 1. FORCES THE BROWSER TO "SEE" THE CHANGE
   function applyValToElement(el, rawVal, isDate = false) {
     if (!el || rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
     
     let val = String(rawVal).trim();
 
     if (isDate) {
-      // Clean the date: standardizes formats like 09/07/2026 or ISO strings to YYYY-MM-DD
+      // Clean date format for HTML5 (YYYY-MM-DD)
       const d = new Date(rawVal);
       if (!isNaN(d.getTime())) {
         const year = d.getFullYear();
@@ -2881,25 +2881,16 @@
       }
     }
 
-    if (el.tagName === 'SELECT') {
-      const vLower = val.toLowerCase();
-      for (const opt of el.options) {
-        if (opt.value.toLowerCase() === vLower || opt.text.toLowerCase() === vLower) {
-          el.value = opt.value;
-          break;
-        }
-      }
-    } else {
-      el.value = val;
-    }
+    el.value = val;
 
-    // 🔥 This is the secret: Tell the browser a change happened so Age updates
+    // 🚀 CRITICAL: We manually trigger BOTH events so listeners (like Age Calc) wake up
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  // 2. FIXED: Robust Age calculation
+  // 🎂 2. ROBUST AGE CALCULATION
   function autoCalcAgeBreakdown() {
+    // Find whichever DOB field is currently in use
     const dobInput = document.getElementById('dob') || document.getElementById('v_dob');
     const ageInput = document.getElementById('age') || document.getElementById('v_age');
 
@@ -2911,24 +2902,25 @@
     if (isNaN(birthDate.getTime())) return;
 
     let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const m = today.getMonth() - birthDate.getMonth();
 
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
 
+    // Set value directly
     ageInput.value = age >= 0 ? age : 0;
-    ageInput.dispatchEvent(new Event('input', { bubbles: true }));
+    console.log("Calculated Age:", ageInput.value);
   }
 
-  // 3. UPDATED: Full mapping for Onset, Admitted, and Sitio
+  // 🧠 3. UPDATED AUTOFILL (Includes Date Admitted)
   function autofillLogic(d) {
     const setVal = (id, val, isDate = false) => {
       const el = document.getElementById(id);
-      applyValToElement(el, val, isDate);
+      if (el) applyValToElement(el, val, isDate);
     };
 
-    // --- NAMES & IDs ---
+    // Mapping Section
     setVal('caseRefId', d.CASE_ID || d.case_id || d.epid_id);
     setVal('v_caseId', d.CASE_ID || d.case_id || d.epid_id);
     setVal('patientLastName', d.LAST_NAME || d.last_name);
@@ -2938,35 +2930,35 @@
     setVal('patientMiddleName', d.MIDDLE_NAME || d.middle_name);
     setVal('v_patientMiddleName', d.MIDDLE_NAME || d.middle_name);
 
-    // --- DATES (Matches your specific Sheet Headers) ---
+    // Dates (Matches your specific Sheet Headers)
     setVal('dob', d.DATE_OF_BIRTH || d.dob, true);
     setVal('v_dob', d.DATE_OF_BIRTH || d.dob, true);
 
     setVal('dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset || d.DATE_ONSET, true);
     setVal('v_dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset || d.DATE_ONSET, true);
 
+    // NEW: Date Admitted Mapping
     setVal('dateAdmitted', d.DATE_ADMITTED || d.date_admitted, true);
     setVal('v_dateAdmitted', d.DATE_ADMITTED || d.date_admitted, true);
 
-    // --- ADDRESS & GENDER ---
-    setVal('sex', d.SEX || d.sex || d.GENDER || d.gender);
-    setVal('v_sex', d.SEX || d.sex || d.GENDER || d.gender);
-    setVal('Barangay', d.BARANGAY || d.barangay || d.brgy);
-    setVal('v_Barangay', d.BARANGAY || d.barangay || d.brgy);
-    setVal('streetAddress', d.SITIO || d.sitio || d.STREET);
-    setVal('v_streetAddress', d.SITIO || d.sitio || d.STREET);
-    setVal('city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city || d.CITY);
-    setVal('v_city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city || d.CITY);
+    // Address & Identity
+    setVal('sex', d.SEX || d.sex || d.GENDER);
+    setVal('v_sex', d.SEX || d.sex || d.GENDER);
+    setVal('Barangay', d.BARANGAY || d.barangay);
+    setVal('v_Barangay', d.BARANGAY || d.barangay);
+    setVal('streetAddress', d.SITIO || d.sitio);
+    setVal('v_streetAddress', d.SITIO || d.sitio);
+    setVal('city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
+    setVal('v_city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
 
-    // --- DRU / HEALTH CENTER ---
-    const dru = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru_name || d.facility;
+    const dru = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru_name;
     setVal('DiseaseReportingUnit', dru);
     setVal('v_DiseaseReportingUnit', dru);
     setVal('consultFacility1', dru); 
     setVal('v_consultPlace1', dru);
 
-    // Calculate age immediately after autofill finishes
-    setTimeout(autoCalcAgeBreakdown, 300);
+    // 🏁 FINAL STEP: Call the calc directly just to be 100% sure
+    setTimeout(autoCalcAgeBreakdown, 500); 
   }
 
   async function fetchAndAutofillFromSheet() {
@@ -3184,11 +3176,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // 2. Auto age calculation listener (Keep this here once)
     ['dob', 'v_dob'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('change', autoCalcAgeBreakdown);
-            el.addEventListener('input', autoCalcAgeBreakdown);
-        }
+      const el = document.getElementById(id);
+      if (el) {
+        // Run calculation whenever the user types or the script fills the box
+        el.addEventListener('change', autoCalcAgeBreakdown);
+        el.addEventListener('input', autoCalcAgeBreakdown);
+      }
     });
 });
 </script>
