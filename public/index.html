@@ -2128,7 +2128,7 @@
                         <option value="BATASAN HILLS">BATASAN HILLS</option>
                         <option value="BAGONG SILANGAN">BAGONG SILANGAN</option>
                         <option value="HOLY SPIRIT">HOLY SPIRIT</option>
-                        <option value="VETERANS">VETERANS</option>
+                        <option value="VETERANS">PAYATAS</option>
                       </select>
                     </td>
                     <td style="width: 25%;"><span class="cell-label">District:</span>
@@ -2288,7 +2288,7 @@
                   </tr>
                   <tr>
                     <td><span class="cell-label">First symptom experienced:</span><input type="text" class="cell-input font-bold" /></td>
-                    <td><span class="cell-label">Date onset:</span><input type="date" class="cell-input font-bold" /></td>
+                    <td><span class="cell-label">Date onset:</span><input type="date" id="v_dateOnset" class="cell-input font-bold" /></td>
                   </tr>
                   <tr>
                     <td colspan="2"><span class="cell-label">Had/has Fever?</span><label><input type="checkbox"  /> Yes</label> <label><input type="checkbox" /> No</label> &nbsp;|&nbsp; Date Onset: <input type="date" class="cell-input inline w-24" /> Temp: <input type="text" placeholder="38.5C" class="cell-input inline w-14" /> Duration: <input type="text" placeholder="3 days" class="cell-input inline w-16" /> Fever Pattern: <label><input type="checkbox"  /> Intermittent</label> <label><input type="checkbox" /> Remittent</label></td>
@@ -2864,14 +2864,36 @@
     }
   }
 
-  // 🛠️ 1. FORCED DATE FORMATTER
-  function applyValToElement(el, rawVal, isDate = false) {
-    if (!el || rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
-    
-    let val = String(rawVal).trim();
+  // 🔍 Helper to read properties case-insensitively from the Google Sheet response
+function getProp(obj, ...keys) {
+  if (!obj) return '';
+  for (const key of keys) {
+    if (obj[key] !== undefined && obj[key] !== null && String(obj[key]).trim() !== '') {
+      return obj[key];
+    }
+    const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+    for (const objKey in obj) {
+      if (objKey.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanKey) {
+        if (obj[objKey] !== undefined && obj[objKey] !== null && String(obj[objKey]).trim() !== '') {
+          return obj[objKey];
+        }
+      }
+    }
+  }
+  return '';
+}
 
-    if (isDate) {
-      // This part ensures the date is EXACTLY YYYY-MM-DD
+// 🛠️ 1. FORCED FORMATTER & INTELLIGENT <SELECT> MATCHER
+function applyValToElement(el, rawVal, isDate = false) {
+  if (!el || rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
+  
+  let val = String(rawVal).trim();
+
+  // Robust Date Formatter (Outputs YYYY-MM-DD for <input type="date">)
+  if (isDate) {
+    if (typeof rawVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      // already valid format
+    } else {
       const d = new Date(rawVal);
       if (!isNaN(d.getTime())) {
         const year = d.getFullYear();
@@ -2880,69 +2902,206 @@
         val = `${year}-${month}-${day}`;
       }
     }
-
-    el.value = val;
-
-    // Manually trigger the events so the Age Calculator "wakes up"
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  // 🎂 2. THE CALCULATION ENGINE
-  function autoCalcAgeBreakdown() {
-    const dobInput = document.getElementById('dob') || document.getElementById('v_dob');
-    const ageInput = document.getElementById('age') || document.getElementById('v_age');
+  // 🎯 Intelligent case-insensitive matcher for <select> dropdowns
+  if (el.tagName === 'SELECT') {
+    const cleanVal = val.toLowerCase().replace(/[^a-z0-9]/g, '');
+    let matched = false;
 
-    if (!dobInput || !dobInput.value || !ageInput) return;
-
-    const birthDate = new Date(dobInput.value);
-    const today = new Date();
-    
-    if (isNaN(birthDate.getTime())) return;
-
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
+    // Pass 1: exact or normalized match
+    for (let opt of el.options) {
+      const optValClean = opt.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const optTextClean = opt.text.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (optValClean === cleanVal || optTextClean === cleanVal) {
+        el.value = opt.value;
+        matched = true;
+        break;
+      }
     }
 
-    // Force the number into the age box
-    ageInput.value = age >= 0 ? age : 0;
-    console.log("System: Age Calculated as " + ageInput.value);
+    // Pass 2: prefix or fuzzy match (e.g., 'M' -> 'Male', 'F' -> 'Female')
+    if (!matched) {
+      for (let opt of el.options) {
+        if (opt.value === 'Select' || opt.value === '') continue;
+        const optValClean = opt.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const optTextClean = opt.text.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (
+          (cleanVal.length >= 1 && (optValClean.startsWith(cleanVal) || optTextClean.startsWith(cleanVal))) ||
+          (cleanVal.length >= 4 && (optValClean.includes(cleanVal) || cleanVal.includes(optValClean)))
+        ) {
+          el.value = opt.value;
+          matched = true;
+          break;
+        }
+      }
+    }
+
+    if (!matched) el.value = val;
+  } else {
+    el.value = val;
   }
 
-  // 🧠 3. THE MAPPING (Linking Sheet headers to your Form)
-  function autofillLogic(d) {
-    const setVal = (id, val, isDate = false) => {
-      const el = document.getElementById(id);
-      if (el) applyValToElement(el, val, isDate);
-    };
+  // Dispatch events to trigger listeners
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+}
 
-    // Name & ID Mapping
-    setVal('caseRefId', d.CASE_ID || d.case_id || d.epid_id);
-    setVal('v_caseId', d.CASE_ID || d.case_id || d.epid_id);
-    setVal('patientLastName', d.LAST_NAME || d.last_name || d.patient_name?.split(',')[0]);
-    setVal('patientFirstName', d.FIRST_NAME || d.first_name || d.patient_name?.split(',')[1]);
-    setVal('patientMiddleName', d.MIDDLE_NAME || d.middle_name);
-
-    // DATE OF BIRTH (CRITICAL)
-    setVal('dob', d.DATE_OF_BIRTH || d.dob, true);
-    setVal('v_dob', d.DATE_OF_BIRTH || d.dob, true);
-
-    // Address & Health Center
-    setVal('Barangay', d.BARANGAY || d.barangay);
-    setVal('v_Barangay', d.BARANGAY || d.barangay);
-    setVal('streetAddress', d.SITIO || d.sitio || d.STREET);
-    setVal('v_streetAddress', d.SITIO || d.sitio || d.STREET);
-    
-    const dru = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru_name;
-    setVal('DiseaseReportingUnit', dru);
-    setVal('v_DiseaseReportingUnit', dru);
-
-    // Run the calculation immediately after a short delay
-    setTimeout(autoCalcAgeBreakdown, 500);
+// 🎂 2. ACCURATE AGE CALCULATION (UPDATES BOTH LEPTO & VECTORBORNE)
+function calculateAgeFromDate(dateStr) {
+  if (!dateStr) return null;
+  const birthDate = new Date(dateStr);
+  if (isNaN(birthDate.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
   }
+  return age >= 0 ? age : 0;
+}
+
+function autoCalcAgeBreakdown() {
+  const dobVal = document.getElementById('dob')?.value || document.getElementById('v_dob')?.value;
+  if (!dobVal) return;
+
+  const calculatedAge = calculateAgeFromDate(dobVal);
+  if (calculatedAge !== null) {
+    const ageEl = document.getElementById('age');
+    const vAgeEl = document.getElementById('v_age');
+    if (ageEl) ageEl.value = calculatedAge;
+    if (vAgeEl) vAgeEl.value = calculatedAge;
+  }
+}
+
+// 🧠 3. COMPLETE MAPPING ENGINE
+function autofillLogic(d) {
+  const setVal = (id, val, isDate = false) => {
+    const el = document.getElementById(id);
+    if (el) applyValToElement(el, val, isDate);
+  };
+
+  // 1. Case ID
+  const caseId = getProp(d, 'CASE_ID', 'case_id', 'epid_id');
+  setVal('caseRefId', caseId);
+  setVal('v_caseId', caseId);
+
+  // 2. Patient Names (with automatic fallback to split PATIENT_NAME)
+  let lName = getProp(d, 'LAST_NAME', 'last_name', 'surname');
+  let fName = getProp(d, 'FIRST_NAME', 'first_name', 'given_name');
+  let mName = getProp(d, 'MIDDLE_NAME', 'middle_name');
+  let suffix = getProp(d, 'SUFFIX', 'suffix');
+
+  if (!lName && !fName) {
+    const fullName = getProp(d, 'PATIENT_NAME', 'patient_name', 'name');
+    if (fullName) {
+      if (fullName.includes(',')) {
+        const parts = fullName.split(',');
+        lName = parts[0]?.trim();
+        const firstMid = parts[1]?.trim().split(/\s+/);
+        if (firstMid && firstMid.length > 0) {
+          fName = firstMid[0];
+          if (firstMid.length > 1) mName = firstMid.slice(1).join(' ');
+        }
+      } else {
+        const parts = fullName.split(/\s+/);
+        fName = parts[0];
+        lName = parts.slice(1).join(' ');
+      }
+    }
+  }
+
+  // Populate names across BOTH Leptospirosis and Vectorborne forms
+  setVal('patientLastName', lName);
+  setVal('v_patientLastName', lName);
+  setVal('patientFirstName', fName);
+  setVal('v_patientFirstName', fName);
+  setVal('patientMiddleName', mName);
+  setVal('v_patientMiddleName', mName);
+  setVal('patientSuffix', suffix);
+  setVal('v_patientSuffix', suffix);
+
+  // 3. Date of Birth & Age
+  const dobVal = getProp(d, 'DATE_OF_BIRTH', 'date_of_birth', 'dob', 'birthdate');
+  setVal('dob', dobVal, true);
+  setVal('v_dob', dobVal, true);
+
+  const ageVal = getProp(d, 'AGE', 'age');
+  if (ageVal) {
+    setVal('age', ageVal);
+    setVal('v_age', ageVal);
+  }
+  // Immediately recalculate age
+  autoCalcAgeBreakdown();
+
+  // 4. Sex
+  const sexVal = getProp(d, 'SEX', 'sex', 'gender');
+  setVal('sex', sexVal);
+  setVal('v_sex', sexVal);
+
+  // 5. DRU & Barangay Dropdowns
+  const druVal = getProp(d, 'DRU', 'dru', 'health_center', 'health_center_designation', 'dru_name', 'facility');
+  setVal('DiseaseReportingUnit', druVal);
+  setVal('v_DiseaseReportingUnit', druVal);
+
+  const brgyVal = getProp(d, 'BARANGAY', 'barangay', 'brgy');
+  setVal('Barangay', brgyVal);
+  setVal('v_Barangay', brgyVal);
+
+  // 6. Address Information
+  const houseVal = getProp(d, 'HOUSE_NO', 'house_no', 'house_bldg', 'lot_bldg', 'bldg');
+  setVal('houseBldg', houseVal);
+  setVal('v_houseBldg', houseVal);
+
+  const streetVal = getProp(d, 'STREET', 'street', 'sitio', 'purok', 'street_address');
+  setVal('streetAddress', streetVal);
+  setVal('v_streetAddress', streetVal);
+
+  setVal('barangay', brgyVal);
+  setVal('v_barangay', brgyVal);
+
+  const cityVal = getProp(d, 'CITY', 'city', 'municipality') || 'Quezon City';
+  setVal('city', cityVal);
+  setVal('v_city', cityVal);
+
+  const contactVal = getProp(d, 'CONTACT', 'contact', 'contact_no', 'phone', 'mobile');
+  setVal('contact', contactVal);
+  setVal('v_contact', contactVal);
+
+  // 7. Officer & Investigation Details
+  const repDateVal = getProp(d, 'DATE_INVESTIGATED', 'date_investigated', 'report_date', 'reportDate');
+  setVal('reportDate', repDateVal, true);
+  setVal('v_reportDate', repDateVal, true);
+
+  const invVal = getProp(d, 'INVESTIGATOR', 'investigator');
+  setVal('Investigator', invVal);
+  setVal('v_Investigator', invVal);
+
+  // 8. Clinical & Consultation Info (Onset, Hospital, Diagnosis)
+  const onsetVal = getProp(d, 'DATE_OF_ONSET', 'date_of_onset', 'date_onset', 'dateOnset', 'onset_date');
+  setVal('dateOnset', onsetVal, true);
+  setVal('v_dateOnset', onsetVal, true);
+
+  const firstSympVal = getProp(d, 'FIRST_SYMPTOM', 'first_symptom', 'symptoms');
+  setVal('firstSymptom', firstSympVal);
+  setVal('v_firstSymptom', firstSympVal);
+
+  const facilityVal = getProp(d, 'HOSPITAL', 'hospital', 'facility', 'consult_facility', 'place_of_consultation');
+  setVal('consultFacility1', facilityVal);
+  setVal('v_consultPlace1', facilityVal);
+  setVal('placeAdmission', facilityVal);
+
+  const diagVal = getProp(d, 'DIAGNOSIS', 'diagnosis', 'initial_diagnosis');
+  setVal('consultDiagnosis1', diagVal);
+  setVal('v_consultDiagnosis1', diagVal);
+
+  const admittedVal = getProp(d, 'ADMITTED', 'admitted', 'is_admitted');
+  setVal('consultAdmitted1', admittedVal);
+  setVal('v_consultAdmitted1', admittedVal);
+
+  // Ensure age calculates even if dates load with slight delay
+  setTimeout(autoCalcAgeBreakdown, 300);
+}
 
   async function fetchAndAutofillFromSheet() {
     const inputEl = document.getElementById('sheetSearchCaseId');
