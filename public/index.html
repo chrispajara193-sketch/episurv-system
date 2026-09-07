@@ -2864,13 +2864,23 @@
     }
   }
 
+  // 🛠️ Robust Value Setter (Fixes Date Formats)
   function applyValToElement(el, rawVal, isDate = false) {
     if (!el || rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
+    
     let val = String(rawVal).trim();
+
     if (isDate) {
-        const d = new Date(rawVal);
-        if (!isNaN(d.getTime())) val = d.toISOString().split('T')[0];
+      // Force date into YYYY-MM-DD format so HTML boxes can "see" it
+      const d = new Date(rawVal);
+      if (!isNaN(d.getTime())) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        val = `${year}-${month}-${day}`;
+      }
     }
+
     if (el.tagName === 'SELECT') {
       const vLower = val.toLowerCase();
       for (const opt of el.options) {
@@ -2879,57 +2889,82 @@
           break;
         }
       }
-    } else { el.value = val; }
-    el.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+      el.value = val;
+    }
+
+    // Crucial: Tell the browser the value changed so listeners trigger
     el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
+  // 🎂 Robust Age Calculator
   function autoCalcAgeBreakdown() {
     const dobInput = document.getElementById('dob') || document.getElementById('v_dob');
     const ageInput = document.getElementById('age') || document.getElementById('v_age');
+
     if (!dobInput || !dobInput.value || !ageInput) return;
+
     const birthDate = new Date(dobInput.value);
     const today = new Date();
+    
     if (isNaN(birthDate.getTime())) return;
+
     let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
     ageInput.value = age >= 0 ? age : 0;
+    // Notify other parts of the app that age was updated
+    ageInput.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
+  // 🧠 Integrated Autofill Logic
   function autofillLogic(d) {
     const setVal = (id, val, isDate = false) => {
       const el = document.getElementById(id);
       applyValToElement(el, val, isDate);
     };
 
+    // Mapping Database Keys to HTML IDs
     setVal('caseRefId', d.CASE_ID || d.case_id || d.epid_id);
     setVal('v_caseId', d.CASE_ID || d.case_id || d.epid_id);
+    
     setVal('patientLastName', d.LAST_NAME || d.last_name);
     setVal('v_patientLastName', d.LAST_NAME || d.last_name);
     setVal('patientFirstName', d.FIRST_NAME || d.first_name);
     setVal('v_patientFirstName', d.FIRST_NAME || d.first_name);
     setVal('patientMiddleName', d.MIDDLE_NAME || d.middle_name);
     setVal('v_patientMiddleName', d.MIDDLE_NAME || d.middle_name);
+
     setVal('dob', d.DATE_OF_BIRTH || d.dob, true);
     setVal('v_dob', d.DATE_OF_BIRTH || d.dob, true);
-    setVal('sex', d.SEX || d.sex || d.GENDER);
-    setVal('v_sex', d.SEX || d.sex || d.GENDER);
-    setVal('Barangay', d.BARANGAY || d.barangay);
-    setVal('v_Barangay', d.BARANGAY || d.barangay);
-    setVal('streetAddress', d.SITIO || d.sitio);
-    setVal('v_streetAddress', d.SITIO || d.sitio);
-    setVal('city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
-    setVal('v_city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city);
-    setVal('dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset, true);
-    setVal('v_dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset, true);
 
-    const dru = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru_name;
+    setVal('sex', d.SEX || d.sex || d.GENDER || d.gender);
+    setVal('v_sex', d.SEX || d.sex || d.GENDER || d.gender);
+
+    setVal('Barangay', d.BARANGAY || d.barangay || d.brgy);
+    setVal('v_Barangay', d.BARANGAY || d.barangay || d.brgy);
+
+    setVal('streetAddress', d.SITIO || d.sitio || d.STREET);
+    setVal('v_streetAddress', d.SITIO || d.sitio || d.STREET);
+
+    setVal('city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city || d.CITY);
+    setVal('v_city', d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city || d.CITY);
+
+    setVal('dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset || d.DATE_ONSET, true);
+    setVal('v_dateOnset', d.DATE_ONSET_OF_ILLNESS || d.date_onset || d.DATE_ONSET, true);
+
+    const dru = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru_name || d.facility;
     setVal('DiseaseReportingUnit', dru);
     setVal('v_DiseaseReportingUnit', dru);
     setVal('consultFacility1', dru); 
     setVal('v_consultPlace1', dru);
 
+    // Wait a split second for the DOM to catch up, then calculate age
     setTimeout(autoCalcAgeBreakdown, 300);
   }
 
@@ -3133,22 +3168,28 @@
   }
 
   // --- EVENT LISTENERS ---
-  window.addEventListener('online', processSyncQueue);
-  window.addEventListener('DOMContentLoaded', () => {
+  // --- EVENT LISTENERS ---
+window.addEventListener('online', processSyncQueue);
+
+window.addEventListener('DOMContentLoaded', () => {
+    // 1. Handle Login state
     if (sessionStorage.getItem('EPISURV_LOGGED_IN') === 'true') {
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('protectedApp').classList.remove('hidden');
-      initSlides();
-      fetchRegistryCases();
-      updateOfflineLookupCache();
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('protectedApp').classList.remove('hidden');
+        initSlides();
+        fetchRegistryCases();
+        updateOfflineLookupCache();
     }
-    
-    // Auto age calculation listener
+
+    // 2. Auto age calculation listener (Keep this here once)
     ['dob', 'v_dob'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.addEventListener('change', autoCalcAgeBreakdown); el.addEventListener('input', autoCalcAgeBreakdown); }
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', autoCalcAgeBreakdown);
+            el.addEventListener('input', autoCalcAgeBreakdown);
+        }
     });
-  });
+});
 </script>
 </body>
 </html>
