@@ -2882,26 +2882,60 @@
   }
 
   function autofillLogic(d) {
-    const mapping = {
-        'caseRefId': d.epid_id || d.CASE_ID || d.case_id,
-        'v_caseId': d.epid_id || d.CASE_ID || d.case_id,
-        'patientLastName': d.last_name || d.LAST_NAME || (d.patient_name ? d.patient_name.split(',')[0] : ''),
-        'patientFirstName': d.first_name || d.FIRST_NAME || (d.patient_name ? d.patient_name.split(',')[1] : ''),
-        'dob': d.dob || d.DATE_OF_BIRTH,
-        'v_dob': d.dob || d.DATE_OF_BIRTH,
-        'age': d.age || d.AGE,
-        'v_age': d.age || d.AGE,
-        'sex': d.sex || d.SEX || d.gender,
-        'v_sex': d.sex || d.SEX || d.gender,
-        'Barangay': d.barangay || d.BARANGAY,
-        'v_Barangay': d.barangay || d.BARANGAY,
-        'dateOnset': d.date_onset || d.DATE_ONSET,
-        'v_dateOnset': d.date_onset || d.DATE_ONSET
+    // Helper to find data regardless of header name variations
+    const getD = (keys) => {
+      for (let k of keys) {
+        if (d[k] !== undefined && d[k] !== null && d[k] !== "") return d[k];
+      }
+      return "";
     };
-    for (let id in mapping) {
+
+    const setVal = (id, val) => {
       const el = document.getElementById(id);
-      if (el) applyValToElement(el, mapping[id], id.toLowerCase().includes('date') || id.includes('dob'));
-    }
+      if (el && val) {
+        el.value = val;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    };
+
+    // 1. Fill Case IDs
+    const id = getD(['CASE_ID', 'case_id', 'epid_id']);
+    setVal('caseRefId', id);
+    setVal('v_caseId', id);
+
+    // 2. Fill Patient Name
+    const fname = getD(['FIRST_NAME', 'first_name']);
+    const lname = getD(['LAST_NAME', 'last_name']);
+    setVal('patientFirstName', fname);
+    setVal('v_patientFirstName', fname);
+    setVal('patientLastName', lname);
+    setVal('v_patientLastName', lname);
+
+    // 3. Fill Dates (DOB and Onset)
+    const dob = getD(['DATE_OF_BIRTH', 'dob', 'date_of_birth']);
+    setVal('dob', dob);
+    setVal('v_dob', dob);
+
+    const onset = getD(['DATE_ONSET', 'date_onset', 'onset']);
+    setVal('dateOnset', onset);
+    setVal('v_dateOnset', onset);
+
+    // 4. Fill Demographic Info
+    const sex = getD(['SEX', 'sex', 'GENDER', 'gender']);
+    setVal('sex', sex);
+    setVal('v_sex', sex);
+
+    const brgy = getD(['BARANGAY', 'barangay', 'brgy']);
+    setVal('Barangay', brgy);
+    setVal('v_Barangay', brgy);
+
+    // 5. Fill Health Center
+    const dru = getD(['HEALTH CENTER DESIGNATION', 'healthCenter', 'dru_name']);
+    setVal('DiseaseReportingUnit', dru);
+    setVal('v_DiseaseReportingUnit', dru);
+
+    // Trigger age calculation automatically
+    if (typeof autoCalcAgeBreakdown === 'function') autoCalcAgeBreakdown();
   }
 
   async function fetchAndAutofillFromSheet() {
