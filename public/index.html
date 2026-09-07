@@ -82,15 +82,16 @@
 }
 
 /* 🎯 Target Reticle: Centered EXACTLY on the cursor point */
+/* 🎯 Target Reticle: Pinned precisely to the cursor point */
 .tracker-crosshair {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: -16px;  /* 👈 Exactly half of 32px height */
+  left: -16px; /* 👈 Exactly half of 32px width */
   width: 32px;
   height: 32px;
-  transform: translate(-50%, -50%); /* Centers the reticle on the cursor */
   border: 1.5px dashed rgba(45, 212, 191, 0.75);
   border-radius: 50%;
+  transform-origin: center center;
   animation: rotateTracker 10s linear infinite;
 }
 
@@ -116,10 +117,10 @@
   transform: translateX(-50%);
 }
 
-/* 🏷️ Coordinate Pill: Floats cleanly to the right of the crosshair */
+/* 🏷️ Coordinate Pill: Floats cleanly 22px to the right of the cursor */
 .tracker-label {
   position: absolute;
-  left: 24px;
+  left: 22px;
   top: 0;
   transform: translateY(-50%);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -136,6 +137,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
+/* Clean rotation around (0,0) without shifting position */
 @keyframes rotateTracker {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
