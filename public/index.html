@@ -3289,6 +3289,66 @@
     }
   }
 
+  // 📄 4. DEDICATED PDF GENERATOR & AUTO-NAMER
+async function downloadCasePDF(id) {
+  let target = null;
+  const queue = JSON.parse(localStorage.getItem('EPISURV_SYNC_QUEUE') || '[]');
+  target = queue.find(c => c.epid_id === id);
+
+  if (!target) {
+    try {
+      const res = await fetch(`${API_BASE}/cases?search=${encodeURIComponent(id)}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        target = data.data.find(c => c.epid_id === id) || data.data[0];
+      }
+    } catch (e) {
+      console.warn("Could not retrieve remote case for PDF:", e);
+    }
+  }
+
+  if (!target) {
+    alert(`Case ${id} could not be loaded to generate PDF.`);
+    return;
+  }
+
+  // 1. Switch to the questionnaire and populate form
+  detectAndSwitchDisease(target, id);
+  autofillLogic(target);
+  switchTab('questionnaireTab');
+
+  // 2. Extract clean patient name: LASTNAME, FIRSTNAME
+  let pName = (target.patient_name || '').trim();
+  if (!pName || pName === 'Unknown Patient') {
+    const l = target.last_name || '';
+    const f = target.first_name || '';
+    pName = l ? `${l}, ${f}` : (f || 'PATIENT');
+  }
+  // Remove special characters not allowed in file names
+  pName = pName.toUpperCase().replace(/[/\\?%*:|"<>]/g, '');
+
+  // 3. Format today's date: MM-DD-YYYY
+  const now = new Date();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const dateFormatted = `${mm}-${dd}-${yyyy}`;
+
+  // 4. Set document.title (The browser uses this as the default PDF file name)
+  const previousTitle = document.title;
+  const pdfFileName = `EPI_${pName}_${dateFormatted}`;
+  document.title = pdfFileName;
+
+  // 5. Allow rendering, then trigger the print / PDF dialog
+  setTimeout(() => {
+    window.print();
+    // Restore title after dialog closes
+    setTimeout(() => {
+      document.title = previousTitle;
+    }, 1500);
+  }, 400);
+}
+
   // 📁 EXPORT PIDSR CSV
   function exportSurveillanceCSV() {
     window.open(`${API_BASE}/export-csv`, '_blank');
@@ -3315,62 +3375,68 @@
     fetchRegistryCases();
   }
 
-  // 📋 5. FULL 10-COLUMN REGISTRY RENDERER
-  function renderRegistryRows(cases) {
-    const tbody = document.getElementById('registryBody');
-    const currentUserEmail = sessionStorage.getItem('EPISURV_USER_EMAIL');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+  // 📋 5. FULL 10-COLUMN REGISTRY RENDERER (WITH PDF BUTTON)
+function renderRegistryRows(cases) {
+  const tbody = document.getElementById('registryBody');
+  const currentUserEmail = sessionStorage.getItem('EPISURV_USER_EMAIL');
+  if (!tbody) return;
+  tbody.innerHTML = '';
 
-    if (!cases || cases.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-slate-400 font-semibold">No surveillance cases found.</td></tr>`;
-      return;
-    }
-
-    cases.forEach(r => {
-      const statusBadge = r.isPending 
-        ? '<span class="bg-amber-500 text-white px-1.5 py-0.5 rounded animate-pulse text-[9px] font-black ml-1">PENDING</span>' 
-        : '';
-
-      const delBtn = ADMIN_EMAILS.includes(currentUserEmail) 
-        ? `<button onclick="deleteRegistryCase('${r.epid_id}')" class="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded shadow transition" title="Delete Case"><i class="fa-solid fa-trash text-xs"></i></button>` 
-        : '';
-
-      const isDied = String(r.outcome || '').toLowerCase().includes('died');
-      const outcomeBadge = isDied
-        ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-300">Died</span>`
-        : `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700 border border-emerald-300">Alive</span>`;
-
-      const cls = r.case_classification || 'Suspect';
-      let clsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">${cls}</span>`;
-      if (cls === 'Confirmed') clsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-300">Confirmed</span>`;
-      else if (cls === 'Probable') clsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Probable</span>`;
-
-      const tr = document.createElement('tr');
-      tr.className = "border-b border-slate-100 hover:bg-slate-50 transition text-xs";
-      
-      tr.innerHTML = `
-        <td class="p-3 font-mono font-bold text-slate-900 whitespace-nowrap">${r.epid_id} ${statusBadge}</td>
-        <td class="p-3 text-slate-700 whitespace-nowrap">${r.report_date || '—'}</td>
-        <td class="p-3 text-slate-700">${r.investigator || '—'}</td>
-        <td class="p-3 font-bold text-slate-900">${r.patient_name || '—'}</td>
-        <td class="p-3 text-slate-700 whitespace-nowrap">${r.age ?? '—'} / ${r.sex || '—'}</td>
-        <td class="p-3 text-slate-700 font-semibold">${r.disease || '—'}</td>
-        <td class="p-3 text-slate-700">${r.barangay || '—'}</td>
-        <td class="p-3">${clsBadge}</td>
-        <td class="p-3">${outcomeBadge}</td>
-        <td class="p-3 text-center whitespace-nowrap">
-          <div class="flex items-center justify-center gap-1.5">
-            <button onclick="editRegistryCase('${r.epid_id}')" class="p-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded shadow transition" title="Edit Case">
-              <i class="fa-solid fa-pen text-xs"></i>
-            </button>
-            ${delBtn}
-          </div>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
+  if (!cases || cases.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-slate-400 font-semibold">No surveillance cases found.</td></tr>`;
+    return;
   }
+
+  cases.forEach(r => {
+    const statusBadge = r.isPending 
+      ? '<span class="bg-amber-500 text-white px-1.5 py-0.5 rounded animate-pulse text-[9px] font-black ml-1">PENDING</span>' 
+      : '';
+
+    // Admin-only delete button
+    const delBtn = ADMIN_EMAILS.includes(currentUserEmail) 
+      ? `<button onclick="deleteRegistryCase('${r.epid_id}')" class="p-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded shadow transition" title="Delete Case"><i class="fa-solid fa-trash text-xs"></i></button>` 
+      : '';
+
+    const isDied = String(r.outcome || '').toLowerCase().includes('died');
+    const outcomeBadge = isDied
+      ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-300">Died</span>`
+      : `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700 border border-emerald-300">Alive</span>`;
+
+    const cls = r.case_classification || 'Suspect';
+    let clsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">${cls}</span>`;
+    if (cls === 'Confirmed') clsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-300">Confirmed</span>`;
+    else if (cls === 'Probable') clsBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Probable</span>`;
+
+    const tr = document.createElement('tr');
+    tr.className = "border-b border-slate-100 hover:bg-slate-50 transition text-xs";
+    
+    tr.innerHTML = `
+      <td class="p-3 font-mono font-bold text-slate-900 whitespace-nowrap">${r.epid_id} ${statusBadge}</td>
+      <td class="p-3 text-slate-700 whitespace-nowrap">${r.report_date || '—'}</td>
+      <td class="p-3 text-slate-700">${r.investigator || '—'}</td>
+      <td class="p-3 font-bold text-slate-900">${r.patient_name || '—'}</td>
+      <td class="p-3 text-slate-700 whitespace-nowrap">${r.age ?? '—'} / ${r.sex || '—'}</td>
+      <td class="p-3 text-slate-700 font-semibold">${r.disease || '—'}</td>
+      <td class="p-3 text-slate-700">${r.barangay || '—'}</td>
+      <td class="p-3">${clsBadge}</td>
+      <td class="p-3">${outcomeBadge}</td>
+      <td class="p-3 text-center whitespace-nowrap">
+        <div class="flex items-center justify-center gap-1.5">
+          <!-- ✏️ Edit Case Button -->
+          <button onclick="editRegistryCase('${r.epid_id}')" class="p-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded shadow transition" title="Edit Case">
+            <i class="fa-solid fa-pen text-xs"></i>
+          </button>
+          <!-- 📄 PDF Download Button -->
+          <button onclick="downloadCasePDF('${r.epid_id}')" class="p-1.5 bg-rose-700 hover:bg-rose-800 text-white rounded shadow transition" title="Download Official PDF">
+            <i class="fa-solid fa-file-pdf text-xs"></i>
+          </button>
+          ${delBtn}
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
   // 🔍 6. REAL-TIME REGISTRY SEARCH
   async function fetchRegistryCases() {
