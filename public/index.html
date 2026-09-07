@@ -2896,6 +2896,7 @@
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
+  // --- 🔍 HYBRID LOOKUP ENGINE (Online & Offline) ---
   async function fetchAndAutofillFromSheet() {
     const inputEl = document.getElementById('sheetSearchCaseId');
     const caseIdInput = inputEl?.value.trim().toUpperCase();
@@ -2904,33 +2905,35 @@
       return;
     }
 
-    // 1. 🔍 SEARCH LOCAL MEMORY FIRST (Works even if Offline)
+    const btn = document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]');
+    if (btn) {
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching...';
+      btn.disabled = true;
+    }
+
+    // 1. 🔍 SEARCH LOCAL MEMORY FIRST (Works Offline)
     const localCache = JSON.parse(localStorage.getItem('EPISURV_LOOKUP_CACHE') || '[]');
-    
-    // Look for the ID in our downloaded copy
-    const cachedData = localCache.find(item => {
-        const idInRow = String(item.epid_id || item.CASE_ID || item.case_id || '').toUpperCase();
-        return idInRow === caseIdInput;
-    });
+    const cachedData = localCache.find(item => 
+      String(item.epid_id || item.CASE_ID || '').toUpperCase() === caseIdInput
+    );
 
     if (cachedData) {
-      console.log("📡 ID found in local cache. Autofilling...");
       detectAndSwitchDisease(cachedData, caseIdInput);
-      autofillLogic(cachedData); // This uses the mapping we discussed earlier
-      alert(`📡 FOUND (Local Memory): Form filled for ${cachedData.patient_name || 'Patient'}`);
+      autofillLogic(cachedData); 
+      alert(`📡 FOUND (Local Cache): Form filled for ${cachedData.patient_name || cachedData.FIRST_NAME}`);
+      if (btn) { btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill'; btn.disabled = false; }
       return;
     }
 
-    // 2. ☁️ SEARCH CLOUD (Only if not found in local memory and we are online)
+    // 2. ☁️ SEARCH CLOUD (If not in cache and online)
     if (!navigator.onLine) {
-      alert("❌ Offline: ID not found in local cache. Please connect to internet to search the cloud.");
+      alert("❌ Offline: ID not in cache. Connect to internet for cloud search.");
+      if (btn) { btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill'; btn.disabled = false; }
       return;
     }
-
-    const btn = document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]');
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching Cloud...';
 
     try {
+      // Note: We use the URL you provided in your script
       const res = await fetch(`${GOOGLE_SHEET_API_URL}?caseId=${encodeURIComponent(caseIdInput)}`);
       const result = await res.json();
 
@@ -2939,13 +2942,56 @@
         autofillLogic(result.data);
         alert(`✅ Online: Form filled for ${result.data.FIRST_NAME || result.data.patient_name}`);
       } else {
-        alert('⚠️ Case ID not found in Local Memory or Cloud.');
+        alert('⚠️ ' + result.message);
       }
     } catch (err) {
-      alert('❌ Connection Error to Google Sheet.');
+      console.error("Fetch Error:", err);
+      alert('❌ Connection Error to Google Sheet. Check Deployment Settings (Set to "Anyone").');
     } finally {
-      if (btn) btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill Form';
+      if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill Form';
+        btn.disabled = false;
+      }
     }
+  }
+
+  // 🧠 SMARTER AUTOFILL (Handles both Sheet Headers and Database Keys)
+  function autofillLogic(d) {
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val !== undefined && val !== null) {
+        el.value = val;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    };
+
+    // Mapping both formats (Database format vs Google Sheet Header format)
+    setVal('caseRefId', d.epid_id || d.CASE_ID);
+    setVal('v_caseId', d.epid_id || d.CASE_ID);
+    
+    // Patient Name Handling
+    if (d.patient_name) {
+      const parts = d.patient_name.split(',');
+      setVal('patientLastName', parts[0]?.trim());
+      setVal('patientFirstName', parts[1]?.trim());
+    } else {
+      setVal('patientLastName', d.LAST_NAME);
+      setVal('patientFirstName', d.FIRST_NAME);
+      setVal('patientMiddleName', d.MIDDLE_NAME);
+    }
+
+    setVal('dob', d.dob || d.DATE_OF_BIRTH);
+    setVal('v_dob', d.dob || d.DATE_OF_BIRTH);
+    setVal('age', d.age || d.AGE);
+    setVal('v_age', d.age || d.AGE);
+    setVal('sex', d.sex || d.SEX || d.GENDER);
+    setVal('v_sex', d.sex || d.SEX || d.GENDER);
+    setVal('Barangay', d.barangay || d.BARANGAY);
+    setVal('v_Barangay', d.barangay || d.BARANGAY);
+    setVal('dateOnset', d.date_onset || d.DATE_ONSET);
+    setVal('v_dateOnset', d.date_onset || d.DATE_ONSET);
+    
+    autoCalcAgeBreakdown();
   }
 
   // 🚪 LOGIN HANDLER (FIXED)
