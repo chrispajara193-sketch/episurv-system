@@ -115,14 +115,19 @@ app.get(['/api/export-csv', '/export-csv'], async (req, res) => {
   }
 });
 
-// 🗑️ 5. DELETE CASE (Admin Only)
+// 🗑️ 5. DELETE CASE (Multi-Admin Version)
 app.delete(['/api/cases/:id', '/cases/:id'], async (req, res) => {
-  const adminEmail = "qcesd.d2esu@quezoncity.gov.ph";
-  // We expect the frontend to send the user's email in a special header
+  // ADD ALL ADMIN EMAILS TO THIS LIST
+  const adminEmails = [
+    "qcesd.d2esu@quezoncity.gov.ph",
+    "nicxdumlao.qcesu@gmail.com",
+  ];
+
   const requesterEmail = req.headers['x-user-email'];
 
-  if (requesterEmail !== adminEmail) {
-    return res.status(403).json({ success: false, message: 'ACCESS DENIED: You do not have permission to delete records.' });
+  // Check if the email is in our admin list
+  if (!adminEmails.includes(requesterEmail)) {
+    return res.status(403).json({ success: false, message: 'ACCESS DENIED: Insufficient Permissions.' });
   }
 
   try {

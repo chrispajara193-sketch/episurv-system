@@ -3739,8 +3739,13 @@
 
   function renderRegistryRows(cases) {
   const tbody = document.getElementById('registryBody');
-  const currentUserEmail = sessionStorage.getItem('EPISURV_USER_EMAIL'); // Get logged-in user
-  const adminEmail = "qcesd.d2esu@quezoncity.gov.ph";
+  const currentUserEmail = sessionStorage.getItem('EPISURV_USER_EMAIL');
+  
+  // MATCH THIS LIST WITH THE BACKEND LIST
+  const adminEmails = [
+    "qcesd.d2esu@quezoncity.gov.ph",
+    "nicxdumlao.qcesu@gmail.com",
+  ];
   
   if (!tbody) return;
   tbody.innerHTML = '';
@@ -3748,14 +3753,9 @@
   cases.forEach(r => {
     const tr = document.createElement('tr');
     
-    // Create the standard Action buttons
     let actionButtons = `
-      <button type="button" onclick="editRegistryCase('${r.epid_id}')" class="p-1.5 bg-teal-600 text-white rounded hover:bg-teal-500 transition shadow-sm" title="Edit">
-        <i class="fa-solid fa-pen-to-square"></i>
-      </button>
-      <button type="button" onclick="printRegistryCase('${r.epid_id}')" class="p-1.5 bg-slate-800 text-white rounded hover:bg-slate-700 transition shadow-sm" title="Print">
-        <i class="fa-solid fa-print"></i>
-      </button>
+      <button type="button" onclick="editRegistryCase('${r.epid_id}')" class="p-1.5 bg-teal-600 text-white rounded hover:bg-teal-500 transition shadow-sm" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+      <button type="button" onclick="printRegistryCase('${r.epid_id}')" class="p-1.5 bg-slate-800 text-white rounded hover:bg-slate-700 transition shadow-sm" title="Print"><i class="fa-solid fa-print"></i></button>
     `;
 
     // ADD THIS: If user is Admin, add a Red Delete Button
