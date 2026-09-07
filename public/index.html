@@ -2837,6 +2837,121 @@
     "qcesu.payatassuper@quezoncity.gov.ph": "PS2026"
   };
 
+  // --- 🔍 GOOGLE SHEET LOOKUP & AUTOFILL ENGINE ---
+
+  // 🧠 SMART DISEASE DETECTOR & AUTO-SWITCHER
+  function detectAndSwitchDisease(d, caseIdInput) {
+    let textPool = '';
+    const targetKeywords = ['disease', 'diagnosis', 'morbidity', 'condition', 'notifiable', 'category', 'syndrome', 'casedisease', 'diseasename'];
+    for (let key in d) {
+      const cleanKey = key.toLowerCase().replace(/[\s_\-\/\.]/g, '');
+      if (targetKeywords.some(k => cleanKey.includes(k))) { textPool += ' ' + String(d[key]).toLowerCase(); }
+    }
+    if (!textPool.trim()) { for (let key in d) { textPool += ' ' + String(d[key]).toLowerCase(); } }
+    textPool += ' ' + (caseIdInput || '').toLowerCase();
+
+    let matchedKeyword = '';
+    if (textPool.includes('dengue') || textPool.includes('chik') || textPool.includes('vector')) matchedKeyword = 'vector';
+    else if (textPool.includes('lepto')) matchedKeyword = 'lepto';
+    else if (textPool.includes('diphtheria')) matchedKeyword = 'diphtheria';
+    else if (textPool.includes('mpox')) matchedKeyword = 'mpox';
+    else if (textPool.includes('rabies')) matchedKeyword = 'rabies';
+    else if (textPool.includes('diarrhea') || textPool.includes('abd')) matchedKeyword = 'bloody diarrhea';
+    else if (textPool.includes('measles') || textPool.includes('rubella')) matchedKeyword = 'measles';
+    else if (textPool.includes('pertussis')) matchedKeyword = 'pertussis';
+    else if (textPool.includes('covid') || textPool.includes('panrespi')) matchedKeyword = 'panrespi';
+
+    if (matchedKeyword) {
+      const diseaseDropdown = document.getElementById('diseaseSelect');
+      for (let opt of diseaseDropdown.options) {
+        if (opt.value.toLowerCase().includes(matchedKeyword) || opt.text.toLowerCase().includes(matchedKeyword)) {
+          diseaseDropdown.value = opt.value;
+          break;
+        }
+      }
+      changeQuestionnaireForm();
+    }
+  }
+
+  function applyValToElement(el, rawVal, isDate = false) {
+    if (!el || rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return;
+    let val = String(rawVal).trim();
+    if (isDate) {
+        const d = new Date(rawVal);
+        if (!isNaN(d.getTime())) val = d.toISOString().split('T')[0];
+    }
+    if (el.tagName === 'SELECT') {
+      const valStr = val.toLowerCase();
+      for (const opt of el.options) {
+        if (opt.value.toLowerCase() === valStr || opt.text.toLowerCase() === valStr) {
+          el.value = opt.value;
+          break;
+        }
+      }
+    } else if (el.type === 'checkbox') {
+      el.checked = (val.toLowerCase() === 'yes' || val.toLowerCase() === 'true');
+    } else {
+      el.value = val;
+    }
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  async function fetchAndAutofillFromSheet() {
+    const inputEl = document.getElementById('sheetSearchCaseId');
+    if (!inputEl || !inputEl.value.trim()) {
+      alert('Please enter a Case ID.');
+      return;
+    }
+
+    const caseIdInput = inputEl.value.trim();
+    const btn = document.querySelector('button[onclick*="fetchAndAutofillFromSheet"]');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching...';
+
+    try {
+      const res = await fetch(`${GOOGLE_SHEET_API_URL}?caseId=${encodeURIComponent(caseIdInput)}`);
+      const result = await res.json();
+
+      if (!result.success) {
+        alert('⚠️ Case ID not found in Google Sheet.');
+        return;
+      }
+
+      const d = result.data;
+      detectAndSwitchDisease(d, caseIdInput);
+
+      // Auto-fill common fields
+      const mapping = {
+        'caseRefId': d.CASE_ID || d.case_id,
+        'v_caseId': d.CASE_ID || d.case_id,
+        'patientLastName': d.LAST_NAME || d.last_name,
+        'v_patientLastName': d.LAST_NAME || d.last_name,
+        'patientFirstName': d.FIRST_NAME || d.first_name,
+        'v_patientFirstName': d.FIRST_NAME || d.first_name,
+        'dob': d.DATE_OF_BIRTH || d.dob,
+        'v_dob': d.DATE_OF_BIRTH || d.dob,
+        'age': d.AGE || d.age,
+        'v_age': d.AGE || d.age,
+        'sex': d.SEX || d.gender,
+        'v_sex': d.SEX || d.gender,
+        'barangay': d.BARANGAY || d.brgy,
+        'v_Barangay': d.BARANGAY || d.brgy,
+        'dateOnset': d.DATE_ONSET || d.onset,
+        'v_dateOnset': d.DATE_ONSET || d.onset
+      };
+
+      for (let id in mapping) {
+        const el = document.getElementById(id);
+        if (el) applyValToElement(el, mapping[id], id.toLowerCase().includes('date') || id === 'dob' || id === 'v_dob');
+      }
+
+      alert(`✅ Form filled for: ${d.FIRST_NAME || ''} ${d.LAST_NAME || ''}`);
+    } catch (err) {
+      alert('❌ Connection Error to Google Sheet.');
+    } finally {
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Lookup & Autofill Form';
+    }
+  }
+  
   // 🚪 LOGIN HANDLER (FIXED)
   function handleLogin(e) {
     if (e) e.preventDefault();
