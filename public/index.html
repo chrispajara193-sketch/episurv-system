@@ -3992,30 +3992,36 @@
 
 async function deleteRegistryCase(epidId) {
   const currentUserEmail = sessionStorage.getItem('EPISURV_USER_EMAIL');
+  const adminEmail = "qcesd.d2esu@quezoncity.gov.ph";
 
-  if (!confirm(`⚠️ WARNING: Are you sure you want to PERMANENTLY DELETE Case ID: ${epidId}?\n\nThis action cannot be undone.`)) {
+  if (!confirm(`⚠️ PERMANENT DELETE: ${epidId}?\nThis will remove it from the Cloud AND your Local Backup.`)) {
     return;
   }
 
   try {
+    // 1. Delete from Cloud (Firebase)
     const res = await fetch(`${API_BASE}/cases/${encodeURIComponent(epidId)}`, {
       method: 'DELETE',
-      headers: {
-        'x-user-email': currentUserEmail // Send our email to prove we are admin
-      }
+      headers: { 'x-user-email': currentUserEmail }
     });
 
-    const data = await res.json();
+    // 2. ALWAYS delete from Local Storage (even if cloud delete fails)
+    let localData = JSON.parse(localStorage.getItem('EPISURV_LOCAL_BACKUP') || '[]');
+    localData = localData.filter(c => c.epid_id !== epidId);
+    localStorage.setItem('EPISURV_LOCAL_BACKUP', JSON.stringify(localData));
 
+    const data = await res.json();
     if (data.success) {
-      alert("✅ " + data.message);
-      fetchRegistryCases(); // Refresh the list
+      alert("✅ Deleted successfully from all locations.");
     } else {
-      alert("❌ Error: " + data.message);
+      alert("⚠️ Removed from Local view, but Cloud says: " + data.message);
     }
+    
+    fetchRegistryCases(); // Refresh the table
   } catch (err) {
-    console.error("Delete request failed:", err);
-    alert("❌ Network Error: Could not connect to server.");
+    console.error("Delete failed:", err);
+    alert("❌ Network error, but item has been hidden from your local view.");
+    fetchRegistryCases();
   }
 }
 
