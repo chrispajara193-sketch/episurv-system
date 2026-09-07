@@ -2788,6 +2788,7 @@
               <tr>
                 <th class="p-3">EPID ID</th>
                 <th class="p-3">Date Investigated</th>
+                <th class="p-3">Investigator</th>
                 <th class="p-3">Patient Name</th>
                 <th class="p-3">Age/Sex</th>
                 <th class="p-3">Disease</th>
@@ -2882,58 +2883,62 @@
   }
 
   function autofillLogic(d) {
-    // Helper to find data regardless of header name variations
-    const getD = (keys) => {
-      for (let k of keys) {
-        if (d[k] !== undefined && d[k] !== null && d[k] !== "") return d[k];
-      }
-      return "";
-    };
-
     const setVal = (id, val) => {
       const el = document.getElementById(id);
-      if (el && val) {
+      if (el && val !== undefined && val !== null && val !== "") {
         el.value = val;
         el.dispatchEvent(new Event('change', { bubbles: true }));
       }
     };
 
-    // 1. Fill Case IDs
-    const id = getD(['CASE_ID', 'case_id', 'epid_id']);
-    setVal('caseRefId', id);
-    setVal('v_caseId', id);
+    // 1. Health Center / DRU
+    const druValue = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru_name;
+    setVal('DiseaseReportingUnit', druValue);
+    setVal('v_DiseaseReportingUnit', druValue);
+    setVal('consultFacility1', druValue); 
+    setVal('v_consultPlace1', druValue); 
 
-    // 2. Fill Patient Name
-    const fname = getD(['FIRST_NAME', 'first_name']);
-    const lname = getD(['LAST_NAME', 'last_name']);
-    setVal('patientFirstName', fname);
-    setVal('v_patientFirstName', fname);
-    setVal('patientLastName', lname);
-    setVal('v_patientLastName', lname);
-
-    // 3. Fill Dates (DOB and Onset)
-    const dob = getD(['DATE_OF_BIRTH', 'dob', 'date_of_birth']);
+    // 2. Dates (Using exact headers from your screenshot)
+    const dob = d.DATE_OF_BIRTH || d.dob;
     setVal('dob', dob);
     setVal('v_dob', dob);
 
-    const onset = getD(['DATE_ONSET', 'date_onset', 'onset']);
+    const onset = d.DATE_ONSET_OF_ILLNESS || d.date_onset || d.DATE_ONSET;
     setVal('dateOnset', onset);
     setVal('v_dateOnset', onset);
 
-    // 4. Fill Demographic Info
-    const sex = getD(['SEX', 'sex', 'GENDER', 'gender']);
-    setVal('sex', sex);
-    setVal('v_sex', sex);
+    const admitted = d.DATE_ADMITTED || d.date_admitted;
+    setVal('dateAdmitted', admitted);
+    setVal('v_dateAdmitted', admitted);
 
-    const brgy = getD(['BARANGAY', 'barangay', 'brgy']);
+    // 3. Address & Location
+    const brgy = d.BARANGAY || d.barangay;
     setVal('Barangay', brgy);
     setVal('v_Barangay', brgy);
 
-    const druValue = d.DRU || d['HEALTH CENTER DESIGNATION'] || d.dru || d.dru_name;
-    setVal('consultFacility1', druValue); 
-    setVal('v_consultPlace1', druValue); 
-    
-    // Trigger age calculation automatically
+    const sitio = d.SITIO || d.sitio;
+    setVal('streetAddress', sitio);
+    setVal('v_streetAddress', sitio);
+
+    const city = d.CURRENT_ADDRESS_CITY_MUNICIPALITY || d.city;
+    setVal('city', city);
+    setVal('v_city', city);
+
+    // 4. Personal Info
+    setVal('patientFirstName', d.FIRST_NAME || d.first_name);
+    setVal('v_patientFirstName', d.FIRST_NAME || d.first_name);
+    setVal('patientLastName', d.LAST_NAME || d.last_name);
+    setVal('v_patientLastName', d.LAST_NAME || d.last_name);
+    setVal('sex', d.SEX || d.sex || d.GENDER);
+    setVal('v_sex', d.SEX || d.sex || d.GENDER);
+    setVal('age', d.AGE || d.age);
+    setVal('v_age', d.AGE || d.age);
+
+    // 5. Case Details
+    setVal('caseRefId', d.CASE_ID || d.case_id || d.epid_id);
+    setVal('v_caseId', d.CASE_ID || d.case_id || d.epid_id);
+
+    // Trigger age calculation
     if (typeof autoCalcAgeBreakdown === 'function') autoCalcAgeBreakdown();
   }
 
