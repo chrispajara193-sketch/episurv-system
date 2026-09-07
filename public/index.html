@@ -3063,20 +3063,25 @@
     }
 
     try {
-      const res = await fetch(`${API_BASE}/cases`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      // Use 'mode: cors' and handle the redirect
+      const res = await fetch(`${GOOGLE_SHEET_API_URL}?caseId=${encodeURIComponent(caseIdInput)}`, {
+        method: 'GET',
+        redirect: 'follow'
       });
-      if (res.ok) {
-        alert("✅ Saved to Cloud!");
-        fetchRegistryCases();
-        switchTab('registryTab');
+      
+      const result = await res.json();
+
+      if (result.success) {
+        detectAndSwitchDisease(result.data, caseIdInput);
+        autofillLogic(result.data);
+        alert(`✅ Online: Form filled for ${result.data.FIRST_NAME || result.data.patient_name}`);
+      } else {
+        alert('⚠️ ' + result.message);
       }
     } catch (err) {
-      saveToSyncQueue(payload);
+      console.error("Detailed Error:", err);
+      alert('❌ Connection Error. Open the browser Console (F12) to see details.');
     }
-  }
 
   // --- SYNC ENGINE ---
   function saveToSyncQueue(payload) {
