@@ -2287,7 +2287,7 @@
                     <td><span class="cell-label">Had history of Chikungunya Virus infection?</span><label><input type="checkbox" /> Yes</label> <label><input type="checkbox"  /> No</label><br>Last Date of Infection: <input type="date" class="cell-input inline w-24" /></td>
                   </tr>
                   <tr>
-                    <td><span class="cell-label">First symptom experienced:</span><input type="text" class="cell-input font-bold" /></td>
+                    <td><span class="cell-label">First symptom experienced:</span><input type="text" id="v_firstSymptom" class="cell-input font-bold" /></td>
                     <td><span class="cell-label">Date onset:</span><input type="date" id="v_dateOnset" class="cell-input font-bold" /></td>
                   </tr>
                   <tr>
@@ -2974,7 +2974,6 @@ function autoCalcAgeBreakdown() {
   }
 }
 
-// 🧠 3. COMPLETE MAPPING ENGINE
 function autofillLogic(d) {
   const setVal = (id, val, isDate = false) => {
     const el = document.getElementById(id);
@@ -2986,7 +2985,7 @@ function autofillLogic(d) {
   setVal('caseRefId', caseId);
   setVal('v_caseId', caseId);
 
-  // 2. Patient Names (with automatic fallback to split PATIENT_NAME)
+  // 2. Patient Names
   let lName = getProp(d, 'LAST_NAME', 'last_name', 'surname');
   let fName = getProp(d, 'FIRST_NAME', 'first_name', 'given_name');
   let mName = getProp(d, 'MIDDLE_NAME', 'middle_name');
@@ -3011,7 +3010,6 @@ function autofillLogic(d) {
     }
   }
 
-  // Populate names across BOTH Leptospirosis and Vectorborne forms
   setVal('patientLastName', lName);
   setVal('v_patientLastName', lName);
   setVal('patientFirstName', fName);
@@ -3031,7 +3029,6 @@ function autofillLogic(d) {
     setVal('age', ageVal);
     setVal('v_age', ageVal);
   }
-  // Immediately recalculate age
   autoCalcAgeBreakdown();
 
   // 4. Sex
@@ -3039,16 +3036,23 @@ function autofillLogic(d) {
   setVal('sex', sexVal);
   setVal('v_sex', sexVal);
 
-  // 5. DRU & Barangay Dropdowns
+  // 5. 🏥 DRU -> Disease Reporting Unit & Place of Consultation
   const druVal = getProp(d, 'DRU', 'dru', 'health_center', 'health_center_designation', 'dru_name', 'facility');
   setVal('DiseaseReportingUnit', druVal);
   setVal('v_DiseaseReportingUnit', druVal);
+  // 👇 Autofills "Place of Consultation" and "Place of Admission" with the DRU column
+  setVal('v_consultPlace1', druVal);
+  setVal('consultFacility1', druVal);
+  setVal('placeAdmission', druVal);
 
+  // 6. Barangay
   const brgyVal = getProp(d, 'BARANGAY', 'barangay', 'brgy');
   setVal('Barangay', brgyVal);
   setVal('v_Barangay', brgyVal);
+  setVal('barangay', brgyVal);
+  setVal('v_barangay', brgyVal);
 
-  // 6. Address Information
+  // 7. Address Details
   const houseVal = getProp(d, 'HOUSE_NO', 'house_no', 'house_bldg', 'lot_bldg', 'bldg');
   setVal('houseBldg', houseVal);
   setVal('v_houseBldg', houseVal);
@@ -3056,9 +3060,6 @@ function autofillLogic(d) {
   const streetVal = getProp(d, 'STREET', 'street', 'sitio', 'purok', 'street_address');
   setVal('streetAddress', streetVal);
   setVal('v_streetAddress', streetVal);
-
-  setVal('barangay', brgyVal);
-  setVal('v_barangay', brgyVal);
 
   const cityVal = getProp(d, 'CITY', 'city', 'municipality') || 'Quezon City';
   setVal('city', cityVal);
@@ -3068,7 +3069,16 @@ function autofillLogic(d) {
   setVal('contact', contactVal);
   setVal('v_contact', contactVal);
 
-  // 7. Officer & Investigation Details
+  // 8. 📅 Date Onset (from Column H: DATE_ONSET_OF_ILLNESS)
+  const onsetVal = getProp(d, 'DATE_ONSET_OF_ILLNESS', 'date_onset_of_illness', 'DATE_OF_ONSET', 'date_of_onset', 'dateOnset');
+  setVal('dateOnset', onsetVal, true);
+  setVal('v_dateOnset', onsetVal, true);
+
+  // 9. 📅 Date Admitted (from Column J: DATE_ADMITTED)
+  const admitVal = getProp(d, 'DATE_ADMITTED', 'date_admitted', 'admission_date');
+  setVal('dateAdmitted', admitVal, true);
+
+  // 10. Officer & Investigator
   const repDateVal = getProp(d, 'DATE_INVESTIGATED', 'date_investigated', 'report_date', 'reportDate');
   setVal('reportDate', repDateVal, true);
   setVal('v_reportDate', repDateVal, true);
@@ -3077,29 +3087,7 @@ function autofillLogic(d) {
   setVal('Investigator', invVal);
   setVal('v_Investigator', invVal);
 
-  // 8. Clinical & Consultation Info (Onset, Hospital, Diagnosis)
-  const onsetVal = getProp(d, 'DATE_OF_ONSET', 'date_of_onset', 'date_onset', 'dateOnset', 'onset_date');
-  setVal('dateOnset', onsetVal, true);
-  setVal('v_dateOnset', onsetVal, true);
-
-  const firstSympVal = getProp(d, 'FIRST_SYMPTOM', 'first_symptom', 'symptoms');
-  setVal('firstSymptom', firstSympVal);
-  setVal('v_firstSymptom', firstSympVal);
-
-  const facilityVal = getProp(d, 'HOSPITAL', 'hospital', 'facility', 'consult_facility', 'place_of_consultation');
-  setVal('consultFacility1', facilityVal);
-  setVal('v_consultPlace1', facilityVal);
-  setVal('placeAdmission', facilityVal);
-
-  const diagVal = getProp(d, 'DIAGNOSIS', 'diagnosis', 'initial_diagnosis');
-  setVal('consultDiagnosis1', diagVal);
-  setVal('v_consultDiagnosis1', diagVal);
-
-  const admittedVal = getProp(d, 'ADMITTED', 'admitted', 'is_admitted');
-  setVal('consultAdmitted1', admittedVal);
-  setVal('v_consultAdmitted1', admittedVal);
-
-  // Ensure age calculates even if dates load with slight delay
+  // Ensure age calculates immediately
   setTimeout(autoCalcAgeBreakdown, 300);
 }
 
